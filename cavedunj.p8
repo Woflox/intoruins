@@ -20,7 +20,7 @@ entdata=assigntable(
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pdist:0,pack:,movandatk:,alert:20,hurt:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:0,alert:30,hurt:11
 66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-2,alert:30,hurt:11
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11
+67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11,rangedatk:throw,atksfx:26
 68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,pdist:0,alert:31,hurt:16
 72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,pdist:0,flying:,idleanim:batidle,alert:32,hurt:13
@@ -135,8 +135,8 @@ split([[16
  end
  
 	for i=0,9 do
-		curspawns=add(spawns,{})
-		local y=0
+		local y,curspawns=0,
+		add(spawns,{})
 		while true do
 			group,y=mapgroup(i,y)
 			if (#group==0) break
@@ -144,7 +144,7 @@ split([[16
 		end
 	end
 	
-	local rseed=rnd(0xffff.ffff)
+	local rseed=rnd(0x7fff.ffff)
 	srand(0x5b04.17cb)
 	genmap(vec2s"10,13")
 	srand(rseed)
@@ -2354,7 +2354,6 @@ end
 --items
 
 --[[
-___________________
 aMULET O'dEFENSE+10
 
 orbs[green,orange,purple,pink,cyan,yellow,red,silver:
@@ -2649,12 +2648,12 @@ ffffff0100000fffffffff0000000ffffff0000000ffffffffffffffffffffffffffffffffefefff
 ff000811000011000000505551d00fffffff00505880d0ffff0011010050100f012444fff89898ffff0011000001100fff5551519501100fff0011000001100f
 fff0000000000000ffff00055100fffffffffff005500ffffff01111101110fff0122fffff8f8ffffff00110111000fffff00555511000fffff00110111000ff
 ffff115515150fffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042992242fffffffffffffffffff
-fff11015010105ffffff015500fffffffffff0bbb00fffffffff9ffffffb9f33fff000110111ffffffffffffffffffffffff150000050ffffff000880811ffff
-ffd110111101011ffff10111015ffffffff10bbbbbb8f1fff33ff9fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
-fd11001101000101ff1d1000011501ffff10b11bbb9d111ffff3ff3f99ff3ffff01150d9195015d0ffffffffffff9fffffff050000050ffff011110180001110
-5151000000000100f155010100010155fff05551195dffffffff3f3fff3fbfff00005550050d0000fffffffffff9ffffffff042922240fff0000001111080000
-11500011010000011150f00011000011f01155155d501100fffffbfbffb00ffff011000050050100fffff9fffff3ffffffff021000100ffff011000010111100
-1101fffffffff1015001ffff00011100ff0000155d01100fffff0b0bfbffffffff0011510050500fffffff9ffff3ffffffff042222242fffff0011110001100f
+fff11015010105ffffff001500fffffffffff0bbb00fffffffff9ffffffb9f33fff000110111ffffffffffffffffffffffff150000050ffffff000880811ffff
+ffd110111101011ffff10011015ffffffff10bbbbbb8f1fff33ff9fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
+fd11001101000101ff1d1000011001ffff10b11bbb9d111ffff3ff3f99ff3ffff01150d9195015d0ffffffffffff9fffffff050000050ffff011110180001110
+5151000000000100f155000100000155fff05551195dffffffff3f3fff3fbfff00005550050d0000fffffffffff9ffffffff042922240fff0000001111080000
+11500011010000011150f00001000011f01155155d501100fffffbfbffb00ffff011000050050100fffff9fffff3ffffffff021000100ffff011000010111100
+1101fffffffff1015001ffff00000100ff0000155d01100fffff0b0bfbffffffff0011510050500fffffff9ffff3ffffffff042222242fffff0011110001100f
 101fffffffffff005001fffffff00001fff00100001000fffffffffbfffffffffff00150110005fffff3ff3f9ff3f3ffffff050000020ffffff00110111000ff
 ffffff88fffffffffffffff888ffffffffffffff88fffffffffffffff9ffffffffff667777766fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
 fff000110881fffffff01111111110fffff01111111110fffffffffffbfffffffff6ddd979ddd6ffffff3f3ff3bf3ffffffffff5904202ffffff5055d11000ff
