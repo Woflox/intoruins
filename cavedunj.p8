@@ -240,6 +240,8 @@ end
 function _update()
 	if mode=="play" then
 		updateturn()
+	elseif mode=="aim" then
+		updateaim()
 	end
 	
 	statet+=0.033
@@ -300,6 +302,9 @@ function _draw()
 										t>0.433 and 5 or col)
 			end
 		end
+	elseif mode=="aim" then
+	 local scrpos=screenpos(aimpos)
+		?"\19",scrpos.x-1,scrpos.y-2,7
 	end
 	camera()
  
@@ -403,8 +408,8 @@ end
 
 function getindex(cur,maxind)
 	return focus and not inputblocked and
-												(cur+tonum(btnp(⬇️))-
-													tonum(btnp(⬆️))+
+												(cur+btntonum(⬇️)-
+													btntonum(⬆️)+
 												maxind-1)%maxind+1
 												or cur
 end
@@ -1216,8 +1221,9 @@ end
 function hexline(p1,p2,func)
 	local dist=hexdist(p1,p2)
 	for i=0,dist do
-		if func(hexnearest(
-							lerp(p1,p2,i/dist))) then
+	 local pos=hexnearest(
+							lerp(p1,p2,i/dist))
+		if func(pos,gettile(pos)) then
 			return
 		end
 	end
@@ -1230,6 +1236,10 @@ function hexnearest(pos)
  return abs(remx) > abs(remy) and
  	vec2(roundx+round(remx+remy/2),roundy) or
  	vec2(roundx,roundy+round(remy+remx/2))
+end
+
+function btntonum(b)
+	return tonum(btnp(b))
 end
 
 function hexdir(p1,p2)
@@ -1843,7 +1853,7 @@ function move(ent,dst,playsfx)
 		 local snd=tlsfx[dsttile.typ]
 	  sfx(snd or 35)
 	  if snd==43 then
-				--bonez			
+				--bonez
 				aggro(playerdst)	
 		 end
 		end
@@ -2357,10 +2367,52 @@ end
 --aiming
 
 function aim(item,thrown,range)
-	aimitem,aimthrow,aimrange=
-	item,thrown,range
+	aimitem,aimthrow,aimrange,aimpos=
+	item,thrown,range,playerdst
 	
 	setmode"aim"
+end
+
+function updateaim()
+ local ppos=player.pos
+	local dir,dist=
+	-hexdir(aimpos,ppos),
+	hexdist(aimpos,ppos)
+	local diri=1
+	for i=1,6 do
+		if dir==adj[i] then
+			diri=i
+		end
+	end
+	function finddir(indices)
+	 for i in all(indices) do
+	 	local adjdir=adj[(diri+i)%6+1]
+	  local adjpos=aimpos+adjdir
+		 if hexdist(ppos,adjpos)==dist
+			then
+				return adjdir
+			end
+	 end
+	 return vec2(0,0)
+	end
+	aimpos=aimpos+
+		(btntonum(⬆️)-btntonum(⬇️))*dir+
+	 btntonum(⬅️)*finddir{4,3}+
+	 btntonum(➡️)*finddir{0,1}
+	if aimpos==player.pos then
+		aimpos+=dir
+	end
+	while not (validpos(aimpos)
+	 and onscreenpos(aimpos,62)) do
+		aimpos+=hexdir(aimpos,ppos)
+	end
+	hexline(player.pos,aimpos,
+	function(npos,ntl)
+	 if npos!= player.pos then
+			ntl.hilight=2
+		end
+	end)
+	updatefacing(player,dir)
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
