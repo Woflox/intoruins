@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,playerdir:2,invindex:1
+[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -58,7 +58,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,id:
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arsc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3
 135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16
 129=n:oAKEN STAFF,var:item,unid:,throw:4
 145=n:dRIFTWOOD STAFF,var:item,throw:4
@@ -72,14 +72,14 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2
 158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2
 159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2
-172=n:cYAN ORB,var:item,light:2,throw:6
-173=n:yELLOW ORB,var:item,light:2,throw:6
-174=n:rED ORB,var:item,light:2,throw:6
-175=n:bLACK ORB,var:item,light:2,throw:6
-188=n:gREEN ORB,var:item,light:2,throw:6
-189=n:oRANGE ORB,var:item,light:2,throw:6
-190=n:pURPLE ORB,var:item,light:2,throw:6
-191=n:pINK ORB,var:item,light:2,throw:6
+172=n:cYAN ORB,var:item,light:2,throw:6,orb:
+173=n:yELLOW ORB,var:item,light:2,throw:6,orb:
+174=n:rED ORB,var:item,light:2,throw:6,orb:
+175=n:bLACK ORB,var:item,light:2,throw:6,orb:
+188=n:gREEN ORB,var:item,light:2,throw:6,orb:
+189=n:oRANGE ORB,var:item,light:2,throw:6,orb:
+190=n:pURPLE ORB,var:item,light:2,throw:6,orb:
+191=n:pINK ORB,var:item,light:2,throw:6,orb:
 ]],nil,"\n","=")
  
  function mapgroup(x,y)
@@ -149,7 +149,7 @@ split([[16
 	genmap(vec2s"10,13")
 	srand(rseed)
 	
-	addtoinventory(create(130)).eQUIP(true)
+	addtoinventory(create(134)).eQUIP(true)
 	calclight()
 end
 
@@ -444,14 +444,14 @@ function getindex(maxind,cur)
 end
 
 function gettrans(a,b)
-	return lerp(b,a,focus and uitrans or 0.53*(1-uitrans))
+	return lerp(b,a,focus and uitrans or 0.56*(1-uitrans))
 end
 
 function inv()
- frame(gettrans(126,42),6,126,111,rect)
+ frame(gettrans(126,40),6,126,111,rect)
  local i=0
  local sely=0
-	?"\fd  iNVENTORY\n\f1 …………… EQUIPPED"
+	?"\fd  iNVENTORY\n\f1 ……………… EQUIPPED"
 	
 	invindex=getindex(#inventory,invindex)
 	
@@ -468,39 +468,40 @@ function inv()
 	end
 	
 	listitems(true)
-	?"\n\f1 ……………… STOWED"
+	?"\n\f1 ………………… STOWED"
 	listitems()
 end
 
 function info()
  local eqpd = selitem.equipped
- local x=gettrans(42,5)
- frame(x,6,gettrans(42,90.5),111,rectfill)
+ local x=gettrans(42,4)
+ frame(x,6,gettrans(42,93.5),111,rectfill)
  menuindex=getindex(2)
 
  spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
  ?"\fd    "..selitem.n
  local statstr="\f1 ……………………………\fd\|j"
- if selitem.id then
- 	for str in all(split([[
- 
-  nAME: ,name|
-  cASTS LIGHT
-,lit|
-  aRC ATTACK
-,arc|
-  lUNGE ATTACK
-,lunge|
-  kNOCKBACK=knockback|
-  hEALTH:      ,hp|/=maxhp|
-  aCCURACY:   +,atk|
-  dAMAGE:      ,dmg|
-  aRMOR:       ,armor|
-  tHROW RANGE: ,throw|
-  tHROW ACC:   ,throwatk|
-  sTUN:        ,stun|
-  cHARGES:     ,charge|/,maxcharges]]
-  ,"|"))
+ if true then--selitem.id then
+ 	for str in all(split(
+"nAME: ,name|\
+  cASTS LIGHT\
+,lit|\
+  aTTACK SHAPE:   \|k^\+3c❎\+fd❎\+fj❎\
+,arc|\
+  aTTACK SHAPE:   \|p^\+aa❎\+8a❎\|o\
+,pierce|\
+  lUNGE ATTACK\
+,lunge|\
+  kNOCKBACK=knockback|\
+  hEALTH:      ,hp|/=maxhp|\
+  aCCURACY:   +,atk|\
+  dAMAGE:      ,dmg|\
+  aRMOR:       ,armor|\
+  tHROW RANGE: ,throw|\
+  tHROW ACC:  +,throwatk|\
+  sTUN:        ,stun|\
+  cHARGES:     ,charge|/,maxcharges",
+  "|"))
   do
   	k,v=usplit(str)
 	  local val=selitem[v]
@@ -1339,7 +1340,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,statuses:{}",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -1430,15 +1431,17 @@ function checkfall(ent)
 end
 
 function setpos(ent,pos,setrender)
-	ent.pos=pos
-	ent.tl=gettile(pos)
-	ent.tl[ent.var]=ent
-	if setrender then
-		ent.renderpos=entscreenpos(ent)+ent.animoffset
-	end
-	checkfall(ent)
-	if not ent.flying then
-		flatten(ent.tl)
+	if pos then
+		ent.pos=pos
+		ent.tl=gettile(pos)
+		ent.tl[ent.var]=ent
+		if setrender then
+			ent.renderpos=entscreenpos(ent)+ent.animoffset
+		end
+		checkfall(ent)
+		if not ent.flying then
+			flatten(ent.tl)
+		end
 	end
 end
 
@@ -1650,7 +1653,7 @@ function taketurn(ent,pos,tl,group)
 		
 		function turn(btnid,i)
 		 if btnp(btnid) then
-				playerdir=(playerdir+i+5)%6+1
+				player.diri=(player.diri+i+5)%6+1
 				ent.setanim"turn"
 			end
 		end
@@ -1661,7 +1664,7 @@ function taketurn(ent,pos,tl,group)
 		
 		function updst()
 			playerdst,aimitem=
-			ent.pos+adj[playerdir]
+			ent.pos+adj[player.diri]
 			dsttile=gettile(playerdst)
 		end
 		updst()
@@ -1861,6 +1864,7 @@ end
 
 function atk(ent,tl,pat)
  local b=tl.ent
+ local dir,diri=hexdir(ent.pos,tl.pos)
  if b then
  	local hitp=1
 		if b.stat"armor" then
@@ -1869,13 +1873,13 @@ function atk(ent,tl,pat)
 		      (abs(diff)+2)
 		end
 		if rndp(hitp) then
-			hurt(b,ent.stat"dmg",ent.dir)
+			hurt(b,ent.stat"dmg",dir)
 		else
 			aggro(tl.pos)
 		end
  end
  for p in all(split(pat,"|")) do
- 	local tl=getadjtl(tl.pos,(ent.diri+p)%6+1)
+ 	local tl=getadjtl(tl.pos,(diri+p)%6+1)
  	if vistoplayer(tl) then
  		atk(ent,tl)
  	end
@@ -2350,6 +2354,8 @@ end
 --items
 
 --[[
+___________________
+aMULET O'dEFENSE+10
 
 orbs[green,orange,purple,pink,cyan,yellow,red,silver:
 power,life,data,gravity,
@@ -2465,6 +2471,7 @@ function updateaim(item,lineparams,atktype,fx)
 			item.sTOW(true)
 			del(inventory,item)
 			aimitem=nil
+			item.pos=player.pos
 		end
 		player.setanim"throw"
 		add(rangedatks,{0,player.pos,aimline,item,atktype})
@@ -2490,13 +2497,16 @@ function rangedatk(i,origin,ln,item,atktype)
 		 elseif item.lit then
 		 	setfire(dsttl)
 		 	sfx"36"
-		 else
+		 elseif item.orb then
 		  --todo:orb effects
-		  --todo:damage
-		 	local free=findfree(dst,"item")
-		 	if free then
-		 		setpos(item,free,true)
-		 	end
+		 	sfx"27"
+		 else
+		  if item.atk then
+		  	atk(item,dsttl)
+		  end
+			 if item.throw then
+			 	setpos(item,findfree(dst,"item"),true)
+			 end
 		 end
 		end
 		return true
