@@ -149,7 +149,7 @@ split([[16
 	genmap(vec2s"10,13")
 	srand(rseed)
 	
-	addtoinventory(create(134)).eQUIP(true)
+	addtoinventory(create(130)).eQUIP(true)
 	calclight()
 end
 
@@ -976,11 +976,11 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 		local tl=gettile(tlpos)
 	 if tl then
 			local vis,splitlim=
-			passlight(tl),-1
+			passlight(tl)
 			tl.vis=tileflag(tl,5) or
-											(tl.typ==tywall and
+											tl.typ==tywall and
 											 player.pos.x<
-											 tlpos.x)
+											 tlpos.x
 			if vistoplayer(tl) then
 			 tl.explored=true
 			end
@@ -996,7 +996,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 				splitlim=i-0.5
 			end
 			
-			if splitlim!=-1 then
+			if splitlim then
 				local expamd=(d+1)/d
 				viscone(pos,dir1,dir2,
 												expamd*lim1,
@@ -1868,7 +1868,7 @@ function atk(ent,tl,pat)
  if b then
  	local hitp=1
 		if b.stat"armor" then
-		 local diff=ent.stat"atk"-b.stat"armor"
+		 local diff=(ent.throwatk or ent.stat"atk")-b.stat"armor"
 		 hitp=(max(diff)+1)/
 		      (abs(diff)+2)
 		end
