@@ -659,7 +659,7 @@ function drawtl(tl,typ,pos,baseoffset,offset,size,flp,bg,hilight)
 							size.x,size.y+xtraheight,flp)
 	if hilight then
 	 tl.hifade+=mid(-1,tl.hilight-tl.hifade,1)
-	 if tl.hifade>0 then
+	 if tl.hifade>0 and vistoplayer(tl) then
 	  pal(usplit"2,34,2")
 	 	spr(tl.hifade*16-8,scrpos.x,scrpos.y,2,1)
 	 end
@@ -2442,24 +2442,22 @@ function aim(params)
 end
 
 function updateaim(item,lineparams,atktype,fx)
- aimitem=item
- aimscrpos=
+ aimitem,aimscrpos=item,
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn"1")
            -tonum(btn"0")),
        tonum(btn"3")
       -tonum(btn"2"))
 	
- aimscrpos.x=mid(campos.x,aimscrpos.x,campos.x+127)
-	aimscrpos.y=mid(campos.y,aimscrpos.y,campos.y+127)
+ aimscrpos.x,aimscrpos.y=
+ mid(campos.x,aimscrpos.x,campos.x+127),
+ mid(campos.y,aimscrpos.y,campos.y+127)
 	aimpos=vec2(aimscrpos.x/12,
 	            aimscrpos.y/8-aimscrpos.x/24)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
 	for pos in all(aimline) do
-	 if vistoplayer(gettile(pos)) then
-	  gettile(pos).hilight=2
-	 end
+	 gettile(pos).hilight=2
 	end
 	lookat(player,aimpos)
 	item.xface=player.xface
@@ -2470,8 +2468,7 @@ function updateaim(item,lineparams,atktype,fx)
 		if atktype=="throw" then
 			item.sTOW(true)
 			del(inventory,item)
-			aimitem=nil
-			item.pos=player.pos
+			item.pos,aimitem=player.pos
 		end
 		player.setanim"throw"
 		add(rangedatks,{0,player.pos,aimline,item,atktype})
