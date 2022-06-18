@@ -55,8 +55,7 @@ tdunjfloor,tdunjwall=
 176       ,130
 
 function tile(typ)
-	tl = {typ=typ}
-	return tl
+	return {typ=typ}
 end
 -->8
 mapsize,mapcenter=
@@ -101,7 +100,7 @@ end
 function drawmap()
 	alltiles(function(x,y,tile)
 		typ = tile.typ
-		if typ > 0 then 
+		if tile.vis and typ > 0 then 
 			scrx,scry=screenpos(x,y,-7,-4)
 			fillp(tile.light>0 and █	or
 								 0x3c68|0.25)
@@ -126,12 +125,34 @@ function passlight(x,y)
 	return world[x][y].typ >= tdunjfloor
 end
 
+function calcpdist(x,y,tl,param)
+	d=0
+	tovisit={{x,y,tl}}
+	repeat
+		info=deli(tovisit,0)
+		x,y,tl=unpack(info)
+		tl[param]=d
+		if inbounds(x,y) and
+					(param != "pdist" or
+					passlight(x,y)) then
+			visitadj(x,y,
+			function(nx,ny,ntl)
+				if ntl[param] == -1 then
+					add(tovisit,{nx,ny,ntl}) 
+				end
+			end)
+		end
+	until #tovisit==0
+end
+
 function updatemap()
 	alltiles(
 	function(x,y)
 		tile = world[x][y]
 		ent = tile.ent
 		tile.light = ent and ent.light or 0
+		tile.pdist,tile.idealdist=
+		-1        ,-1
 	end)
 	for i = 4,0,-1 do
 		alltiles(
@@ -147,6 +168,19 @@ function updatemap()
 			end
 		end)
 	end
+	px,py=player.x,player.y
+	ptile=world[px][py]
+	calcpdist(px,py,ptile,"pdist")
+	calcpdist(px,py,ptile,"idealpdist")
+	
+	alltiles(function(x,y,tile)
+		tile.vis=tile.pdist<3--==tile.idealdist
+		if tile.vis and tile.light>0 
+		then
+			tile.explored=true
+		end
+	end)
+
 end
 -->8
 function screenpos(x,y,
