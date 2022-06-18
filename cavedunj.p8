@@ -25,10 +25,12 @@ function _update()
 	end
 	
 	moved=false
-	moved=move(player,movx,movy)
-		
-	if not moved and movx!=0 then
-		moved=move(player,movx,movy-player.yface)
+	if movx!=0 or movy!=0 then
+		moved=move(player,movx,movy)
+			
+		if not moved and movx!=0 then
+			moved=move(player,movx,movy-player.yface)
+		end
 	end
 	
 	if moved then
@@ -126,19 +128,19 @@ function passlight(x,y)
 end
 
 function calcpdist(x,y,tl,param)
-	d=0
-	tovisit={{x,y,tl}}
+	tovisit={{x,y,tl,1}}
+	tl[param]=0
 	repeat
-		info=deli(tovisit,0)
-		x,y,tl=unpack(info)
-		tl[param]=d
+		info=deli(tovisit,1)
+		x,y,tl,d=unpack(info)
 		if inbounds(x,y) and
 					(param != "pdist" or
 					passlight(x,y)) then
 			visitadj(x,y,
 			function(nx,ny,ntl)
 				if ntl[param] == -1 then
-					add(tovisit,{nx,ny,ntl}) 
+					ntl[param]=d
+					add(tovisit,{nx,ny,ntl,d+1}) 
 				end
 			end)
 		end
@@ -171,10 +173,10 @@ function updatemap()
 	px,py=player.x,player.y
 	ptile=world[px][py]
 	calcpdist(px,py,ptile,"pdist")
-	calcpdist(px,py,ptile,"idealpdist")
+	calcpdist(px,py,ptile,"idealdist")
 	
 	alltiles(function(x,y,tile)
-		tile.vis=tile.pdist<3--==tile.idealdist
+		tile.vis=tile.pdist==tile.idealdist
 		if tile.vis and tile.light>0 
 		then
 			tile.explored=true
