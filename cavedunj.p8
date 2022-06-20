@@ -165,7 +165,7 @@ function viscone(x,y,dir,dir2)
 		x1,y1,x2,y2=x+dx1,y+dy1,x+dx2,y+dy2
 		tl1,tl2=gettile(x1,y1),
 										gettile(x2,y2)
-		vis = gettile(x,y).vis *
+		vis = flr(gettile(x,y).vis) *
 							 tonum(passlight(x,y))
 		tl1.vis |= vis
 		if inbounds(x1,y1) then
@@ -173,7 +173,6 @@ function viscone(x,y,dir,dir2)
 																not alt,
 																first and not alt})
 		end
-		vis = flr(vis)
 		if alt then
 			tl2.vis |= vis
 			if first then
@@ -188,7 +187,7 @@ function viscone(x,y,dir,dir2)
 end
 
 function calcvis(x,y,tl)
-	for i=1,6 do
+	for i=1,12 do
 		viscone(x,y,i,i-1)
 		viscone(x,y,i,i+1)
 	end
