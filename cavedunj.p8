@@ -106,7 +106,7 @@ end
 function drawmap()
 	alltiles(function(x,y,tile)
 		typ = tile.typ
-		if tile.vis and typ > 0 then 
+		if tile.vis>0 and typ > 0 then 
 			scrx,scry=screenpos(x,y,-7,-4)
 			fillp(tile.light>0 and █	or
 								 0x3c68|0.25)
@@ -153,41 +153,44 @@ function gettile(x,y)
 	return world[x][y]
 end
 
-function viscone(x,y,dir,dir2,alt)
+function viscone(x,y,dir,dir2)
 	dx1,dy1=getadj(dir)
 	dx2,dy2=getadj(dir2)
 	
-	tovisit={{x,y,alt,true}}
-	gettile(x,y).vis = true
-
+	tovisit={{x,y,false,true}}
+	gettile(x,y).vis = 1
 	repeat
 		x,y,alt,first=unpack(deli(tovisit,1))
 
 		x1,y1,x2,y2=x+dx1,y+dy1,x+dx2,y+dy2
 		tl1,tl2=gettile(x1,y1),
 										gettile(x2,y2)
-		vis = gettile(x,y).vis and passlight(x,y)
-		tl1.vis = tl1.vis or vis
+		vis = gettile(x,y).vis *
+							 tonum(passlight(x,y))
+		tl1.vis |= vis
 		if inbounds(x1,y1) then
 			add(tovisit,{x1,y1,
 																not alt,
 																first and not alt})
 		end
+		vis = flr(vis)
 		if alt then
-			tl2.vis = tl2.vis or vis
+			tl2.vis |= vis
 			if first then
 				if inbounds(x2,y2) then
 					add(tovisit,{x2,y2,false,true})
 				end
 			end
+		else
+			tl2.vis |= vis * 0.5
 		end
 	until #tovisit==0
 end
 
-function calcvis(x,y,tl,alt)
+function calcvis(x,y,tl)
 	for i=1,6 do
-		viscone(x,y,i,i-1,alt)
-		viscone(x,y,i,i+1,alt)
+		viscone(x,y,i,i-1)
+		viscone(x,y,i,i+1)
 	end
 end
 
@@ -198,7 +201,7 @@ function updatemap()
 		ent = tile.ent
 		tile.light = ent and ent.light or 0
 		tile.pdist,tile.vis=
-		-1        ,false
+		-1        ,0
 	end)
 	for i = 4,0,-1 do
 		alltiles(
@@ -217,10 +220,9 @@ function updatemap()
 	px,py=player.x,player.y
 	ptile=gettile(px,py)
 	calcpdist(px,py,ptile)
-	calcvis(px,py,false)
-	calcvis(px,py,true)
+	calcvis(px,py)
 	alltiles(function(x,y,tile)
-		if tile.vis and tile.light>0 
+		if tile.vis>0 and tile.light>0 
 		then
 			tile.explored=true
 		end
