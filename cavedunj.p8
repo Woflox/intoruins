@@ -153,11 +153,12 @@ function gettile(x,y)
 	return world[x][y]
 end
 
-function viscone(x,y,dir,dir2)
+function viscone(x,y,dir,dir2,alt)
 	dx1,dy1=getadj(dir)
 	dx2,dy2=getadj(dir2)
 	
-	tovisit={{x,y,false,true}}
+	tovisit={{x,y,alt,true}}
+	gettile(x,y).vis = true
 
 	repeat
 		x,y,alt,first=unpack(deli(tovisit,1))
@@ -166,14 +167,14 @@ function viscone(x,y,dir,dir2)
 		tl1,tl2=gettile(x1,y1),
 										gettile(x2,y2)
 		vis = gettile(x,y).vis and passlight(x,y)
-		tl1.vis = tl1.vis and vis
+		tl1.vis = tl1.vis or vis
 		if inbounds(x1,y1) then
 			add(tovisit,{x1,y1,
 																not alt,
 																first and not alt})
 		end
 		if alt then
-			tl2.vis = tl2.vis and vis
+			tl2.vis = tl2.vis or vis
 			if first then
 				if inbounds(x2,y2) then
 					add(tovisit,{x2,y2,false,true})
@@ -183,10 +184,10 @@ function viscone(x,y,dir,dir2)
 	until #tovisit==0
 end
 
-function calcvis(x,y,tl)
+function calcvis(x,y,tl,alt)
 	for i=1,6 do
-		viscone(x,y,i,i-1)
-		viscone(x,y,i,i+1)
+		viscone(x,y,i,i-1,alt)
+		viscone(x,y,i,i+1,alt)
 	end
 end
 
@@ -197,7 +198,7 @@ function updatemap()
 		ent = tile.ent
 		tile.light = ent and ent.light or 0
 		tile.pdist,tile.vis=
-		-1        ,true
+		-1        ,false
 	end)
 	for i = 4,0,-1 do
 		alltiles(
@@ -216,7 +217,8 @@ function updatemap()
 	px,py=player.x,player.y
 	ptile=gettile(px,py)
 	calcpdist(px,py,ptile)
-	calcvis(px,py)
+	calcvis(px,py,false)
+	calcvis(px,py,true)
 	alltiles(function(x,y,tile)
 		if tile.vis and tile.light>0 
 		then
