@@ -77,6 +77,14 @@ function inbounds(pos)
 								x+y>mapcenter and
 								x+y<mapsize*1.5
 end
+
+function validpos(pos)
+	x,y=pos.x,pos.y
+	return x>=0 and
+								x<=mapsize and
+								y>=0 and
+								y<=mapsize
+end
 					
 function getadj(i)
 	return adj[i%6+1]
@@ -123,12 +131,12 @@ function drawmap()
 	end)
 end
 
-function navigable(pos)
-	return gettile(pos).typ >= tdunjfloor
+function navigable(tl)
+	return tl.typ >= tdunjfloor
 end
 
-function passlight(pos)
-	return gettile(pos).typ >= tdunjfloor
+function passlight(tl)
+	return tl.typ >= tdunjfloor
 end
 
 function calcpdist(pos,tl)
@@ -137,7 +145,7 @@ function calcpdist(pos,tl)
 	repeat
 		pos,tl,d=unpack(deli(tovisit,1))
 		if inbounds(pos) and
-					navigable(pos) then
+					navigable(tl) then
 			visitadj(pos,
 			function(npos,ntl)
 				if ntl.pdist == -1 then
@@ -154,13 +162,41 @@ function gettile(pos)
 end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
-	d += 1
-	
+	pos += dir1
+	lastvis=true
+	for i=ceil(lim1),flr(lim2) do
+	 tlpos=pos+i*dir2
+	 if validpos(tlpos) then
+			tl = gettile(tlpos)
+			tl.vis = true
+			vis = passlight(tl)
+			splitlim=-1
+			if vis then 
+				if not lastvis then
+					lim1=i-0.5
+				end
+				if i == flr(lim2) then
+					splitlim=lim2
+				end
+			elseif lastvis then
+				splitlim=i-0.5
+			end
+			
+			if splitlim!=-1 then
+				expamd=(d+1)/d
+				viscone(pos,dir1,dir2,
+												expamd*lim1,
+												expamd*splitlim,
+												d+1)
+			end
+			lastvis=vis
+		end
+	end
 end
 
 function calcvis(pos,tl)
-	for i=1,1 do
-		viscone(pos,getadj(i),getadj(i+2),0,1,0)
+	for i=1,6 do
+		viscone(pos,getadj(i),getadj(i+2),0,1,1)
 	end
 end
 
@@ -170,12 +206,12 @@ function updatemap()
 		ent = tl.ent
 		tl.light = ent and ent.light or 0
 		tl.pdist,tl.vis=
-		-1      ,true--ent == player
+		-1      ,ent == player
 	end)
 	for i = 4,0,-1 do
 		alltiles(
 		function(pos,tl)
-			if passlight(pos) and
+			if passlight(tl) and
 				tl.light == i then
 				visitadj(pos,
 				function(npos,tln)
@@ -261,7 +297,8 @@ end
 
 function move(ent,delta)
 	dst=ent.pos+delta
-	if not navigable(dst) then
+	dsttile = gettile(dst)
+	if not navigable(dsttile) then
 		return false
 	end
 	gettile(ent.pos).ent = nil
@@ -275,7 +312,7 @@ function move(ent,delta)
   ent.yface = delta.x
  end
 	
-	gettile(dst).ent = ent
+	dsttile.ent = ent
 	return true
 end
 -->8
