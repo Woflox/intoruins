@@ -79,13 +79,17 @@ adj={{0,-1},
 					{-1,1},
 					{-1,0}}
 
+function getadj(i)
+	return unpack(adj[i%6+1])
+end
+
 function visitadj(x,y,func)
 	offset = flr(rnd(6))
 	for i = offset,offset+6 do
-		coord = adj[i%6+1]
-		nx = x+coord[1]
-		ny = y+coord[2]
-		func(nx,ny,world[nx][ny])
+		dx,dy = getadj(i)
+		nx = x+dx
+		ny = y+dy
+		func(nx,ny,gettile(nx,ny))
 	end
 end
 
@@ -94,7 +98,7 @@ p=2
 function alltiles(func)
 	for x=0,mapsize do
 		for y=0,mapsize do
-			func(x,y,world[x][y])
+			func(x,y,gettile(x,y))
 		end
 	end
 end
@@ -106,7 +110,7 @@ function drawmap()
 			scrx,scry=screenpos(x,y,-7,-4)
 			fillp(tile.light>0 and █	or
 								 0x3c68|0.25)
-			spr(world[x][y].typ,scrx,scry,2,1)
+			spr(gettile(x,y).typ,scrx,scry,2,1)
 		end
 	end)
 	fillp(█)
@@ -120,26 +124,24 @@ function drawmap()
 end
 
 function navigable(x,y)
-	return world[x][y].typ >= tdunjfloor
+	return gettile(x,y).typ >= tdunjfloor
 end
 
 function passlight(x,y)
-	return world[x][y].typ >= tdunjfloor
+	return gettile(x,y).typ >= tdunjfloor
 end
 
-function calcpdist(x,y,tl,param)
+function calcpdist(x,y,tl)
 	tovisit={{x,y,tl,1}}
-	tl[param]=0
+	tl.pdist=0
 	repeat
-		info=deli(tovisit,1)
-		x,y,tl,d=unpack(info)
+		x,y,tl,d=unpack(deli(tovisit,1))
 		if inbounds(x,y) and
-					(param != "pdist" or
-					passlight(x,y)) then
+					navigable(x,y) then
 			visitadj(x,y,
 			function(nx,ny,ntl)
-				if ntl[param] == -1 then
-					ntl[param]=d
+				if ntl.pdist == -1 then
+					ntl.pdist=d
 					add(tovisit,{nx,ny,ntl,d+1}) 
 				end
 			end)
@@ -147,14 +149,55 @@ function calcpdist(x,y,tl,param)
 	until #tovisit==0
 end
 
+function gettile(x,y)
+	return world[x][y]
+end
+
+function viscone(x,y,dir,dir2)
+	dx1,dy1=getadj(dir)
+	dx2,dy2=getadj(dir2)
+	
+	tovisit={{x,y,false,true}}
+
+	repeat
+		x,y,alt,first=unpack(deli(tovisit,1))
+
+		x1,y1,x2,y2=x+dx1,y+dy1,x+dx2,y+dy2
+		tl1,tl2=gettile(x1,y1),
+										gettile(x2,y2)
+		vis = gettile(x,y).vis and passlight(x,y)
+		tl1.vis = tl1.vis and vis
+		if inbounds(x1,y1) then
+			add(tovisit,{x1,y1,
+																not alt,
+																first and not alt})
+		end
+		if alt then
+			tl2.vis = tl2.vis and vis
+			if first then
+				if inbounds(x2,y2) then
+					add(tovisit,{x2,y2,false,true})
+				end
+			end
+		end
+	until #tovisit==0
+end
+
+function calcvis(x,y,tl)
+	for i=1,6 do
+		viscone(x,y,i,i-1)
+		viscone(x,y,i,i+1)
+	end
+end
+
 function updatemap()
 	alltiles(
 	function(x,y)
-		tile = world[x][y]
+		tile = gettile(x,y)
 		ent = tile.ent
 		tile.light = ent and ent.light or 0
-		tile.pdist,tile.idealdist=
-		-1        ,-1
+		tile.pdist,tile.vis=
+		-1        ,true
 	end)
 	for i = 4,0,-1 do
 		alltiles(
@@ -171,12 +214,10 @@ function updatemap()
 		end)
 	end
 	px,py=player.x,player.y
-	ptile=world[px][py]
-	calcpdist(px,py,ptile,"pdist")
-	calcpdist(px,py,ptile,"idealdist")
-	
+	ptile=gettile(px,py)
+	calcpdist(px,py,ptile)
+	calcvis(px,py)
 	alltiles(function(x,y,tile)
-		tile.vis=tile.pdist==tile.idealdist
 		if tile.vis and tile.light>0 
 		then
 			tile.explored=true
@@ -195,6 +236,11 @@ end
 function entscreenpos(ent)
 	return screenpos(ent.x,ent.y,
 																		-3,-7)
+end
+
+function hexdist(x,y,x2,y2)
+	z,z2=-x-y,-x2-y2
+	return (abs(x-x2)+abs(y-y2)+abs(z-z2))/2
 end
 
 function axisinput(pos,neg)
