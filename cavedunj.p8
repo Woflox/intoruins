@@ -3,7 +3,13 @@ version 36
 __lua__
 
 function _init()
-	genmap(mapsize/2,mapsize*0.75)
+	adj={vec2(0,-1),
+					vec2(1,-1),
+					vec2(1, 0),
+					vec2(0, 1),
+					vec2(-1,1),
+					vec2(-1,0)}
+	genmap(vec2(mapsize/2,mapsize*0.75))
 end
 
 function _update()
@@ -26,10 +32,10 @@ function _update()
 	
 	moved=false
 	if movx!=0 or movy!=0 then
-		moved=move(player,movx,movy)
+		moved=move(player,vec2(movx,movy))
 			
 		if not moved and movx!=0 then
-			moved=move(player,movx,movy-player.yface)
+			moved=move(player,vec2(movx,movy-player.yface))
 		end
 	end
 	
@@ -37,11 +43,10 @@ function _update()
 		updatemap()
 	end
 	
-	camx,camy = entscreenpos(player)
- centerx,centery = screenpos(mapcenter,mapcenter,-3,-7)
-	camx = camx*0.5 + centerx*0.5
-	camy = camy*0.5 + centery*0.5
-	camera(camx-64,camy-64)
+	campos = entscreenpos(player)
+ center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
+	campos = 0.5*campos + 0.5*center
+	camera(campos.x-64,campos.y-64)
 end
 
 function _draw()
@@ -63,7 +68,8 @@ end
 mapsize,mapcenter=
 20     ,10
 
-function inbounds(x,y)
+function inbounds(pos)
+	x,y=pos.x,pos.y
 	return x>0 and
 							 x<mapsize and
 								y>0  and
@@ -71,25 +77,17 @@ function inbounds(x,y)
 								x+y>mapcenter and
 								x+y<mapsize*1.5
 end
-
-adj={{0,-1},
-					{1,-1},
-					{1, 0},
-					{0, 1},
-					{-1,1},
-					{-1,0}}
-
+					
 function getadj(i)
-	return unpack(adj[i%6+1])
+	return adj[i%6+1]
+	--0-indexed with overflow
 end
 
-function visitadj(x,y,func)
+function visitadj(pos,func)
 	offset = flr(rnd(6))
 	for i = offset,offset+6 do
-		dx,dy = getadj(i)
-		nx = x+dx
-		ny = y+dy
-		func(nx,ny,gettile(nx,ny))
+		npos = pos+getadj(i)
+		func(npos,gettile(npos))
 	end
 end
 
@@ -98,117 +96,89 @@ p=2
 function alltiles(func)
 	for x=0,mapsize do
 		for y=0,mapsize do
-			func(x,y,gettile(x,y))
+			pos=vec2(x,y)
+			func(pos,gettile(pos))
 		end
 	end
 end
 
 function drawmap()
-	alltiles(function(x,y,tile)
+	alltiles(function(pos,tile)
 		typ = tile.typ
-		if tile.vis>0 and typ > 0 then 
-			scrx,scry=screenpos(x,y,-7,-4)
+		if tile.vis and typ > 0 then 
+			scrpos=screenpos(pos,vec2(-7,-4))
 			fillp(tile.light>0 and █	or
 								 0x3c68|0.25)
-			spr(gettile(x,y).typ,scrx,scry,2,1)
+			spr(gettile(pos).typ,
+							scrpos.x,scrpos.y,2,1)
 		end
 	end)
 	fillp(█)
-	alltiles(function(x,y,tile)
+	alltiles(function(pos,tile)
 		ent = tile.ent
 		if ent then
-			scrx,scry=entscreenpos(ent)
-			spr(ent.typ + (ent.yface > 0 and 16 or 0),scrx,scry,0.875,1,ent.xface<0)
+			scrpos=entscreenpos(ent)
+			spr(ent.typ + (ent.yface > 0 and 16 or 0),scrpos.x,scrpos.y,0.875,1,ent.xface<0)
 		end
 	end)
 end
 
-function navigable(x,y)
-	return gettile(x,y).typ >= tdunjfloor
+function navigable(pos)
+	return gettile(pos).typ >= tdunjfloor
 end
 
-function passlight(x,y)
-	return gettile(x,y).typ >= tdunjfloor
+function passlight(pos)
+	return gettile(pos).typ >= tdunjfloor
 end
 
-function calcpdist(x,y,tl)
-	tovisit={{x,y,tl,1}}
+function calcpdist(pos,tl)
+	tovisit={{pos,tl,1}}
 	tl.pdist=0
 	repeat
-		x,y,tl,d=unpack(deli(tovisit,1))
-		if inbounds(x,y) and
-					navigable(x,y) then
-			visitadj(x,y,
-			function(nx,ny,ntl)
+		pos,tl,d=unpack(deli(tovisit,1))
+		if inbounds(pos) and
+					navigable(pos) then
+			visitadj(pos,
+			function(npos,ntl)
 				if ntl.pdist == -1 then
 					ntl.pdist=d
-					add(tovisit,{nx,ny,ntl,d+1}) 
+					add(tovisit,{npos,ntl,d+1}) 
 				end
 			end)
 		end
 	until #tovisit==0
 end
 
-function gettile(x,y)
-	return world[x][y]
+function gettile(pos)
+	return world[pos.x][pos.y]
 end
 
-function viscone(x,y,dir,dir2)
-	dx1,dy1=getadj(dir)
-	dx2,dy2=getadj(dir2)
+function viscone(pos,dir1,dir2,lim1,lim2,d)
+	d += 1
 	
-	tovisit={{x,y,false,true}}
-	gettile(x,y).vis = 1
-	repeat
-		x,y,alt,first=unpack(deli(tovisit,1))
-
-		x1,y1,x2,y2=x+dx1,y+dy1,x+dx2,y+dy2
-		tl1,tl2=gettile(x1,y1),
-										gettile(x2,y2)
-		vis = flr(gettile(x,y).vis) *
-							 tonum(passlight(x,y))
-		tl1.vis |= vis
-		if inbounds(x1,y1) then
-			add(tovisit,{x1,y1,
-																not alt,
-																first and not alt})
-		end
-		if alt then
-			tl2.vis |= vis
-			if first then
-				if inbounds(x2,y2) then
-					add(tovisit,{x2,y2,false,true})
-				end
-			end
-		else
-			tl2.vis |= vis * 0.5
-		end
-	until #tovisit==0
 end
 
-function calcvis(x,y,tl)
-	for i=1,12 do
-		viscone(x,y,i,i-1)
-		viscone(x,y,i,i+1)
+function calcvis(pos,tl)
+	for i=1,1 do
+		viscone(pos,getadj(i),getadj(i+2),0,1,0)
 	end
 end
 
 function updatemap()
 	alltiles(
-	function(x,y)
-		tile = gettile(x,y)
-		ent = tile.ent
-		tile.light = ent and ent.light or 0
-		tile.pdist,tile.vis=
-		-1        ,0
+	function(pos,tl)
+		ent = tl.ent
+		tl.light = ent and ent.light or 0
+		tl.pdist,tl.vis=
+		-1      ,true--ent == player
 	end)
 	for i = 4,0,-1 do
 		alltiles(
-		function(x,y,tile)
-			if passlight(x,y) and
-				tile.light == i then
-				visitadj(x,y,
-				function(nx,ny,tln)
+		function(pos,tl)
+			if passlight(pos) and
+				tl.light == i then
+				visitadj(pos,
+				function(npos,tln)
 					tln.light=max(
 						tln.light,
 						i-1)
@@ -216,29 +186,29 @@ function updatemap()
 			end
 		end)
 	end
-	px,py=player.x,player.y
-	ptile=gettile(px,py)
-	calcpdist(px,py,ptile)
-	calcvis(px,py)
-	alltiles(function(x,y,tile)
-		if tile.vis>0 and tile.light>0 
+	ppos=player.pos
+	ptile=gettile(ppos)
+	calcpdist(ppos,ptile)
+	calcvis(ppos)
+	alltiles(function(pos,tl)
+		if tl.vis and tl.light>0 
 		then
-			tile.explored=true
+			tl.explored=true
 		end
 	end)
 
 end
 -->8
-function screenpos(x,y,
-																			offsetx,
-																			offsety)
-	return offsetx + x*10,
-							 offsety + y*8 + x*4 
+function screenpos(pos,
+																			offset)
+	return vec2(offset.x+pos.x*10,
+							 				 offset.y+pos.y*8+
+							 				  pos.x*4) 
 end
 
 function entscreenpos(ent)
-	return screenpos(ent.x,ent.y,
-																		-3,-7)
+	return screenpos(ent.pos,
+																		vec2(-3,-7))
 end
 
 function hexdist(x,y,x2,y2)
@@ -251,70 +221,93 @@ function axisinput(pos,neg)
 								tonum(btnp(neg))
 end
 
+vec2mt={
+    __add=function(v1,v2)
+        return vec2(v1.x+v2.x,v1.y+v2.y)
+    end,
+    __sub=function(v1,v2)
+        return vec2(v1.x-v2.x,v1.y-v2.y)
+    end,
+    __unm=function(self)
+        return vec2(-self.x,-self.y)
+    end,
+    __mul=function(s,v)
+        return vec2(s*v.x,s*v.y)
+    end,
+   -- __len=function(self)
+   --     return sqrt(self.x*self.x+self.y*self.y)
+   -- end,
+    __eq=function(v1,v2)
+        return v1.x==v2.x and v1.y==v2.y
+    end,
+}
+vec2mt.__index=vec2mt
+
+function vec2(x,y)
+    return setmetatable({x=x,y=y},vec2mt)
+end
 -->8
 eplayer,egoblin=
 1      ,2
 
-function create(typ,x,y)
-	ent = {typ=typ,x=x,y=y,
+function create(typ,pos)
+	ent = {typ=typ,pos=pos,
 							xface=1,yface=-1}
 		
 	add(ents,ent)
-	world[x][y].ent = ent
+	gettile(pos).ent = ent
 	return ent
 end
 
-function move(ent,x,y)
-	dstx,dsty=ent.x+x,ent.y+y
-	if not navigable(dstx,dsty) then
+function move(ent,delta)
+	dst=ent.pos+delta
+	if not navigable(dst) then
 		return false
 	end
-	world[ent.x][ent.y].ent = nil
-	ent.x,ent.y=dstx,dsty
-	if x != 0 then 
-		ent.xface = x
+	gettile(ent.pos).ent = nil
+	ent.pos=dst
+	if delta.x != 0 then 
+		ent.xface = delta.x
  end
- if y != 0 then
- 	ent.yface = y
+ if delta.y != 0 then
+ 	ent.yface = delta.y
  elseif x != 0 then
-  ent.yface = x
+  ent.yface = delta.x
  end
 	
-	world[ent.x][ent.y].ent = ent
+	gettile(dst).ent = ent
 	return true
 end
 -->8
-function genmap(startx,starty)
+function genmap(startpos)
 	printh("genmap()")
 	world={}
 	ents={}
 	for x=0,mapsize do
 	 world[x] = {}
 		for y=0,mapsize do
-			--world[x][y] = tile(tcavefloor*
-			--																inbounds(x,y))
 			world[x][y] = tile(tempty)
 		end
 	end
-	world[startx][starty] = tile(tcavefloor)
-	gen(startx,starty)
+	gettile(startpos).typ = tcavefloor
+	gen(startpos)
 	player = create(eplayer,
-																	startx,starty)
+																	startpos)
 	player.light=4
 	updatemap()
 end
 
-function gen(x,y)
-	typ = world[x][y].typ
+function gen(pos)
+	typ = gettile(pos).typ
 	p -= 0.02
 	if typ == tcavefloor then
-		visitadj(x,y,
-		function(nx,ny,tl)
+		visitadj(pos,
+		function(npos,tl)
 			if tl.typ == tempty then
-				if inbounds(nx,ny) and 
+				if inbounds(npos) and 
 							rnd()<p then
 					tl.typ=tcavefloor
-					gen(nx,ny)
+					gen(npos)
 				else
 					tl.typ=tcavewall
 				end
