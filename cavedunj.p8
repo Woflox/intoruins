@@ -45,7 +45,7 @@ function _update()
 	
 	campos = entscreenpos(player)
  center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
-	campos = 0.5*campos + 0.5*center
+	campos = 0.5*(campos + center)
 	camera(campos.x-64,campos.y-64)
 end
 
@@ -115,18 +115,23 @@ function drawmap()
 		pal()
 		palt(0, false)
 		palt(15, true)
-		if tile.light==0 then
+		pal(14,129,1)
+		if tile.light==0 or 
+					not tile.vis then
 			for i=2,13 do
-				pal(i,17,2)
+				pal(i,238,2)
 			end
+			pal(1,14,2)
+		else
+			pal(1,225,2)
 		end
 		if tile.explored and typ > 0 then 
 			scrpos=screenpos(pos,vec2(-7,-4))
-			fillp(tile.light>=2 and █	or
-								 (tile.light>0 and 
-								 0x3868 or 0x7fbd)|0.25)
+			fillp((tile.light>=2 and tile.vis)
+								 and █	or 
+								 0xc7d3|0b0.011)
 			spr(gettile(pos).typ,
-							scrpos.x,scrpos.y,2,1)
+							scrpos.x,scrpos.y,2,1,pos)
 		end
 	end)
 	fillp(█)
@@ -252,7 +257,7 @@ end
 
 function entscreenpos(ent)
 	return screenpos(ent.pos,
-																		vec2(-3,-7))
+																		vec2(-2,-7))
 end
 
 function hexdist(x,y,x2,y2)
