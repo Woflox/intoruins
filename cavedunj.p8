@@ -97,8 +97,6 @@ function visitadj(pos,func)
 	end
 end
 
-p=2
-
 function alltiles(func)
 	for x=0,mapsize do
 		for y=0,mapsize do
@@ -129,7 +127,7 @@ function drawmap()
 			scrpos=screenpos(pos,vec2(-7,-4))
 			fillp((tile.light>=2 and tile.vis)
 								 and █	or 
-								 0xc7d3|0b0.011)
+								 0xc7d3.4)
 			spr(gettile(pos).typ,
 							scrpos.x,scrpos.y,2,1,pos)
 		end
@@ -347,22 +345,27 @@ function genmap(startpos)
 	updatemap()
 end
 
+p=1.5
+
 function gen(pos)
 	typ = gettile(pos).typ
-	p -= 0.02
-	if typ == tcavefloor then
-		visitadj(pos,
-		function(npos,tl)
-			if tl.typ == tempty then
-				if inbounds(npos) and 
-							rnd()<p then
-					tl.typ=tcavefloor
-					gen(npos)
-				else
-					tl.typ=tcavewall
+	p -= 0.015
+	if typ==tcavefloor then
+		if inbounds(pos)
+		 then
+			visitadj(pos,
+			function(npos,tl)
+				if tl.typ != tcavefloor then
+					if inbounds(npos) and 
+								rnd()<p then
+						tl.typ=tcavefloor
+						gen(npos)
+					else
+						tl.typ=tcavewall
+					end
 				end
-			end
-		end) 
+			end) 
+		end
 	end
 end
 __gfx__
