@@ -107,6 +107,7 @@ function alltiles(func)
 end
 
 function drawmap()
+	darkpal=split("14,238,238,238,238,238,238,238,238,238,238,238,238")
 	alltiles(function(pos,tile)
 		typ = tile.typ
 		
@@ -116,10 +117,7 @@ function drawmap()
 		pal(14,129,1)
 		if tile.light==0 or 
 					not tile.vis then
-			for i=2,13 do
-				pal(i,238,2)
-			end
-			pal(1,14,2)
+			pal(darkpal,2)
 		else
 			pal(1,225,2)
 		end
