@@ -13,7 +13,7 @@ function _init()
 end
 
 function _update()
-	movx,movy=
+	local movx,movy=
 	axisinput(1,0),axisinput(3,2)
 	
 	if movx != 0 then
@@ -30,7 +30,7 @@ function _update()
 		player.yface *= -1
 	end
 	
-	moved=false
+ local moved=false
 	if movx!=0 or movy!=0 then
 		moved=move(player,vec2(movx,movy))
 			
@@ -75,7 +75,7 @@ function drawmap()
 	function(pos,tl)
 	
 		--draw tile
-		typ = tl.typ
+		local typ = tl.typ
 		pal()	
 		palt(0, false)
 		palt(15, true)
@@ -86,16 +86,18 @@ function drawmap()
 			pal(darkpal,2)
 		end
 		if tl.explored and typ > 0 then 
-			scrpos=screenpos(pos,vec2(-7,-4))
+			local scrpos=
+				screenpos(pos,vec2(-7,-4))
 			fillp((tl.light>=2 and tl.vis)
 								 and █	or 
 								 0xc7d3.4)
 			
 			--sprite lighting
-			sprite=typ
+			local sprite=typ
 			for i=0,5 do
-				litsprite=typ+64
-				ltsrctile=getadjtl(pos,i)
+				local litsprite=typ+64
+				local ltsrctile=
+					getadjtl(pos,i)
 				if ltsrctile and 
 							ltsrctile.lightsrc and 
 							fget(litsprite,i) then
@@ -110,10 +112,11 @@ function drawmap()
 		end
 		
 		--draw entity
-		ent = tl.ent
+		local ent = tl.ent
 		if vistoplayer(tl) and ent then
 			fillp(█)
-			scrpos=entscreenpos(ent)
+			local scrpos=
+				entscreenpos(ent)
 			spr(ent.typ + (ent.yface > 0 and 16 or 0),scrpos.x,scrpos.y,0.875,1,ent.xface<0)
 		end
 	end)
@@ -125,7 +128,7 @@ mapsize,mapcenter=
 20     ,10
 
 function inbounds(pos)
-	x,y=pos.x,pos.y
+	local x,y=pos.x,pos.y
 	return x>0 and
 							 x<mapsize and
 								y>0  and
@@ -135,7 +138,7 @@ function inbounds(pos)
 end
 
 function validpos(pos)
-	x,y=pos.x,pos.y
+	local x,y=pos.x,pos.y
 	return x>=0 and
 								x<=mapsize and
 								y>=0 and
@@ -148,7 +151,7 @@ function getadj(i)
 end
 
 function getadjtl(pos,i)
-	dst=pos+getadj(i)
+	local dst=pos+getadj(i)
 	if validpos(dst) then
 		return gettile(dst)
 	end
@@ -157,8 +160,8 @@ end
 function visitadj(pos,func)
 	local indices=split("1,2,3,4,5,6")
 	for i = 1,6 do
-		n = i+flr(rnd(7-i))
-		npos = pos+adj[indices[n]]
+		local n = i+flr(rnd(7-i))
+		local npos = pos+adj[indices[n]]
 		indices[n]=indices[i]
 		func(npos,gettile(npos))
 	end
@@ -167,7 +170,7 @@ end
 function alltiles(func)
 	for x=0,mapsize do
 		for y=0,mapsize do
-			pos=vec2(x,y)
+			local pos=vec2(x,y)
 			func(pos,gettile(pos))
 		end
 	end
@@ -186,10 +189,11 @@ function vistoplayer(tl)
 end
 
 function calcpdist(pos,tl)
-	tovisit={{pos,tl,1}}
+	local tovisit={{pos,tl,1}}
 	tl.pdist=0
 	repeat
-		pos,tl,d=unpack(deli(tovisit,1))
+		local pos,tl,d=
+			unpack(deli(tovisit,1))
 		if inbounds(pos) and
 					navigable(tl) then
 			visitadj(pos,
@@ -209,14 +213,14 @@ end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
 	pos += dir1
-	lastvis=true
+	local lastvis=true
 	for i=ceil(lim1),flr(lim2) do
-	 tlpos=pos+i*dir2
+	 local tlpos=pos+i*dir2
 	 if validpos(tlpos) then
-			tl = gettile(tlpos)
+			local tl = gettile(tlpos)
 			tl.vis = true
-			vis = passlight(tl)
-			splitlim=-1
+			local vis = passlight(tl)
+			local splitlim=-1
 			if vis then 
 				if not lastvis then
 					lim1=i-0.5
@@ -229,7 +233,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 			end
 			
 			if splitlim!=-1 then
-				expamd=(d+1)/d
+				local expamd=(d+1)/d
 				viscone(pos,dir1,dir2,
 												expamd*lim1,
 												expamd*splitlim,
@@ -337,7 +341,7 @@ eplayer,egoblin=
 1      ,2
 
 function create(typ,pos)
-	ent = {typ=typ,pos=pos,
+	local ent = {typ=typ,pos=pos,
 							xface=1,yface=-1}
 		
 	add(ents,ent)
@@ -346,8 +350,8 @@ function create(typ,pos)
 end
 
 function move(ent,delta)
-	dst=ent.pos+delta
-	dsttile = gettile(dst)
+	local dst=ent.pos+delta
+	local dsttile = gettile(dst)
 	if not navigable(dsttile) then
 		return false
 	end
@@ -388,7 +392,7 @@ end
 p=1.5
 
 function gen(pos)
-	typ = gettile(pos).typ
+	local typ = gettile(pos).typ
 	p -= 0.015
 	if typ>=tcavefloor then
 		if inbounds(pos)
