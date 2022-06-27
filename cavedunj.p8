@@ -29,9 +29,6 @@ function _init()
 	 
 	baseoffset=vec2(-7,-4)
 	
-	darkpal=split"14,238,238,238,238,238,238,238,238,238,238,238,238"
-	blackpal=split"0,0,0,0,0,0,0,0,0,0,0,0,0"
-	
 	genmap(vec2(mapsize/2,mapsize*0.75))
 end
 
@@ -90,6 +87,9 @@ function tile(typ)
 end
 
 function drawmap()
+
+	darkpal=split"15,255,255,255,255,255,255,255,255,255,255,255,255,255"
+	blackpal=split"0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 	alltiles(
 	
 	function(pos,tl)
@@ -100,9 +100,9 @@ function drawmap()
 		pal()	
 		palt(0, false)
 		palt(15, true)
-		pal(14,129,1)
+		pal(15,129,1)
 		if vistoplayer(tl) then
-			pal(1,225,2)
+			pal(1,241,2)
 		elseif tl.explored then
 			pal(darkpal,2)
 		else
