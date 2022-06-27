@@ -218,8 +218,8 @@ function visitadj(pos,func)
 end
 
 function alltiles(func)
-	for x=0,mapsize do
-		for y=0,mapsize do
+	for y=0,mapsize do
+		for x=0,mapsize do
 			local pos=vec2(x,y)
 			func(pos,gettile(pos))
 		end
