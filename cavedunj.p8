@@ -11,79 +11,71 @@ function _init()
 		-1, 1,\
 		-1, 0"
 	
-	cavewallxy,cavewallwh,
-	holexy,holewh,
-	xwallxy,xwallwh,
-	ywallxy,ywallwh=vec2list
-	"4 , -8,\
-	 11, -8,\
-	 11,  4,\
-	 3 ,  4,\
-	 1 ,  4,\
-	 0 , -8"
-	 
-	--cavewallwh
-	,vec2list
-	"6,13,\
-	 4,13,\
-	 4, 4,\
-	 9, 4,\
-	 3, 4,\
-	 4,13"
-	 
-	--holexy
-	,vec2list
-	"4, 0,\
-	 11,0,\
-	 0,0,\
-	 0,0,\
-	 0,0,\
-	 0,0"
-	
-	--holewh
-	,vec2list
-	"6,8,\
-		4,8,\
-		0,0,\
-		0,0,\
-		0,0,\
-		4,8"
-	
-	--xwallxy	
-	,vec2list
-	"0,-8,\
-		0, 0,\
-		0, 0,\
-		0, 0,\
-		0, 0,\
-		10,-8"
-		
-	--xwallwh
-	,vec2list
-	"10,16,\
-	 0 ,0,\
-	 0 ,0,\
-	 0 ,0,\
-	 0 ,0,\
-	 3 ,16"
-	
-	--ywallxy
-	,vec2list
-	"0,-8,\
-		0, 0,\
-		0, 0,\
-		0, 0,\
-		0, 0,\
-		5,-8"
-		
-	--ywallwh
-	,vec2list
-	"5,16,\
-	 0 ,0,\
-	 0 ,0,\
-	 0 ,0,\
-	 0 ,0,\
-	 7 ,16"
+	specialtiles={}
+	specialtiles[tcavewall]={
+			vec2(-7,-4),--baseoffset
+			vec2list--xy
+			"4 , -8,\
+			 11, -8,\
+			 11,  4,\
+			 3 ,  4,\
+			 1 ,  4,\
+			 0 , -8",
+	 	vec2list--wh
+			"6,13,\
+			 4,13,\
+			 4, 4,\
+			 9, 4,\
+			 3, 4,\
+			 4,13"}
+		specialtiles[thole]={
+			vec2(-7,-4),--baseoffset
+			vec2list--xy
+			"4, 0,\
+			 11,0,\
+			 0,0,\
+			 0,0,\
+			 0,0,\
+			 0,0",
+			vec2list--wh
+			"6,8,\
+				4,8,\
+				0,0,\
+				0,0,\
+				0,0,\
+				4,8"}
+		specialtiles[txwall]={
+			vec2(-3,1),--baseoffset
+			vec2list--xy
+			"0,-8,\
+				0, 0,\
+				0, 0,\
+				0, 0,\
+				0, 0,\
+				10,-8",
+			vec2list--wh
+			"10,16,\
+			 0 ,0,\
+			 0 ,0,\
+			 0 ,0,\
+			 0 ,0,\
+			 3 ,16"}
+	specialtiles[tywall]={
+		vec2(-7,-4),--baseoffset
+		vec2list--xy
+		"0,-8,\
+			0, 0,\
+			0, 0,\
+			0, 0,\
+			0, 0,\
+			5,-8",
+		vec2list--wh
+		"5,16,\
+		 0 ,0,\
+		 0 ,0,\
+		 0 ,0,\
+		 0 ,0,\
+		 7 ,16"}
 	 
 	genmap(vec2(mapcenter,mapcenter))--mapsize/*0.75))
 end
@@ -157,145 +149,159 @@ thole=
 function tile(typ)
 	return {typ=typ}
 end
+	
+function drawcall(func,args)
+	add(drawcalls, {func,args})
+end
+
+function initpal(tl)
+	pal()	
+	palt(0, false)
+	palt(15, true)
+	pal(15,129,1)
+	if vistoplayer(tl) then
+		pal(1,241,2)
+		--pal(3,83,2)
+	elseif tl.explored then
+		pal(darkpal,2)
+	else
+		pal(blackpal)
+	end 
+		
+	fillp((tl.light>=2 
+							and tl.vis)
+						 and █	or 
+						 0xc7d3.4)
+end
+
+function drawtl(tl,pos,flp,i)
+	local typ = tl.typ
+	local xtraheight = fget(typ,2)
+																	   and 8 or 0
+	local baseoffset = vec2(-7,-4)
+	local offset = vec2(0,
+																		  -xtraheight)
+	local size = vec2(15,
+																		 8+xtraheight)
+	local litsprite = typ+192
+	
+	--special tiles
+	if i then
+		local tileinfo = 
+									specialtiles[typ]
+		baseoffset,offset,size=
+			tileinfo[1],
+			tileinfo[2][i],
+			tileinfo[3][i]
+		if (typ==thole) typ=litsprite
+		if ((i-1)%3 !=0) flp=false
+	end
+	
+	--lighting
+	for i=0,6 do
+		if fget(litsprite,i) then
+			local adjtile =
+				getadjtl(pos,i)
+			if adjtile and
+						adjtile.lightsrc then
+				typ = litsprite
+			end
+		end
+	end
+	
+	local scrpos=
+							screenpos(pos,
+																	offset+
+																	baseoffset)
+	sspr((typ%16)*8+offset.x,
+							flr(typ/16)*8+
+								offset.y,
+							size.x,size.y,
+							scrpos.x,scrpos.y,
+										size.x,size.y,
+										flp)
+end
+
+function drawent(tl)
+ local ent = tl.ent
+	if vistoplayer(tl) and ent then
+		fillp(█)
+		local scrpos=
+			entscreenpos(ent)
+			
+		spr(ent.typ + (ent.yface > 0 
+																 and 16 or 0),
+						scrpos.x,scrpos.y,
+						0.875,1,
+					 ent.xface<0)
+	end
+end
 
 function drawmap()
+	for drawcall in 
+					all(drawcalls) do
+		drawcall[1](
+			unpack(drawcall[2]))
+	end
+end
 
+
+function setupdrawcalls()
+	drawcalls={}
 	darkpal=split"15,255,255,255,255,255,255,255,255,255,255,255,255,255"
 	blackpal=split"0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+
 	alltiles(
 	
 	function(pos,tl)
-		--draw tile
 		local typ = tl.typ
-		if (typ == tempty or typ == tcavewall)return
-			
-		local initpal=false
+		local palready=false
 		
-		for ps=0,1 do
-			pass = fget(typ,3) and
-										1 - ps or ps
-			
-			local sprite=pass==1and
-																tcavewall or
-																typ
-			local litsprite = sprite+192
-			local baseoffset=vec2(-7,-4)
-
-			function tlspr(size,pos,flp,offset)
-				if not initpal then
-					pal()	
-					palt(0, false)
-					palt(15, true)
-					pal(15,129,1)
-					if vistoplayer(tl) then
-						pal(1,241,2)
-						--pal(3,83,2)
-					elseif tl.explored then
-						pal(darkpal,2)
-					else
-						pal(blackpal)
-					end 
-						
-					fillp((tl.light>=2 
-											and tl.vis)
-										 and █	or 
-										 0xc7d3.4)
-					initpal=true
-				end
-				
-				local scrpos=
-										screenpos(pos,
-																				offset+
-																				baseoffset) or sprite
-				sspr((sprite%16)*8+offset.x,
-										flr(sprite/16)*8+
-											offset.y,
-										size.x,size.y,
-										scrpos.x,scrpos.y,
-													size.x,size.y,
-													flp)
+		function draw(tltodraw,pos,i)
+			if not palready then
+				drawcall(initpal,{tl})
+				palready=true
 			end
-			
-			for i=0,6 do
-				local adjtile =
-					getadjtl(pos,i)
-				if adjtile then
-					adjtyp = adjtile.typ
-					if adjtile.lightsrc and 
-							 fget(sprite+192,i) then
-				  sprite=litsprite
-				 end
-
-				 if pass == 1 and i>0 then
-				 	if typ != tcavewall and
-				 				adjtyp==tcavewall then
-							tlspr(cavewallwh[i],
-												pos,
-											 tl.flip and
-											  (i-1)%3 == 0,
-											 cavewallxy[i])
-						elseif i==1 or i==6 then
-							if adjtyp==txwall then
-								sprite=tl.lightsrc and
-															txwall+192 or
-															txwall
-								baseoffset=vec2(-3,1)
-								tlspr(xwallwh[i],
-									pos+adj[i],
-									false,
-									xwallxy[i])
-							
-							elseif adjtyp==tywall then
-								sprite=--tl.lightsrc and
-															tywall-- or
-															--tywall+293
-								--tlspr(ywallwh[i],
-								--	pos+adj[i],
-								--	false,
-								--	ywallxy[i])
-							end
-						end
-					end 
-					if typ == thole and
-								pass == 0 and
-								adjtile.typ != thole
-								then
-						sprite=litsprite
-					 tlspr(holewh[i],
-					 						pos,
-					 						tl.flip and i==1,
-					 						holexy[i])
-					end 
-				end
-			end
-			if (pass == 0 and
-						fget(typ,5)) or
-					 typ == thole and
-					 pass == 1 then
-				if (typ==thole)sprite=typ
-				
-				xtraheight=fget(typ,2) and 8 or 0
-				
-				tlspr(vec2(15,8+xtraheight),
-										pos,
-										tl.flip,
-										vec2(0,-xtraheight))
-			end
-		end	
-		
-		--draw entity
-		local ent = tl.ent
-		if vistoplayer(tl) and ent then
-			fillp(█)
-			local scrpos=
-				entscreenpos(ent)
-				
-			spr(ent.typ + (ent.yface > 0 
-																	 and 16 or 0),
-							scrpos.x,scrpos.y,
-							0.875,1,
-						 ent.xface<0)
+			drawcall(drawtl,
+							 {tltodraw,pos,tl.flp,i})
 		end
+		
+		infront=fget(typ,3)
+		
+		if (not infront and
+					fget(typ,5)) then
+			draw(tl,pos)
+		end
+		
+		for n=5,10 do
+		 i=n%6+1
+		 
+			if infront and i==3 then
+				draw(tl,pos)		
+			end
+			
+			local adjtl=getadjtl(pos,i)
+			if adjtl then
+				adjtyp = adjtl.typ
+				
+			 if ((typ != tcavewall and
+				 				typ != tempty and
+				 				adjtyp==tcavewall) or
+			 			 ((i==1 or i==6) and
+				      adjtyp==txwall or
+				      adjtyp==tywall))
+				then
+					draw(adjtl,pos,i)
+				end 
+				if typ == thole and
+							adjtyp != thole
+				then
+				 draw(tl,pos,i)
+				end 
+			end
+		end
+		
+		drawcall(drawent,{tl})	
 	end)
 	
 end
@@ -600,13 +606,14 @@ function genmap(startpos)
 		end
 	end
 	gettile(startpos).typ = tcavefloor
-	genroom(startpos)
+	gen(startpos)
 	postproc()
 	
 	player = create(eplayer,
 																	startpos)
 	player.light=4
 	updatemap()
+	setupdrawcalls()
 end
 
 p=1.5
