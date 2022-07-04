@@ -4,78 +4,59 @@ __lua__
 
 function _init()
 	adj=vec2list
-	"0 ,-1,\
+	"-1, 0,\
+	 0 ,-1,\
 		1 ,-1,\
 		1 , 0,\
 		0 , 1,\
-		-1, 1,\
-		-1, 0"
+		-1, 1"
 	
 	specialtiles={}
 	specialtiles[tcavewall]={
-			vec2(-7,-4),--baseoffset
-			vec2list--xy
-			"4 , -8,\
-			 11, -8,\
-			 11,  4,\
-			 3 ,  4,\
-			 1 ,  4,\
-			 0 , -8",
-	 	vec2list--wh
-			"6,13,\
-			 4,13,\
-			 4, 4,\
-			 9, 4,\
-			 3, 4,\
-			 4,13"}
-		specialtiles[thole]={
-			vec2(-7,-4),--baseoffset
-			vec2list--xy
-			"4, 0,\
-			 11,0,\
-			 0,0,\
-			 0,0,\
-			 0,0,\
-			 0,0",
-			vec2list--wh
-			"6,8,\
-				4,8,\
-				0,0,\
-				0,0,\
-				0,0,\
-				4,8"}
-		specialtiles[txwall]={
-			vec2(-3,1),--baseoffset
-			vec2list--xy
-			"0,-8,\
-				0, 0,\
-				0, 0,\
-				0, 0,\
-				0, 0,\
-				10,-8",
-			vec2list--wh
-			"10,16,\
-			 0 ,0,\
-			 0 ,0,\
-			 0 ,0,\
-			 0 ,0,\
-			 3 ,16"}
+		vec2(-7,-4),--baseoffset
+		vec2list--xy
+		"0 ,-8,\
+		 4 ,-8,\
+		 11,-8,\
+		 11, 4,\
+		 3 , 4,\
+		 1 , 4",
+ 	vec2list--wh
+		"4,13,\
+		 6,13,\
+		 4,13,\
+		 4, 4,\
+		 9, 4,\
+		 3, 4"}
+		
+	specialtiles[thole]={
+		vec2(-7,-4),--baseoffset
+		vec2list--xy
+		"0, 0,\
+		 4, 0,\
+		 11,0",
+		vec2list--wh
+		"4,8,\
+		 6,8,\
+			4,8"}
+			
+	specialtiles[txwall]={
+		vec2(-3,1),--baseoffset
+		vec2list--xy
+		"10,-8,\
+		 0,-8",
+		vec2list--wh
+		"3 ,16,\
+		 10,16"}
+		 
 	specialtiles[tywall]={
 		vec2(-7,-4),--baseoffset
 		vec2list--xy
-		"0,-8,\
-			0, 0,\
-			0, 0,\
-			0, 0,\
-			0, 0,\
-			5,-8",
+		"5,-8,\
+		 0,-8",
 		vec2list--wh
-		"5,16,\
-		 0 ,0,\
-		 0 ,0,\
-		 0 ,0,\
-		 0 ,0,\
-		 7 ,16"}
+		"7 ,16,\
+		 5,16"}
 	 
 	genmap(vec2(mapcenter,mapcenter))--mapsize/*0.75))
 end
@@ -194,7 +175,7 @@ function drawtl(tl,pos,flp,i)
 			tileinfo[2][i],
 			tileinfo[3][i]
 		if (typ==thole) typ=litsprite
-		if ((i-1)%3 !=0) flp=false
+		if ((i-2)%3 !=0) flp=false
 	end
 	
 	--lighting
@@ -263,20 +244,19 @@ function setupdrawcalls()
 				palready=true
 			end
 			drawcall(drawtl,
-							 {tltodraw,pos,tl.flp,i})
+							 {tltodraw,pos,tl.flip,i})
 		end
 		
 		infront=fget(typ,3)
 		
-		if (not infront and
-					fget(typ,5)) then
+		if not infront and
+					fget(typ,5) then
 			draw(tl,pos)
 		end
 		
-		for n=5,10 do
-		 i=n%6+1
-		 
-			if infront and i==3 then
+		for i=1,6 do
+		
+			if infront and i==4 then
 				draw(tl,pos)		
 			end
 			
@@ -284,24 +264,28 @@ function setupdrawcalls()
 			if adjtl then
 				adjtyp = adjtl.typ
 				
-			 if ((typ != tcavewall and
-				 				typ != tempty and
-				 				adjtyp==tcavewall) or
-			 			 ((i==1 or i==6) and
-				      adjtyp==txwall or
-				      adjtyp==tywall))
-				then
+			 if typ != tcavewall and
+				 		typ != tempty and
+				 		adjtyp==tcavewall 
+				then				
 					draw(adjtl,pos,i)
-				end 
-				if typ == thole and
+				elseif i<=2 and
+					     (adjtyp==txwall or
+					      adjtyp==tywall) 
+				then
+					draw(adjtl,adjpos,i) 
+				end
+				if i <= 3 and
+				   typ == thole and
 							adjtyp != thole
 				then
 				 draw(tl,pos,i)
 				end 
 			end
 		end
-		
-		drawcall(drawent,{tl})	
+		if navigable(tl) then
+			drawcall(drawent,{tl})	
+		end
 	end)
 	
 end
@@ -675,9 +659,9 @@ function postproc()
 		if tl.typ==tcavewall and 
 					inbounds(pos) then
 			if genable(
-							getadjtl(pos,1)) and
+							getadjtl(pos,2)) and
 				  genable(
-							getadjtl(pos,4)) then
+							getadjtl(pos,5)) then
 				tl.typ=choosetile(tcavewall)
 			end
 		end
@@ -700,14 +684,14 @@ d10ffff0fff0000f005001dd1d10ffff00050550001ddfffff00001150d0ffff0000000000000000
 0001fffff501100f05550dd0ffffffffff00005550dd0ffff01010110d0100ff0000000000000000000000000000000000000000000000000000000000000000
 f0000110011000ff00050d0ffffffffffffff00050d0ffffff01101005010fff0000000000000000000000000000000000000000000000000000000000000000
 ff00000000000ffffff000fffffffffffffffff0000ffffffff011110110ffff0000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffd500000fffffffff0000000fffffffffffffffffffffffff0300000fffffffffffffffffffffffffffffffffffff0000000000000000
-fffffffffffffffffffd00555110fffffff000100110ffffffff3111133f33fffff000310310ffffffffffffffffffffffffffffffffffff0000000000000000
-ffffffffffffffffffd1050005500fffff00100050100ffff33113105013ffffff00113513150fffffffffffffffffffffffffffffffffff0000000000000000
-fffffffffffffffffd150115000555fff0010101005010ffff13113111311ffff0031151553110ffffffffffff3fffffffffffffffffffff0000000000000000
-1fffffffffffffffd1d500110500005f010050100100010ff1013131115110ff005515111150010ffffffffff3ffffffffffffffffffffff0000000000000000
-fffffffffff1fffff0500000011105fff0110000000010fff0111515100110fff0115553101110fffffff3fff3ffffffffffffffffffffff0000000000000000
-fffff1ffffffffffff01001000105fffff00100001110fffff01050511100fffff00111501110fffffffff3ff3ffffffffffffffffffffff0000000000000000
-fffffffffffffffffff000000005fffffff011101000fffffff011151110fffffff001151000fffffff3ff3ff3f3fffffffffff8ffffffff0000000000000000
+ffff0000000fffffffffd500000fffffffff0000000fffffffffffffffffffffffff0300000fffffffffffffffffffffffffffffffffffff0000000000000000
+fff000000000fffffffd00555110fffffff000100110ffffffff3111133f33fffff000310310ffffffffffffffffffffffffffffffffffff0000000000000000
+ff00000000000fffffd1050005500fffff00100050100ffff33113105013ffffff00113513150fffffffffffffffffffffffffffffffffff0000000000000000
+f0000000000000fffd150115000555fff0010101005010ffff13113111311ffff0031151553110ffffffffffff3fffffffffffffffffffff0000000000000000
+100000000000000fd1d500110500005f010050100100010ff1013131115110ff005515111150010ffffffffff3ffffffffffffffffffffff0000000000000000
+f0000000000100fff0500000011105fff0110000000010fff0111515100110fff0115553101110fffffff3fff3ffffffffffffffffffffff0000000000000000
+ff00010000000fffff01001000105fffff00100001110fffff01050511100fffff00111501110fffffffff3ff3ffffffffffffffffffffff0000000000000000
+fff000000000fffffff000000005fffffff011101000fffffff011151110fffffff001151000fffffff3ff3ff3f3fffffffffff8ffffffff0000000000000000
 ffff0000000fffffffff0000000fffffffff0000000fffffffff0000300fffffffff0000000fffffffff3f3f3ff3ffffffff0089800fffffffffdddddddfffff
 fff000110110fffffff011111110fffffff011111110fffffff011115110fffffff011111100ffffffff3131513ffffffff000899110fffffffd1111111dffff
 ff00110011100fffff01111111110fffff01111111110fffff01111111310fffff01111cc1110ffffff131305031ffffff00119981100fffffd1ddddd111dfff
@@ -943,8 +927,8 @@ fff011101000fffffff011111110fffffff011111110fffffff011111110fffffff000111110ffff
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-00000000000000001a000000000000000000040004002c0000000000000000001a00120003002b073300090900001a002300330733003307a3873d092303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000000000000000000000c00030300000000000003030707070703078387090900000000030003070300030783870d090303000001010808202038380000000000000000010108082020383800000000000000000000020201010307000009090000000002020202020202020000020900000000
+00000000000000001a000000000000000000040004002c0000000000000000003200120003002b073300090900001a002300330733003307a3873d092303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000c00030300000000000003030707070703078387090900000000030003070300030783870d090303000000000000202000000000000000000000010001000120700000000000000000000000020201010400000000000000000004000400040004000000040000000000
 __map__
 000000000000000000000000000000001011000000000000000000000000000020210000000000000000000000000000000032333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003200000000000000000000000000000020000000000000000000000000000000000032003200360000003a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
