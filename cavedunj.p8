@@ -46,7 +46,7 @@ function _init()
 		"12,-8,\
  		 0,-8",
 		vec2list--wh
-		"4 ,17,\
+		"6 ,17,\
 		 12,17"}
 		 
 	specialtiles[tywall]={
@@ -282,13 +282,15 @@ function setupdrawcalls()
 			 if typ != tcavewall and
 				 		typ != tempty and
 				 		adjtyp==tcavewall 
-				then				
+				then
 					draw(adjtl,pos,i)
 				elseif i<=2 and
 					     (adjtyp==txwall or
 					      adjtyp==tywall) 
 				then
-					draw(adjtl,pos+adj[i],i) 
+				 wallpos=pos+adj[i]
+					if (adjtyp==tywall and i==1) draw(adjtl,wallpos)
+					draw(adjtl,wallpos,i)
 				end
 				if i <= 3 and
 				   typ == thole and
@@ -410,7 +412,8 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	 if validpos(tlpos) then
 			local tl = gettile(tlpos)
 			local vis = passlight(tl)
-			tl.vis = tileflag(tl,5)
+			tl.vis = tileflag(tl,5) or
+												tl.typ==tywall
 			local splitlim=-1
 			if vis then 
 				if notfirst and
