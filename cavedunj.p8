@@ -65,7 +65,7 @@ function _init()
 		"7 ,17,\
 		 7,17"}
 	 
-	genmap(vec2(mapcenter,mapcenter))--mapsize/*0.75))
+	genmap(vec2(mapcenter,mapsize*0.75))--mapsize/*0.75))
 end
 
 function _update()
@@ -135,7 +135,6 @@ function initpal(tl)
 	pal(15,129,1)
 	if vistoplayer(tl) then
 		pal(1,241,2)
-		--pal(3,83,2)
 	elseif tl.explored then
 		pal(darkpal,2)
 	else
@@ -350,7 +349,9 @@ function validpos(pos)
 	return x>=0 and
 								x<=mapsize and
 								y>=0 and
-								y<=mapsize
+								y<=mapsize and
+								x+y>=mapcenter and
+								x+y<=mapsize*1.5
 end
 					
 function getadj(i)
@@ -368,7 +369,7 @@ end
 function visitadj(pos,func)
 	local indices=split"1,2,3,4,5,6"
 	for i = 1,6 do
-		local n = i+flr(rnd(7-i))
+		local n = i+rndint(7-i)
 		local npos = pos+adj[indices[n]]
 		indices[n]=indices[i]
 		func(npos,gettile(npos))
@@ -379,7 +380,9 @@ function alltiles(func)
 	for y=0,mapsize do
 		for x=0,mapsize do
 			local pos=vec2(x,y)
-			func(pos,gettile(pos))
+			if validpos(pos) then
+				func(pos,gettile(pos))
+			end
 		end
 	end
 end
@@ -442,7 +445,9 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 			local tl = gettile(tlpos)
 			local vis = passlight(tl)
 			tl.vis = tileflag(tl,5) or
-												tl.typ==tywall
+												(tl.typ==tywall and
+												 player.pos.x<
+												 tlpos.x)
 			local splitlim=-1
 			if vis then 
 				if notfirst and
@@ -513,7 +518,7 @@ function updatemap()
 	calcpdist(ppos,ptile)
 	calcvis(ppos)
 	alltiles(function(pos,tl)
-		if vistoplayer(tl) then
+		if true then--vistoplayer(tl) then
 			tl.explored=true
 		end
 	end)
@@ -551,6 +556,10 @@ function vec2list(str)
 		add(ret,vec2(vals[i],vals[i+1]))
 	end
 	return ret
+end
+
+function rndint(maxval)
+	return flr(rnd(maxval))
 end
 
 --sort by aaaidan
@@ -701,8 +710,17 @@ end
 -->8
 --level generation
 
+minroomw,minroomh,roomsizevar=
+       3,       3,          9
+startp=1.5
+
+function rndpos()
+	return validposes[rndint(#validposes)+1]
+end
+
 function genmap(startpos)
 	printh("genmap()")
+	
 	world={}
 	ents={}
 	for x=0,mapsize do
@@ -711,9 +729,19 @@ function genmap(startpos)
 			world[x][y] = tile(tempty)
 		end
 	end
-	gettile(startpos).typ = tcavefloor
-	gen(startpos)
-	genroom(startpos)
+	--gettile(startpos).typ = tcavefloor
+	validposes = {}
+	alltiles(
+	function(pos,tl)
+	 if (inbounds(pos))add(validposes,pos)
+	end)
+	
+	p=startp
+	if rnd() > 0.5 then
+		gencave(startpos)
+	else
+		genroom(startpos)
+	end
 	postproc(startpos)
 	
 	player = create(eplayer,
@@ -722,44 +750,76 @@ function genmap(startpos)
 	setupdrawcalls()
 end
 
-p=1.5
-
-function roomsize()
-	return flr(rnd(5))+3
-end
-
 function genroom(pos)
-	local w,h=roomsize(),roomsize()
-	h+=h%2
-	offset = vec2(-1,-1)
+	local roomextrasize=
+		rndint(roomsizevar)
+	local roomextraw=
+		rndint(roomextrasize+1)
+	local w,h=minroomw
+											+roomextraw,
+											minroomh
+											+roomextrasize
+											-roomextraw
+		 
+	h=flr(h/4+0.5)*4
+	w+=w%2
+	yoffset=ceil(rnd(h-1))
+	local minpos=pos+
+														vec2(ceil(yoffset/2
+																			-ceil(rnd(w-1))),
+																			-yoffset)
+	minpos.x+=(minpos.x)%2
+	minpos.y=flr(minpos.y/4-0.5)*4+1
+	local maxpos=minpos+
+								vec2(w-flr(h/2),h)
+	offset=minpos-pos
+	openplan=rnd()>0.5
+	local wvec = vec2(w,0)
+	if not (validpos(minpos) and
+				validpos(minpos+wvec) and
+				validpos(maxpos) and
+				validpos(maxpos-wvec))
+	then
+		return genroom(rndpos())
+	end
+	p-=0.1+rnd(0.1)
+	if (p<0) return
 	for y=0,h do
 	 local alt=(pos.y+offset.y+y+1)%2
 		offset.x -= alt
-		xwall = y==0 or
+		local xwall = y==0 or
 										y==h
 		for x=0,w do
-			ywall = x==0 or
+			local ywall = x==0 or
 											x==w
 			npos = pos+offset+vec2(x,y)
-			if inbounds(npos) then
-				tl=gettile(npos)
-				if (xwall or ywall) and
-						 (rnd()>0.2 or alt==1) 
-				then
-					tl.typ =
-						xwall and txwall or tywall
-				else
-					tl.typ = tdunjfloor
-				end
+			tl=gettile(npos)
+			if (xwall or ywall) and
+					 (rnd()>0.2 or alt==1 or
+					 (xwall and ywall)) and
+					 not (tl.typ==tdunjfloor 
+					 					and openplan) 
+			then
+				tl.typ =
+					xwall and txwall or tywall
+			else
+				tl.typ = tdunjfloor
 			end
 		end
-	end 
+	end
 	
+	if rnd() < 0.1 then
+		gencave(rndpos())				 
+	end
+	genroom(rndpos())			
 end
 
-function gen(pos)
+function gencave(pos)
+	 
 	local tl = gettile(pos)
-	p -= 0.015
+	if(tl.typ==tempty)tl.typ=tcavefloor
+	
+	p -= 0.0125
 	if inbounds(pos) then
 		visitadj(pos,
 		function(npos,ntl)
@@ -767,9 +827,12 @@ function gen(pos)
 				if inbounds(npos) and 
 							rnd()<p then
 					gentile(tl.typ,npos)
-					if (genable(ntl)) gen(npos)
-				else 
-					ntl.typ=tcavewall
+					if genable(ntl) then
+						if rnd()<0.01 then
+							genroom(rndpos())
+						end
+					 gencave(npos)
+					end
 				end
 			end
 		end)
@@ -811,12 +874,40 @@ function postgen(pos, tl, prevtl)
 end
 
 function postproc(pos)
+	--todo: connect areas
+
 	postgen(pos, 
 									gettile(pos),
 									gettile(pos))
 	
 	alltiles(
+	function(pos,tl)
+		if tl.typ==tempty then
+			--add cavewalls
+			for i = 1,6 do
+				ntl = getadjtl(pos,i)
+				if ntl and genable(ntl) then
+					 tl.typ=tcavewall
+				end
+			end
+		elseif tl.typ==txwall then
+			--change xwall to y
+			uptl=getadjtl(pos,2)
+			uprighttl=getadjtl(pos,3)
+			righttl=getadjtl(pos,4)
+			if uptl and righttl and
+			 uprighttl and
+				uptl.typ==tywall and
+				genable(uprighttl) and
+				genable(righttl) 
+			then
+				tl.typ=tywall
+			end
+		end
+	end)
 	
+	--replace single cavewalls
+	alltiles(
 	function(pos,tl)
 		if tl.typ==tcavewall and 
 					inbounds(pos) then
@@ -844,16 +935,16 @@ ffffff0100000fffffffff0000000ffffff0000000ffffffffffffffffffffff0000000000000000
 010ffffffffff0f0000015505d111d00555000555055111dff01100115001d000000000000000000000000000000000000000000000000000000000000000000
 0001fffffffffff1005500005d1d100f1550550000551d1001110101110011500000000000000000000000000000000000000000000000000000000000000000
 00001ffff00f50100055505001dd00ff000055505000dd00f011010110d010100000000000000000000000000000000000000000000000000000000000000000
-ff000011000011000000505551d00ffff00000505550d00fff0011010050100f0000000000000000000000000000000000000000000000000000000000000000
-fff0000000000000fff000055100ffffffff0000055000fffff01111101110ff0000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffff0000ffffffffffffff0000ffffffffffffffffffff0000000000000000fffffffffffffffffffff4244424ffffffffffffffffffff
-ffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffff53f330000000000000000fffffffffffffffffffff5155514fffffff000110111ffff
-fffffffffffffffffffffffffffffffffffffffffffffffff33ff3fff050f3ff0000000000000000fffffffffffffffffffff4244424ffffff0111000111f10f
-fffffffffffffffffffffffffffffffffffffffffffffffffff3ff3f33ff3fff0000000000000000ffffffffffff3ffffffff5155510fffff011110110001110
-1fffffffffffffffffffffffffffffffffffffffffffffffffff3f3fff3f5fff0000000000000000fffffffffff3fffffffff0244424ffff0000001111010001
-fffffffffff1fffffffffffffffffffffffffffffffffffffffff5f5ff500fff0000000000000000fffff3fffff3fffffffff0155514fffff001000010111100
-fffff1ffffffffffffffffffffffffffffffffffffffffffffff0505f5ffffff0000000000000000ffffff3ffff3fffffffff4244424ffffff0011110001100f
-fffffffffffffffffffffffffffffffffffffffffffffffffffffff5ffffffff0000000000000000fff3ff3f3ff3f3fffffff5155515fffffff00110111000ff
+ff000011000011000000505551d00ffffff000505550d00fff0011010050100f0000000000000000000000000000000000000000000000000000000000000000
+fff0000000000000fff000055100ffffffffff00055000fffff01111101110ff0000000000000000000000000000000000000000000000000000000000000000
+ffffffffffffffffffffff0000fffffffffffffff000ffffffffffffffffffff0000000000000000ffffffffffffffffffff424444424fffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffff53f330000000000000000ffffffffffffffffffff515555514ffffff000110111ffff
+fffffffffffffffffffffffffffffffffffffffffffffffff33ff3fff050f3ff0000000000000000ffffffffffffffffffff424444424fffff0111000111f10f
+fffffffffffffffffffffffffffffffffffffffffffffffffff3ff3f33ff3fff0000000000000000ffffffffffff3fffffff515555510ffff011110110001110
+1fffffffffffffffffffffffffffffffffffffffffffffffffff3f3fff3f5fff0000000000000000fffffffffff3ffffffff024444424fff0000001111010001
+fffffffffff1fffffffffffffffffffffffffffffffffffffffff5f5ff500fff0000000000000000fffff3fffff3ffffffff015555514ffff001000010111100
+fffff1ffffffffffffffffffffffffffffffffffffffffffffff0505f5ffffff0000000000000000ffffff3ffff3ffffffff424444424fffff0011110001100f
+fffffffffffffffffffffffffffffffffffffffffffffffffffffff5ffffffff0000000000000000fff3ff3f3ff3f3ffffff515555515ffffff00110111000ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffff0000000000000000ffff3f3f3f3ff3ffffffffffff221fff0000000000000000
 fff000110111fffffff01111111110fffff01111111110fffffffffff5ffffff0000000000000000ffff3f3ff35f3ffffffffff2215540ff0000000000000000
 ff0111000111f10fff0111111111110fff0111111111110ffffffffffff3ffff0000000000000000ffff3f3ff3503fffffff22155405522f0000000000000000
@@ -1089,7 +1180,7 @@ fff01111100000ff70f01111111110fffff01111111110fffff01111111110fffff01111111110ff
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840084002c0004000000000000007200040000006b07b30009090004b300b30073077300730763877d092303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000004000840084002c0004000000000000007200040000006b07b30009093304b300b30073077300730763877d093303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000800000000000000000000000000c000000000000000000000000070707030700000707000000000000030003000307000003000303000001010000000000000000000000000000010110002000700000000000000000000000000000000407000009090404040004000407040004070000040908030000
 __map__
 000000000000000000000000000000001011000000000000000000000000000020210000000000000000000000002e2f303132333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
