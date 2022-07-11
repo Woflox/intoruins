@@ -77,8 +77,8 @@ function _update()
  center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
 	campos.y = 0.5*(campos.y + 
 																	center.y)
-	campos.x = 0.6*campos.x + 
-									   0.4*center.x
+	campos.x = 0.64*campos.x + 
+									   0.36*center.x
 	--smooth = smooth and 
 	--	0.5*(smooth+campos) or
 	--	campos
@@ -711,7 +711,7 @@ end
 --level generation
 
 minroomw,minroomh,roomsizevar=
-       3,       3,          9
+       3,       2,          8
 startp=1.5
 
 function rndpos()
@@ -761,28 +761,30 @@ function genroom(pos)
 											+roomextrasize
 											-roomextraw
 		 
-	h=flr(h/4+0.5)*4
+	h=flr(h/4+1)*4
 	w+=w%2
 	yoffset=ceil(rnd(h-1))
 	local minpos=pos+
-														vec2(ceil(yoffset/2
-																			-ceil(rnd(w-1))),
+														vec2(-ceil(rnd(w-2)+1)
+																			+ceil(yoffset/2),
 																			-yoffset)
 	minpos.x+=(minpos.x)%2
-	minpos.y=flr(minpos.y/4-0.5)*4+1
+	minpos.y=flr(minpos.y/4)*4+1
 	local maxpos=minpos+
 								vec2(w-flr(h/2),h)
 	offset=minpos-pos
 	openplan=rnd()>0.5
 	local wvec = vec2(w,0)
-	if not (validpos(minpos) and
+	if not 
+	  (validpos(minpos) and
 				validpos(minpos+wvec) and
 				validpos(maxpos) and
-				validpos(maxpos-wvec))
+				validpos(maxpos-wvec) or
+				p==startp)
 	then
 		return genroom(rndpos())
 	end
-	p-=0.1+rnd(0.1)
+	p-=0.15+rnd(0.1)
 	if (p<0) return
 	for y=0,h do
 	 local alt=(pos.y+offset.y+y+1)%2
@@ -793,22 +795,24 @@ function genroom(pos)
 			local ywall = x==0 or
 											x==w
 			npos = pos+offset+vec2(x,y)
-			tl=gettile(npos)
-			if (xwall or ywall) and
-					 (rnd()>0.2 or alt==1 or
-					 (xwall and ywall)) and
-					 not (tl.typ==tdunjfloor 
-					 					and openplan) 
-			then
-				tl.typ =
-					xwall and txwall or tywall
-			else
-				tl.typ = tdunjfloor
+			if inbounds(npos) then
+				tl=gettile(npos)
+				if (xwall or ywall) and
+						 (rnd()>0.2 or alt==1 or
+						 (xwall and ywall)) and
+						 not (tl.typ==tdunjfloor 
+						 					and openplan) 
+				then
+					tl.typ =
+						xwall and txwall or tywall
+				else
+					tl.typ = tdunjfloor
+				end
 			end
 		end
 	end
 	
-	if rnd() < 0.1 then
+	if rnd() < 0.15 then
 		gencave(rndpos())				 
 	end
 	genroom(rndpos())			
@@ -819,7 +823,7 @@ function gencave(pos)
 	local tl = gettile(pos)
 	if(tl.typ==tempty)tl.typ=tcavefloor
 	
-	p -= 0.0125
+	p -= 0.015
 	if inbounds(pos) then
 		visitadj(pos,
 		function(npos,ntl)
@@ -828,7 +832,7 @@ function gencave(pos)
 							rnd()<p then
 					gentile(tl.typ,npos)
 					if genable(ntl) then
-						if rnd()<0.01 then
+						if rnd()<0.0125 then
 							genroom(rndpos())
 						end
 					 gencave(npos)
