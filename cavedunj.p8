@@ -896,58 +896,54 @@ function postgen(pos, tl, prevtl)
 end
 
 function connectareas(pos)
-calcpdist(pos)
-	local unreach={}
-	local numtls=0
-	alltiles(
-	function(pos,tl)
-		if navigable(tl) and
-					tl.pdist==-1 and
-					((not manmade(tl)) or
-						pos.y%2==1)
-		then
-			add(unreach,pos)
-		end
-	end)
-	
 	for i=1,20 do
 		--what a mess
 	 calcpdist(pos)
+	 
+		local unreach={}
+		local numtls=0
+		alltiles(
+		function(pos,tl)
+			if navigable(tl) and
+						tl.pdist==-1 and
+						((not manmade(tl)) or
+							pos.y%2==1)
+			then
+				add(unreach,pos)
+			end
+		end)
+		
+		if (#unreach==0)	return
+			
 		local bestdist = 100
 		
 		for j=1,200 do
+			if #unreach==0 then
+				return
+			end
 			local p1=rnd(unreach)
-			if p1 then --why???? this shound't be nil
 			local tl1=gettile(p1)
 		 
-		 if tl1.pdist>=0 then
-		 	del(unreach,p1)
-		 	j-=1
-		 else
-		 	local diri=ceil(rnd(6))
-				if manmade(tl1) and
-				 (diri==3 or diri==6) then
-						diri-=2
-				end
-				local dir=adj[diri]
-				local p2=p1+rndint(10)*dir
-				if validpos(p2) then
-					local tl2=gettile(p2)
-					if navigable(tl2) and
-								tl2.pdist>=0 then
-						d=hexdist(p1,p2)
-						if d<bestdist then
-							bestdist=d
-							bestp1=p1
-							bestdir=dir
-							bestdiri=diri
-						end
+	 	local diri=ceil(rnd(6))
+			if manmade(tl1) and
+			 (diri==3 or diri==6) then
+					diri-=2
+			end
+			local dir=adj[diri]
+			local p2=p1+rndint(10)*dir
+			if validpos(p2) then
+				local tl2=gettile(p2)
+				if navigable(tl2) and
+							tl2.pdist>=0 then
+					d=hexdist(p1,p2)
+					if d<bestdist then
+						bestdist=d
+						bestp1=p1
+						bestdir=dir
+						bestdiri=diri
 					end
 				end
 			end
-		elseif not p1 then
-			sfx(11)
-		end
 		end
 		
 		if bestdist<100 then
