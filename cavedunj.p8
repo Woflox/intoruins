@@ -111,7 +111,6 @@ lit tile flags
 7:emits light
 
 extra tile flags
-0:genpass
 ]]
 
 tempty,tcavefloor,tcavefloorvar=
@@ -875,19 +874,13 @@ function gentile(typ,pos)
  end									
 end
 
-function genpass(tl)
-	return fget(tl.typ+1,0)
-end
-
 function postgen(pos, tl, prevtl)
 	tl.postgenned=true
 	visitadj(pos,
 	function(npos,ntl)
-		if (genable(ntl) or
-		   genpass(ntl)) and not
+		if genable(ntl) and not
 					ntl.postgenned then
-			if genable(ntl) and not
-	     ntl.genned then
+			if not ntl.genned then
 				gentile(tl.typ,npos)
 			end
 			postgen(npos, ntl, genable(tl) and tl or prevtl)
@@ -927,13 +920,15 @@ function connectareas(pos)
 	 	local diri=ceil(rnd(6))
 			if manmade(tl1) and
 			 (diri==3 or diri==6) then
-					diri-=2
+					diri-=ceil(rnd(2))
 			end
 			local dir=adj[diri]
-			local p2=p1+rndint(10)*dir
+			if (not dir) break--wtf??
+			local p2=p1+rndint(18)*dir
 			if validpos(p2) then
 				local tl2=gettile(p2)
 				if navigable(tl2) and
+							genable(tl2) and
 							tl2.pdist>=0 then
 					d=hexdist(p1,p2)
 					if d<bestdist then
@@ -978,6 +973,16 @@ function postproc(pos)
 	
  connectareas(pos)
 	
+	--delete bridges lol
+	alltiles(
+	function(pos,tl)
+		if tl.typ==txbridge or
+					tl.typ==tybridge then
+			tl.typ=thole
+			tl.bg=nil
+		end			
+	end)
+	
 	--fill out manmade area tiles
 	postgen(pos, 
 									gettile(pos),
@@ -985,13 +990,17 @@ function postproc(pos)
 	
 	connectareas(pos)
 	
+	local numholes=0
+	
 	alltiles(
 	function(pos,tl)
 		if tl.typ==tempty then
 			--add cavewalls
 			for i = 1,6 do
 				ntl = getadjtl(pos,i)
-				if ntl and genable(ntl) then
+				if ntl and 
+							(navigable(ntl) or
+				   genable(ntl)) then
 					 tl.typ=tcavewall
 				end
 			end
@@ -1014,6 +1023,9 @@ function postproc(pos)
 			if righttl.typ==txwall then
 				tl.typ=txwall
 			end
+		elseif tl.typ==thole and
+									tl.pdist>0 then
+			numholes+=1
 		end
 	end)
 	
@@ -1030,6 +1042,31 @@ function postproc(pos)
 			end
 		end
 	end)
+	
+	connectareas(pos)
+	
+	if numholes==0 then
+		local bestdist=0
+		local tilesfound=0
+		while bestdist==0 or 
+								tilesfound<10 do
+		 tl=gettile(rndpos())
+		 pdist=tl.pdist
+		 if navigable(tl) and
+		    pdist>0 then
+		 	if tl.pdist>bestdist then
+		 	 bestdist=tl.pdist
+		 	 besttl=tl
+		 	end
+		 	tilesfound+=1
+		 end
+		end
+		
+	 besttl.typ=thole
+	 besttl.bg=nil
+	 besttl.ent=nil
+	 sfx(11)
+	end
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
