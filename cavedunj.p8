@@ -111,8 +111,8 @@ function _draw()
 	cls()
 	camera(campos.x,campos.y)
 	lfillp=localfillp(0xc7d3.4,
-								-campos.x,
-								-campos.y)
+								1-campos.x,
+								2-campos.y)
 	drawmap(world)
 end
 -->8
@@ -149,7 +149,7 @@ thole,txbridge,tybridge=
 32   ,60      ,44
 
 function tile(typ)
-	return {typ=typ}
+	return {typ=typ,fow=0}
 end
 	
 function drawcall(func,args)
@@ -161,18 +161,25 @@ function initpal(tl)
 	palt(0, false)
 	palt(15, true)
 	pal(15,129,1)
+	local fow=0
 	if vistoplayer(tl) then
-		pal(1,241,2)
+		fow=tl.light>=2 and 3 or 2
 	elseif tl.explored then
+		fow=1
+	end
+	local oldfow=tl.fow
+	fow = mid(oldfow-1,fow,oldfow+1)
+	tl.fow=fow
+		
+	fillp(fow==3 and █	or 
+						 lfillp)
+	if fow==0 then
+		pal(blackpal)
+	elseif fow==1 then
 		pal(darkpal,2)
 	else
-		pal(blackpal)
-	end 
-		
-	fillp((tl.light>=2 
-							and tl.vis)
-						 and █	or 
-						 lfillp)
+	 pal(1,241,2)
+	end
 end
 
 function drawtl(tl,pos,flp,bg,i)
