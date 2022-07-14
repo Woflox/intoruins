@@ -529,7 +529,7 @@ function calclight(pos,tl)
 	local tovisit={}
 	
 	function addtovisit(pos,tl)
-		local light=tl.light
+		local light=ceil(tl.light)
 		if not tovisit[light] then
 			tovisit[light]={}
 		end
