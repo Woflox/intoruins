@@ -91,20 +91,28 @@ function _update()
 		updateent(ent)
 	end
 	
-	campos = entscreenpos(player)
- center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
-	campos.y = 0.5*(campos.y + 
-																	center.y)
-	campos.x = 0.64*campos.x + 
-									   0.36*center.x
-	--smooth = smooth and 
-	--	0.5*(smooth+campos) or
-	--	campos
-	camera(campos.x-64,campos.y-64)
+	local camtarget = entscreenpos(player)
+ local center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
+	camtarget.y = lerp(camtarget.y,
+																	center.y,
+																	0.5)
+	camtarget.x = lerp(camtarget.x,
+																	center.x,
+																	0.36)
+	smooth = smooth and 
+		lerp(smooth,camtarget,0.25)
+		or	camtarget
+	campos=vec2(flr(smooth.x-64),
+													flr(smooth.y-64))
+	
 end
 
 function _draw()
 	cls()
+	camera(campos.x,campos.y)
+	lfillp=localfillp(0xc7d3.4,
+								-campos.x,
+								-campos.y)
 	drawmap(world)
 end
 -->8
@@ -164,7 +172,7 @@ function initpal(tl)
 	fillp((tl.light>=2 
 							and tl.vis)
 						 and █	or 
-						 0xc7d3.4)
+						 lfillp)
 end
 
 function drawtl(tl,pos,flp,bg,i)
@@ -240,8 +248,7 @@ function drawent(tl)
 	if vistoplayer(tl) and ent then
 		initpal(tl)
 		--fillp(█)
-		local scrpos=
-			entscreenpos(ent)
+		local scrpos=ent.renderpos
 			
 		spr(ent.typ 
 						+ flr(ent.animframe)*16
@@ -610,6 +617,9 @@ function rndint(maxval)
 	return flr(rnd(maxval))
 end
 
+function lerp(a,b,t)
+	return (1-t)*a+t*b
+end
 --sort by aaaidan
 --[[function sort(a,cmp)
  for i=1,#a do
@@ -650,6 +660,14 @@ vec2mt.__index=vec2mt
 function vec2(x,y)
     return setmetatable({x=x,y=y},vec2mt)
 end
+
+--local fillp by makke, felice & sparr
+
+function localfillp(p, x, y)
+    local p16, x = flr(p), band(x, 3)
+    local f, p32 = flr(15 / 2 ^ x) * 0x1111, rotr(p16 + lshr(p16, 16), band(y, 3) * 4 + x)
+    return p - p16 + flr(band(p32, f) + band(rotl(p32, 4), 0xffff - f))
+end
 -->8
 --entities
 
@@ -673,7 +691,7 @@ function create(typ,pos)
 	local ent = {typ=typ,pos=pos,
 							xface=1,yface=-1,
 							animframe=0}
-		
+	ent.renderpos=entscreenpos(ent)
 	add(ents,ent)
 	gettile(pos).ent = ent
 	for var in 
@@ -720,6 +738,11 @@ function updateent(ent)
 	elseif ent.ai then
 	
 	end
+	
+	ent.renderpos=
+		 lerp(ent.renderpos,
+		      entscreenpos(ent),
+		      0.5)													
 	
 	if ent.idleanim then
 		ent.animframe=
