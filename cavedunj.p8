@@ -491,24 +491,44 @@ function calcvis(pos,tl)
 end
 
 function calclight(pos,tl)
-	tovisit={{pos,tl}}
-	repeat
-		pos,tl=unpack(deli(tovisit,1))
-		light=tl.light-1
+ 
+ local maxlight=tl.light
+ local minlight=maxlight
+	local tovisit={}
+	
+	function addtovisit(pos,tl)
+		local light=tl.light
+		if not tovisit[light] then
+			tovisit[light]={}
+		end
+		maxlight=max(maxlight,light)
+		minlight=min(minlight,light)
+		add(tovisit[light],{pos,tl})
+ end
+ 
+ addtovisit(pos,tl)
+ repeat
+		while #(tovisit[maxlight])==0 do
+			maxlight -= 1
+			if (maxlight < minlight)return
+		end
+		pos,tl=unpack(deli(
+									 tovisit[maxlight],1))
+		local light=tl.light-1
 		visitadj(pos,
 		function(npos,ntl)
 			if ntl.light<light then
 				ntl.light = light
 				if passlight(ntl) then
-					add(tovisit,{npos,ntl})
+					addtovisit(npos,ntl)
 				end
 			elseif ntl.light >
 										light+2 and
 										passlight(ntl) then
-					add(tovisit,{npos,ntl})				
+					addtovisit(npos,ntl)				
 			end
 		end)	
-	until #tovisit == 0
+	until false
 end
 
 function updatemap()
