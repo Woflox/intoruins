@@ -87,13 +87,21 @@ function _init()
 
 end
 
-function _update()
+function updateturn()
 	for ent in all(ents) do
-		if not taketurn(ent) then
-		 break
+		if not taketurn(ent,ent.pos,ent.tl,ent.group) then
+		 return
 		end
 	end
-	
+ for ent in all(ents) do
+		postturn(ent)
+	end
+
+end
+
+function _update()	
+
+	updateturn()
 	for ent in all(ents) do
 		updateent(ent)
 	end
@@ -603,7 +611,6 @@ function calclight(pos,tl)
 end
 
 function updatemap()
- lastpseen = pseen
  pseen=false
 	alltiles(
 	function(pos,tl)
@@ -738,12 +745,13 @@ function create(typ,pos,behav,group)
 							behav=behav,group=group,
 							xface=1,yface=-1,
 							animframe=0,
-							rndoffset=rnd()}
+							rndoffset=rnd(),
+							tl=gettile(pos)}
 	ent.renderpos=entscreenpos(ent)
 	ent.name=rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
 										rnd(split"y,o,us maximus,ox,erbee,elia")
 	add(ents,ent)
-	gettile(pos).ent = ent
+	ent.tl.ent = ent
 	for var in 
 		all(split(entdata[typ]))
 	do
@@ -770,7 +778,7 @@ function updateent(ent)
 	end
 	
 	if ent.behav=="sleep" and
-				vistoplayer(gettile(ent.pos)) 
+				vistoplayer(ent.tl) 
 	then
 		ent.rndoffset+=0.015
 		if ent.rndoffset > 1 then
@@ -788,8 +796,14 @@ function canmove(ent,pos)
 	    ent.playercontrolled)
 end
 
+function seesplayer(ent)
+	return ent.tl.vis and
+	       (ent.tl.pdist<=1 or
+				    player.tl.light>=2)				 
+end
+
 function findmove(ent,var,goal)
-	local tl = gettile(ent.pos)
+	local tl = ent.tl
 	local bestscore=-2
 	visitadj(ent.pos,
 	function(npos,ntl)
@@ -808,11 +822,10 @@ function findmove(ent,var,goal)
  end
 end
 
-function taketurn(ent)
+function taketurn(ent,pos,tl,group)
 	if ent.playercontrolled then
-		--repeat delay
-		--poke(0x5f5d,6)
 		
+		--player
 		local movx,movy=
 		axisinput(1,0),axisinput(3,2)
 		
@@ -820,27 +833,27 @@ function taketurn(ent)
 			movy = 0
 		end
 		
-		if	player.yface != movx then
+		if	ent.yface != movx then
 			movy -= movx
 		end
 		
 		if btnp(5) or 
 					(movy!=0 and
-					 movy!=player.yface) then
-			player.yface *= -1
+					 movy!=ent.yface) then
+			ent.yface *= -1
 		end
 		
 		if movx!=0 or movy!=0 then
-			local dst=player.pos+
+			local dst=pos+
 										vec2(movx,movy)
 			local dst2=dst-
-										vec2(0,player.yface)
-			if canmove(player,dst) then
-				move(player,dst,true)
+										vec2(0,ent.yface)
+			if canmove(ent,dst) then
+				move(ent,dst,true)
 				updatemap()
 			elseif movx!= 0 and
-					canmove(player,dst2) then
-				move(player,dst2,true)
+					canmove(ent,dst2) then
+				move(ent,dst2,true)
 				updatemap()
 			else
 				return false
@@ -848,41 +861,31 @@ function taketurn(ent)
 		else
 			return false
 		end
-	elseif ent.ai then
-	 local tl = gettile(ent.pos)
-		local group = ent.group
-		if ent.behav=="hunt" then
-		 findmove(ent,"pdist",ent.pdist)
-			tl = gettile(ent.pos)
-			if not tl.vis or 
-		 	(tl.pdist>1 and 
-		  gettile(player.pos).light<2)
-		 then
-		  if not lastpseen then
-			 	ent.behav="wander"
-	 			animtext("?",ent)
-			 	wanderdsts[group]=ent.lastseen
-					calcdist(ent.lastseen,
-														group)
-				end
-		 else
-		 	ent.lastseen=player.pos
-				pseen=true
+	elseif ent.ai and ent.canact then
+	 --ai
+	 function checkseesplayer()
+	 	if seesplayer(ent) then
+			 pseen=true
+			 lastpseenpos=player.pos
 			end
+	 end
+	 if ent.behav=="hunt" then
+		 checkseesplayer()
+		 findmove(ent,"pdist",ent.pdist)
+			checkseesplayer()
 		else
 			--notice player
 			function checkaggro(p)
-				if tl.vis and
-				 (tl.pdist==1 or
-				 gettile(player.pos).light>=2)
-				 and rnd() < p
+				if seesplayer(ent)
+				   and rnd() < p
 				then
-				 aggro(ent.pos,2)
 				 pseen=true
+				 aggro(pos)
 				 return true
 				end
 			end
-			checkaggro(0.29)
+			checkaggro(behav=="search"
+			           and 1.0 or 0.29)
 			if ent.behav=="wander" then
 				if not wanderdsts[group]
 				   or ent.pos==wanderdsts[group]
@@ -896,47 +899,78 @@ function taketurn(ent)
 											tl.pdist>=0
 					calcdist(wanderdsts[group],
 														group)
-				
 				end
 				findmove(ent,group,0)
 				checkaggro(0.29)
+			elseif ent.behav=="search" 
+			then
+				findmove(ent,"search",0)
+				if not checkaggro(1.0) and
+					  ent.tl.search == 0 then
+					setbehav(ent,"wander")
+				end
 			end
 		end
 	end
 	return true
 end
 
-function aggro(pos,dist)
-	local tl = gettile(pos)
-	local ent = tl.ent
-	if ent and ent.ai and
-	   ent.behav != "hunt" then
-	 animtext("!",ent)
-		sfx(ent.alertsfx)
-		ent.behav="hunt"
-		ent.lastseen=player.pos
-		if wanderdsts[ent.group] != ent.lastseen then
-			wanderdsts[ent.group]=ent.lastseen
-			calcdist(ent.lastseen,
-												ent.group)
+function postturn(ent)
+ if ent.ai then
+		if ent.behav=="hunt" and not
+		   pseen then
+			setbehav(ent,"search")
+			setsearchpos(lastpseenpos)
 		end
-		dist=min(2,dist+1)
+  ent.canact=true
 	end
-	if dist>0 then
-		visitadj(pos,
-		function(npos,ntl)
-			if navigable(ntl) then
-				aggro(npos,dist-1)
+end
+
+function setbehav(ent,behav)
+	if ent.behav != behav then
+		ent.behav = behav
+		if behav == "hunt" then
+			animtext("!",ent)
+			sfx(ent.alertsfx)
+		elseif behav == "search" then
+			animtext("?",ent)
+		end
+		ent.canact = false 
+	end
+end
+
+function setsearchpos(pos)
+	if (searchpos == pos)return
+ lastpseenpos=pos
+	calcdist(pos,"search")
+	searchpos=lastpseenpos
+end
+
+function aggro(pos)
+	setsearchpos(player.pos)
+	calcdist(pos,"aggro")
+	for ent in all(ents) do
+		if ent.ai and
+					ent.tl.aggro<=3
+		then
+			if seesplayer(ent) then
+				setbehav(ent,"hunt")
+			elseif ent.behav != "hunt"
+			then
+				setbehav(ent,"search")
 			end
-		end)
+		end
 	end
 end
 
 function move(ent,dst,playsfx)
 	local delta=dst-ent.pos
 	local dsttile = gettile(dst)
-	gettile(ent.pos).ent = nil
+	ent.tl.ent = nil
 	ent.pos=dst
+	dsttile.ent = ent
+	ent.tl=dsttile
+
 	if delta.x != 0 then 
 		ent.xface = sgn(delta.x)
  end
@@ -945,9 +979,7 @@ function move(ent,dst,playsfx)
  elseif x != 0 then
   ent.yface = sgn(delta.x)
  end
-	
-	dsttile.ent = ent
-	
+		
 	if playsfx then
 		if dsttile.typ==tlonggrass then
 		 sfx(37)
