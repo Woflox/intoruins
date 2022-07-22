@@ -123,7 +123,7 @@ end
 function _draw()
 	cls()
 	camera(campos.x,campos.y)
-	lfillp=localfillp(0x7d69.4,
+	lfillp=localfillp(0xbe96.4,
 								-campos.x,
 								-campos.y)
 	drawmap(world)
