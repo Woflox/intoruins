@@ -726,25 +726,26 @@ end
 -->8
 --entities
 
-eplayer,erat,ejackal,egoblin=
-64     ,70  ,71     ,65  
-emushroom,ebrazier=
-137      ,136
+entstrs=
+split(
+"64\
+name:you,hp:20,atk:0,dmg:3,armor:0,light:1.5,lcol1:4,lcol2:9,playercontrolled:true\
+70\
+name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,alertsfx:14,hurtsfx:15\
+71\
+name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21\
+65\
+name:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11\
+137\
+name:mushroom,hp:1,light:4,lcol1:13,lcol2:12,flippable:true\
+136\
+name:brazier,hp:1,light:4,lcol1:4,lcol2:9,anim:brazier,animspeed:0.33"
+,"\n")
 
-entdata={
-[eplayer]=
-"hp:20,atk:0,dmg:3,armor:0,light:1.5,lcol1:4,lcol2:9,playercontrolled:true",
-[erat]=
-"hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,alertsfx:14,hurtsfx:15",
-[ejackal]=
-"hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21",
-[egoblin]=
-"hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11",
-[emushroom]=
-"hp:1,light:4,lcol1:13,lcol2:12,flippable:true",
-[ebrazier]=
-"hp:1,light:4,lcol1:4,lcol2:9,anim:brazier,animspeed:0.33"
-}
+entdata={}
+for i=1,#entstrs,2 do
+	entdata[entstrs[i]]=entstrs[i+1]
+end
 
 anims={
 brazier="l012",
@@ -1454,8 +1455,7 @@ function postproc(pos)
 	 settile(besttl,thole)
 	end
 	 
-	player = create(eplayer,
-																	pos)
+	player = create(64,pos)
 	
 	updatemap()
 	
