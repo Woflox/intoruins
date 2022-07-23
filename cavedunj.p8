@@ -100,7 +100,7 @@ function updateturn()
 
 end
 
-function _update()	
+function _draw()	
 
 	updateturn()
 	for ent in all(ents) do
@@ -117,10 +117,9 @@ function _update()
 		or	camtarget
 	campos=vec2(flr(smooth.x-63.5),
 													flr(smooth.y-63.5))
-	
-end
+--end
 
-function _draw()
+--function _draw()
 	cls()
 	--clip(0,8,128,112)
 	camera(campos.x,campos.y)
@@ -145,6 +144,10 @@ function _draw()
 									t>0.433 and 5 or 7)
 		end
 	end
+	camera(0,0)
+	
+	print("fps: "..stat(7)..
+	      " cpu: "..stat(1),0,0,5)
 end
 
 textanims={}
@@ -738,7 +741,7 @@ split(
 "64\
 name:you,hp:20,atk:0,dmg:3,armor:0,light:1.5,lcol1:4,lcol2:9,playercontrolled:true\
 70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,alertsfx:14,hurtsfx:15\
+name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,runaway:true,alertsfx:14,hurtsfx:15\
 71\
 name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21\
 65\
@@ -851,14 +854,16 @@ function seesplayer(ent)
 				    player.tl.light>=2)				 
 end
 
-function findmove(ent,var,goal,noatk,atkonly)
+function findmove(ent,var,goal,special)
 	local tl = ent.tl
 	local bestscore=-2
 	visitadj(ent.pos,
 	function(npos,ntl)
 		if canmove(ent,npos) and
-		 (ntl.pdist==0 or not atkonly) 
-		 and(ntl.pdist>0 or not noatk)
+		 (ntl.pdist==0 or
+		  special != "atkonly") and
+		 (ntl.pdist>0 or 
+		  special != "noatk")
 		then
 		 local score=
 		 							(abs(tl[var]-goal))-
@@ -870,7 +875,13 @@ function findmove(ent,var,goal,noatk,atkonly)
 		end
  end)
  if bestscore>-2 then
+		if gettile(bestpos).pdist==0
+		 and special=="aggro"
+		then
+			aggro(ent.pos)
+		else
 			move(ent,bestpos)
+ 	end
  end
 end
 
@@ -878,6 +889,8 @@ function taketurn(ent,pos,tl,group)
 	if ent.playercontrolled then
 		
 		--player
+		poke(0x5f5c,8)--key repeat
+		
 		local movx,movy=
 		axisinput(1,0),axisinput(3,2)
 		
@@ -927,10 +940,10 @@ function taketurn(ent,pos,tl,group)
 		 	ent.pdist = rnd()<0.5 and 0 or 2
 		 end
 		 checkseesplayer()
-		 findmove(ent,"pdist",ent.pdist,ent.movandatk)
+		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noattack")
 			checkseesplayer()
 			if ent.movandatk then
-				findmove(ent,"pdist",0,false,true)
+				findmove(ent,"pdist",0,"atkonly")
 			end
 		else
 			--notice player
@@ -958,13 +971,14 @@ function taketurn(ent,pos,tl,group)
 					calcdist(wanderdsts[group],
 														group)
 				end
-				findmove(ent,group,0)
+				findmove(ent,group,0,"aggro")
 				checkaggro(0.29)
 			elseif ent.behav=="search" 
 			then
-				findmove(ent,"search",ent.pdist)
+				local goal=ent.runaway and ent.pdist or 0
+				findmove(ent,"search",goal,"aggro")
 				if not checkaggro(1.0) and
-					  ent.tl.search == ent.pdist
+					  ent.tl.search == goal
 			 then
 					setbehav(ent,"wander")
 				end
@@ -991,8 +1005,9 @@ function setbehav(ent,behav)
 		if behav == "hunt" then
 			animtext("!",ent)
 			sfx(ent.alertsfx)
-		elseif behav == "search" and
-		 vistoplayer(ent.tl) then
+		elseif behav == "search"
+		 and vistoplayer(ent.tl)
+		then
 			animtext("?",ent)
 		end
 		ent.canact = false 
