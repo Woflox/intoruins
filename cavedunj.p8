@@ -752,41 +752,44 @@ end
 -->8
 --entities
 
-entstrs=
-split(
+function decode(str)
+	data={}
+	strs=split(str,"\n")
+	for i=1,#strs,2 do
+		data[strs[i]]=strs[i+1]
+	end
+	return data
+end
+
+entdata=decode
 "64\
-name:you,hp:20,atk:0,dmg:3,armor:0,light:1.5,lcol1:4,lcol2:9,playercontrolled:true\
+name:you,hp:20,atk:0,dmg:3,armor:0,light:1.5,atkanim:patk,lcol1:4,lcol2:9,playercontrolled:true\
 70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,runaway:true,alertsfx:14,hurtsfx:15\
+name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,runaway:true,atkanim:eatk,alertsfx:14,hurtsfx:15\
 71\
-name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21\
+name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,atkanim:eatk,alertsfx:20,hurtsfx:21\
 65\
-name:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11\
+name:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,atkanim:eatk,alertsfx:30,hurtsfx:11\
 137\
 name:mushroom,hp:1,light:4,lcol1:13,lcol2:12,flippable:true\
 136\
-name:brazier,hp:1,light:4,lcol1:4,lcol2:9,anim:brazier,animspeed:0.33"
-,"\n")
+name:brazier,hp:1,light:4,lcol1:4,lcol2:9,anim:idle3,animspeed:0.33"
 
-entdata={}
-for i=1,#entstrs,2 do
-	entdata[entstrs[i]]=entstrs[i+1]
-end
-
-anims={
-brazier="l012",
-fire="0l.1.2.3f1f2f3",
-spores="l0123",
-pattack="m0a2d20",
-eattak="00m0a2d20"
-}
+anims=decode
+"idle3\nl012\
+fire\n0l.1.2.3f1f2f3\
+idle4\nl0123\
+patk\nm0a2d20\
+eatk\n000m0a2d20\
+death\nfc0000\
+fall\nf0000c00"
 
 function create(typ,pos,behav,group)
 	local ent = {typ=typ,pos=pos,
 							behav=behav,group=group,
 							xface=1,yface=-1,
-							animframe=0,
-							animt=1,
+							animframe=0,animt=1,
+							animspeed=0.5,
 							animflip=false,
 							animoffset=vec2(0,0),
 							rndoffset=rnd(),
@@ -1064,12 +1067,16 @@ end
 function hurt(ent,dmg)
 	ent.hp-=dmg
 	if ent.hp<=0 then
-		destroy(ent)
+		ent.canact=false
 	end
+	--	destroy(ent)
+	--end
+	--[[
 	sfx(34)
 	if ent.hurtsfx then
 		sfx(ent.hurtsfx)
 	end
+	]]
 	aggro(ent.pos)
 end
 
@@ -1084,6 +1091,9 @@ end
 
 function interact(a,b)
 	if not(a.ai and b.ai) then
+	 local hit = rnd()<hitp(a,b)
+	 a.anim=a.atkanim
+	 a.atkinfo={b,hit}
 		if rnd()<hitp(a,b) then
 		 hurt(b,a.dmg)
 		else
@@ -1904,7 +1914,7 @@ a8030400260242a01100100001000010000100001000010000100001000010000100001000010000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-6150000014e0424e2015c0415c301ac541ac401ac301ac301ac2015c3019c3019c4019c3419c351bc000000000000000000000018c2418c5418c5018c3018c4018c541cc161cc301cc301cc2017c5016c5416c55
+6150000014e0424e2015c2415c301ac541ac401ac301ac301ac2015c3019c3019c4019c3419c351bc000000000000000000000018c2418c5418c5018c3018c4018c541cc161cc301cc301cc2017c5016c5416c55
 00a0140019d7019d7019d7019d0019d0019d7018d7018d7018d0018d7017d7017d7017d7017d0017d0017d701dd701dd7027d0018d001dd00000001dd00000000000000000000000000000000000000000000000
 90a014001fb441fb401fb441fb401fb351de301eb441eb401eb201eb201fb441fb401fb441fb401fb2020b4420b4020b3020b2020b10000002d4002c400000000000000000000000000000000000000000000000
 04a014001782017820178251fc0023c0516820168341682524c001bc0017820178201782500000000001482014825000000000000000000000000000000000000000000000000000000000000000000000000000
