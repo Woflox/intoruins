@@ -561,28 +561,32 @@ function vistoplayer(tl)
 	return tl.vis and tl.light>0
 end
 
+function dijkstra(var,tovisit,check)
+	repeat
+		local pos,tl=
+			unpack(deli(tovisit,1))
+		local d=tl[var]-1
+		visitadj(pos,
+		function(npos,ntl)
+			if ntl[var]<d
+			then  
+				ntl[var]=d
+				if check(ntl) then
+					add(tovisit,{npos,ntl}) 
+				end
+			end
+		end)
+	until #tovisit==0
+end
+
 function calcdist(pos,var)
  local tl=gettile(pos)
 	alltiles(
 	function(npos,ntl)
-		ntl[var]=-1
+		ntl[var]=-1000
 	end)
-	local tovisit={{pos,tl,1}}
 	tl[var]=0
-	repeat
-		local pos,tl,d=
-			unpack(deli(tovisit,1))
-		if inbounds(pos) and
-					navigable(tl) then
-			visitadj(pos,
-			function(npos,ntl)
-				if ntl[var] == -1 then
-					ntl[var]=d
-					add(tovisit,{npos,ntl,d+1}) 
-				end
-			end)
-		end
-	until #tovisit==0
+	dijkstra(var,{{pos,tl}},navigable)
 end
 
 function gettile(pos)
@@ -647,27 +651,13 @@ function calclight()
  alltiles(
  function(pos,tl)
 		ent = tl.ent
-		tl.light = ent and ent.light or -10
+		tl.light = ent and ent.light or -20
 		tl.lightsrc = tl.light>=2
 		if tl.light>0 then
 			add(tovisit,{pos,tl})
 		end
 	end)
-	
- repeat
-		local pos,tl=unpack(deli(
-							 	 tovisit,1))
-		local light=tl.light-1
-		visitadj(pos,
-		function(npos,ntl)
-			if ntl.light<light then
-				ntl.light = light
-				if passlight(ntl) then
-					add(tovisit,{npos,ntl})
-				end
-			end
-		end)	
-	until #tovisit==0
+	dijkstra("light",tovisit,passlight)
 end
 
 function updatemap()
@@ -768,7 +758,7 @@ entdata=decode
 "64\
 name:you,hp:20,atk:0,dmg:3,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,playercontrolled:true\
 70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
+name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
 71\
 name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,deathsfx:41,hurtsfx:21\
 65\
@@ -936,7 +926,7 @@ end
 
 function seesplayer(ent)
 	return ent.tl.vis and
-	       (ent.tl.pdist<=1 or
+	       (ent.tl.pdist>=-1 or
 				    player.tl.light>=2)				 
 end
 
@@ -948,7 +938,7 @@ function findmove(ent,var,goal,special)
 		if canmove(ent,npos) and
 		 (ntl.pdist==0 or
 		  special != "atkonly") and
-		 (ntl.pdist>0 or 
+		 (ntl.pdist<0 or 
 		  special != "noatk")
 		then
 		 local score=
@@ -1025,7 +1015,7 @@ function taketurn(ent,pos,tl,group)
 	 end
 	 if ent.behav=="hunt" then
 		 if ent.pack then
-		 	ent.pdist = rnd()<0.5 and 0 or 2
+		 	ent.pdist = rnd()<0.5 and 0 or -2
 		 end
 		 checkseesplayer()
 		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noattack")
@@ -1055,7 +1045,7 @@ function taketurn(ent,pos,tl,group)
 						local tl = gettile(
 													wanderdsts[group])
 					until navigable(tl) and
-											tl.pdist>=0
+											tl.pdist>-1000
 					calcdist(wanderdsts[group],
 														group)
 				end
@@ -1390,7 +1380,7 @@ function connectareas(pos)
 		alltiles(
 		function(pos,tl)
 			if navigable(tl) and
-						tl.pdist==-1 and
+						tl.pdist==-1000 and
 						((not manmade(tl)) or
 							pos.y%2==1)
 			then
@@ -1421,7 +1411,7 @@ function connectareas(pos)
 				local tl2=gettile(p2)
 				if navigable(tl2) and
 							genable(tl2) and
-							tl2.pdist>=0 then
+							tl2.pdist>-1000 then
 					d=hexdist(p1,p2)
 					if d<bestdist then
 						bestdist,bestp1,
@@ -1455,7 +1445,7 @@ function connectareas(pos)
 					end
 				end
 			until nav and 
-									tl.pdist>=0
+									tl.pdist>-1000
 		end
 	end
 end
@@ -1531,7 +1521,7 @@ function postproc(pos)
 				tl.typ=txwall
 			end
 		elseif tl.typ==thole and
-									tl.pdist>0 then
+									tl.pdist>-1000 then
 			numholes+=1
 		end
 	end)
@@ -1561,9 +1551,10 @@ function postproc(pos)
 		 tl=gettile(testpos)
 		 pdist=tl.pdist
 		 if navigable(tl) and
-		    pdist>0 and
+		    pdist<0 and
+		    pdist>-1000 and
 		    notblocking(testpos) then
-		 	if pdist>bestdist then
+		 	if pdist<bestdist then
 		 	 bestdist=pdist
 		 	 besttl=tl
 		 	end
@@ -1593,7 +1584,8 @@ function postproc(pos)
 			visitadjrnd(spawnpos,
 			function(npos,ntl)
 				if navigable(ntl) and
-							ntl.pdist > 4 and
+							ntl.pdist < -4 and
+							ntl.pdist > -1000 and
 							notblocking(npos) and
 							not (found or ntl.ent)
 			 then
