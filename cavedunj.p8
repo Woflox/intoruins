@@ -88,26 +88,42 @@ function _init()
 	--music(0)
 end
 
+turnorder=0
 function updateturn()
- pseen=false
-	for ent in all(ents) do
-		if not taketurn(ent,ent.pos,ent.tl,ent.group) then
-		 return
+ if (waitforanim) return
+	
+	if turnorder==0 then
+		pseen=false
+	 if not taketurn(player,player.pos,player.tl) then
+	 	return
+	 end
+	 updatemap()
+	elseif turnorder==1 then
+		for ent in all(ents) do
+			if ent.ai then
+			 taketurn(ent,ent.pos,ent.tl,ent.group)
+			end
 		end
+	else
+	 for ent in all(ents) do
+			postturn(ent)
+		end
+		--todo: environmental changes
+		
+		calclight()
+		turnorder=0
+		return
 	end
- for ent in all(ents) do
-		postturn(ent)
-	end
-
+	turnorder+=1
+	updateturn()
 end
 
 function _draw()	
 
-	if not waitforanim then
-		updateturn()
-		for ent in all(ents) do
-			updateent(ent)
-		end
+	updateturn()
+	waitforanim=false
+	for ent in all(ents) do
+		updateent(ent)
 	end
 	
 	local camtarget = entscreenpos(player)
@@ -134,16 +150,18 @@ function _draw()
 	fillp(█)
 
 	for anim in all(textanims) do
-	 t=time()-anim[4]
-		if t>0.5 then
+	 local t=(anim[5] or 1)*
+	          (time()-anim[7])
+	 local col=anim[4] or 7
+	 if t>0.5 then
 			del(textanims, anim)
 		else
 			anim[2].y-=0.5-t
 			print(anim[1],
 									anim[2].x+2-
 									(anim[3] and cos(t*2) or 0),
-									anim[2].y-6,
-									t>0.433 and 5 or 7)
+									anim[2].y+(anim[6] or 0)-6,
+									t>0.433 and 5 or col)
 		end
 	end
 	camera(0,0)
@@ -168,8 +186,8 @@ end
 
 textanims={}
 
-function animtext(text,ent,wavy)
-	add(textanims,{text,entscreenpos(ent),wavy,time()})
+function animtext(text,ent,wavy,col,spd,offset)
+ add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
 end
 -->8
 --tiles, rendering
@@ -334,6 +352,11 @@ function drawent(tl)
 		if ent.flash then
 			pal(whitepal)
 			ent.flash=false
+		elseif ent.pal then
+			pal(ent.pal)
+			if ent.fillp then
+			 fillp(lfillp)
+			end
 		end
 		--fillp(█)
 		local flp=ent.xface<0 or ent.animflip
@@ -344,7 +367,7 @@ function drawent(tl)
 						+ (ent.yface > 0 
 								 and 16 or 0),
 						scrpos.x,scrpos.y,
-						1,1,
+						1,ent.animheight,
 						flp)
 		ent.lasttl=nil
 	end
@@ -364,6 +387,7 @@ function setupdrawcalls()
 	darkpal=split"15,255,255,255,255,255,255,255,255,255,255,255,255,255"
 	blackpal=split"0,0,0,0,0,0,0,0,0,0,0,0,0,0"
  whitepal=split"7,7,7,7,7,7,7,7,7,7,7,7,7,7"
+ redpal=  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
  
 	alltiles(
 	
@@ -485,6 +509,13 @@ function getadjtl(pos,i)
 end
 
 function visitadj(pos,func)
+	for i = 1,6 do
+		local npos = pos+adj[i]
+		func(npos,gettile(npos))
+	end
+end
+
+function visitadjrnd(pos,func)
 	local indices=split"1,2,3,4,5,6"
 	for i = 1,6 do
 		local n = i+rndint(7-i)
@@ -494,14 +525,14 @@ function visitadj(pos,func)
 	end
 end
 
+function rndpos()
+	return inboundposes[rndint(#inboundposes)+1]
+end
+
 function alltiles(func)
-	for y=0,mapsize do
-		for x=0,mapsize do
-			local pos=vec2(x,y)
-			if validpos(pos) then
-				func(pos,gettile(pos))
-			end
-		end
+	for i=1,#validposes do
+		func(validposes[i],
+							validtiles[i])
 	end
 end
 
@@ -531,7 +562,6 @@ function vistoplayer(tl)
 end
 
 function calcdist(pos,var)
-	var=var or "pdist"
  local tl=gettile(pos)
 	alltiles(
 	function(npos,ntl)
@@ -601,68 +631,49 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	end
 end
 
-function calcvis(pos,tl)
+function calcvis(pos)
+	alltiles(
+	function(npos,tl)
+		tl.vis = npos == pos
+	end)
 	for i=1,6 do
 		viscone(pos,adj[i],adj[(i+1)%6+1],0,1,1)
 	end
 end
 
-function calclight(pos,tl)
- 
- local maxlight=tl.light
- local minlight=maxlight
-	local tovisit={}
+function calclight()
+ local tovisit={}
+
+ alltiles(
+ function(pos,tl)
+		ent = tl.ent
+		tl.light = ent and ent.light or -10
+		tl.lightsrc = tl.light>=2
+		if tl.light>0 then
+			add(tovisit,{pos,tl})
+		end
+	end)
 	
-	function addtovisit(pos,tl)
-		local light=ceil(tl.light)
-		if not tovisit[light] then
-			tovisit[light]={}
-		end
-		maxlight=max(maxlight,light)
-		minlight=min(minlight,light)
-		add(tovisit[light],{pos,tl})
- end
- 
- addtovisit(pos,tl)
  repeat
-		while #(tovisit[maxlight])==0 do
-			maxlight -= 1
-			if (maxlight < minlight)return
-		end
-		pos,tl=unpack(deli(
-							 	 tovisit[maxlight],1))
+		local pos,tl=unpack(deli(
+							 	 tovisit,1))
 		local light=tl.light-1
 		visitadj(pos,
 		function(npos,ntl)
 			if ntl.light<light then
 				ntl.light = light
 				if passlight(ntl) then
-					addtovisit(npos,ntl)
+					add(tovisit,{npos,ntl})
 				end
-			elseif ntl.light >
-										light+2 and
-										passlight(ntl) then
-					addtovisit(npos,ntl)				
 			end
 		end)	
-	until false
+	until #tovisit==0
 end
 
 function updatemap()
-	alltiles(
-	function(pos,tl)
-		ent = tl.ent
-		tl.light = ent and ent.light or 
-													(fget(tl.typ+192,7) and 
-													4 or -10)--todo: do tiles need to emit light 
-		tl.lightsrc = tl.light>=2
-		tl.vis = ent == player
-	end)
-	ppos=player.pos
-	calclight(ppos,gettile(ppos))
-	calcdist(ppos)
-	calcvis(ppos)
-
+	calclight()
+	calcdist(player.pos,"pdist")
+	calcvis(player.pos)
 end
 -->8
 --utility
@@ -706,18 +717,6 @@ end
 function lerp(a,b,t)
 	return (1-t)*a+t*b
 end
---sort by aaaidan
---[[function sort(a,cmp)
- for i=1,#a do
- 	local j=i
- 	while j>1 and 
- 	cmp(a[j-1],a[j]) do
- 	 a[j],a[j-1]=a[j-1],a[j]
- 	 j -= 1
- 	end
- end
-end
-]]
 
 --vec2 by mrh & felice 
 vec2mt={
@@ -767,29 +766,40 @@ end
 
 entdata=decode
 "64\
-name:you,hp:20,atk:0,dmg:3,armor:0,light:4,atkanim:patk,lcol1:4,lcol2:9,playercontrolled:true\
+name:you,hp:20,atk:0,dmg:3,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,playercontrolled:true\
 70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,ai:true,pdist:100,runaway:true,atkanim:eatk,alertsfx:14,hurtsfx:15\
+name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
 71\
-name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,atkanim:eatk,alertsfx:20,hurtsfx:21\
+name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,deathsfx:41,hurtsfx:21\
 65\
-name:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,atkanim:eatk,alertsfx:30,hurtsfx:11\
+name:goblin,hp:7,atk:1,dmg:3,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,alertsfx:30,deathsfx:41,hurtsfx:11\
 137\
-name:mushroom,hp:1,light:4,lcol1:13,lcol2:12,flippable:true\
+name:mushroom,hp:1,light:4,lcol1:13,lcol2:12,deathanim:mushdeath,flippable:true,deathsfx:42\
 136\
-name:brazier,hp:1,light:4,lcol1:4,lcol2:9,idleanim:idle3,animspeed:0.3\
+name:brazier,hp:1,light:4,lcol1:4,lcol2:9,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23,\
 idle3\nl012\
 fire\n0l.1.2.3f1f2f3\
 idle4\nl0123\
 move\n044\
-patk\na22d2\
-eatk\n0000a22d2\
-death\nfc0000\
-fall\nf0000c00"
+turn\n44\
+sleep\nlz000000000000000000000\
+patk\nwa22d2r\
+eatk\nwa22dr2\
+death\nwb0vc0vc0c0c0r_\
+mushdeath\nw0_\
+brazierdeath\nw3_\
+fall\nwv0000c00r_"
 
 function setanim(ent,anim)
-	ent.anim=split(entdata[anim],"")
-	ent.animt=0
+	ent.anim,ent.animt,
+	ent.animloop=
+		split(entdata[anim],""),0,
+		false
+		
+	if ent.anim[1]=="w" then
+		waitforanim=true
+		ent.animwait=true
+	end
 end
 
 function checkidle(ent)
@@ -809,7 +819,7 @@ function create(typ,pos,behav,group)
 							animspeed=0.5,
 							animflip=false,
 							animoffset=vec2(0,0),
-							rndoffset=rnd(),
+							animheight=1,
 							tl=gettile(pos)}
 	ent.renderpos=entscreenpos(ent)
 	ent.name=rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
@@ -823,53 +833,80 @@ function create(typ,pos,behav,group)
 		ent[pair[1]]=pair[2]
 	end
 	ent.maxhp=ent.hp
-	if ent.flippable then
-		ent.animflip = ent.tl.flip
+	if ent.flippable and
+	   rnd() > 0.5 then
+		ent.xface *= -1
 	end
 	checkidle(ent)
+	if ent.behav=="sleep" then
+		setanim(ent,"sleep")
+	end
 	return ent
 end
 
 function updateent(ent)
 	function tickanim()
-	 local anim,index=
-	   ent.anim,flr(ent.animt)
+	 local anim,index,atkinfo=
+	   ent.anim,flr(ent.animt),
+	   ent.atkinfo
 		local char=anim[index]
-		if type(char)=="number" then
+		if type(char)=="number" or
+		   flr(ent.animt) > #anim then
 			ent.animframe=char
 			ent.animt+=ent.animspeed
+			
 			if flr(ent.animt)>#anim then
 			 if ent.animloop then
 			 	ent.animt=ent.animloop
 			 else
 			 	checkidle(ent)
-			 	ent.animoffset=vec2(0,0)
+					ent.animoffset=vec2(0,0)
 			 end
 			end
 		else
+			
 			ent.animflip=char=="f"
 			if char=="l"then
 			 ent.animloop=index+1
 			 ent.animt+=rnd(#anim-index-1)
+			elseif char=="r" then
+				ent.animwait=false
+			elseif char=="z" and
+			 vistoplayer(ent.tl) 
+			then
+		 	animtext("z",ent,true)
+			elseif char=="_" then
+				destroy(ent)
+			elseif char=="v" then
+			 ent.animoffset.y+=ent.animt/4
+			elseif char=="c" then
+				ent.animheight=1-
+													ent.animoffset.y/8
+			elseif char=="b" then
+				ent.pal=redpal
+				ent.fillp=true
+				animtext(".",ent,false,8,3,6)
 			elseif char=="a" then
 				ent.animoffset=0.25*
 					screenpos(
-						ent.atkinfo[2]-
+						atkinfo[2]-
 						ent.pos,
 						vec2(0,0))
 				sfx(33)
-			elseif char=="d" and
-			 ent.atkinfo[3] 
-			then
-				sfx(34)
-				local b=ent.atkinfo[1]
-				local hurt=b.hurtsfx
-				b.flash=true
-				if hurt then
-					sfx(hurt)
-				end 
+			elseif char=="d" then
+				local b = atkinfo[1]
+			 if atkinfo[3] then--hits
+					sfx(b.hp<=atkinfo[4] and
+					    b.deathsfx or 34)
+					b.flash=true
+					if b.hurtsfx then
+						sfx(b.hurtsfx)
+					end
+					hurt(b,atkinfo[4])
+				else
+					aggro(b.pos)
+				end	
 			end
-			
 			ent.animt+=1
 			tickanim()
 		end
@@ -878,15 +915,8 @@ function updateent(ent)
 	if ent.anim then
 		tickanim()
 	end
-	
-	if ent.behav=="sleep" and
-				vistoplayer(ent.tl) 
-	then
-		ent.rndoffset+=0.015
-		if ent.rndoffset > 1 then
-			ent.rndoffset-=1
-		 animtext("z",ent,true)
-		end
+	if ent.animwait then
+		waitforanim=true
 	end
 	
 	ent.renderpos=
@@ -913,7 +943,7 @@ end
 function findmove(ent,var,goal,special)
 	local tl = ent.tl
 	local bestscore=-2
-	visitadj(ent.pos,
+	visitadjrnd(ent.pos,
 	function(npos,ntl)
 		if canmove(ent,npos) and
 		 (ntl.pdist==0 or
@@ -965,28 +995,27 @@ function taketurn(ent,pos,tl,group)
 			ent.yface *= -1
 		end
 		
-		function pmove(topos)
-		 move(ent,topos,true)
-			updatemap()
-		end
-		
 		if movx!=0 or movy!=0 then
 			local dst=pos+
 										vec2(movx,movy)
 			local dst2=dst-
 										vec2(0,ent.yface)
 			if canmove(ent,dst) then
-				pmove(dst)
+		 move(ent,dst,true)
 				return true
 			elseif movx!= 0 and
 					canmove(ent,dst2) then
-				pmove(dst2)
+		 	move(ent,dst2,true)
 				return true
 			end
 		end
-		if (yfacechange) sfx(39)
+		if yfacechange then
+		 setanim(ent,"turn")
+		 sfx(39)
+		end
 		return false
-	elseif ent.ai and ent.canact then
+	elseif ent.ai and ent.canact and
+	 ent.behav != "dead" then
 	 --ai
 	 function checkseesplayer()
 	 	if seesplayer(ent) then
@@ -1060,6 +1089,10 @@ end
 
 function setbehav(ent,behav)
 	if ent.behav != behav then
+		if ent.behav=="sleep" then
+		 checkidle(ent)
+		end
+		
 		ent.behav = behav
 		if behav == "hunt" then
 			animtext("!",ent)
@@ -1085,6 +1118,7 @@ function aggro(pos)
 	calcdist(pos,"aggro")
 	for ent in all(ents) do
 		if ent.ai and
+		   ent.behav != "dead" and
 					ent.tl.aggro<=3
 		then
 			if seesplayer(ent) then
@@ -1106,16 +1140,10 @@ end
 function hurt(ent,dmg)
 	ent.hp-=dmg
 	if ent.hp<=0 then
-		ent.canact=false
+		setbehav(ent,"dead")
+		setanim(ent,ent.deathanim)
+		waitforanim=true
 	end
-	--	destroy(ent)
-	--end
-	--[[
-	sfx(34)
-	if ent.hurtsfx then
-		sfx(ent.hurtsfx)
-	end
-	]]
 	aggro(ent.pos)
 end
 
@@ -1132,12 +1160,8 @@ function interact(a,b)
 	if not(a.ai and b.ai) then
 	 local hit = rnd()<hitp(a,b)
 	 setanim(a,a.atkanim)
-	 a.atkinfo={b,b.pos,hit}
-		if hit then
-		 hurt(b,a.dmg)
-		else
-			aggro(b.pos)
-		end
+	 waitforanim=true
+	 a.atkinfo={b,b.pos,hit,a.dmg}
 	end
 end
 
@@ -1193,26 +1217,32 @@ minroomw,minroomh,roomsizevar=
        3,       2,          8
 startp=1.5
 
-function rndpos()
-	return validposes[rndint(#validposes)+1]
-end
-
 function genmap(startpos)
 	printh("genmap()")
 	
 	world={}
 	ents={}
+	inboundposes = {}
+	validposes = {}
+	validtiles = {}
 	for x=0,mapsize do
 	 world[x] = {}
 		for y=0,mapsize do
-			world[x][y] = tile(tempty)
+		 world[x][y] = tile(tempty)
 		end
 	end
-	validposes = {}
-	alltiles(
-	function(pos,tl)
-	 if (inbounds(pos))add(validposes,pos)
-	end)
+	for y=0,mapsize do
+	 for x=0,mapsize do
+	 	local pos=vec2(x,y)
+			if validpos(pos) then
+				add(validposes,pos)
+				add(validtiles,gettile(pos))
+				if inbounds(pos) then
+					add(inboundposes,pos)
+				end
+			end
+	 end
+	end
 	
 	p=startp
 	if rnd() > 0.5 then
@@ -1301,7 +1331,7 @@ function gencave(pos)
 	
 	p -= 0.013
 	if inbounds(pos) then
-		visitadj(pos,
+		visitadjrnd(pos,
 		function(npos,ntl)
 			if not genable(ntl) then
 				if inbounds(npos) and 
@@ -1338,7 +1368,7 @@ end
 
 function postgen(pos, tl, prevtl)
 	tl.postgenned=true
-	visitadj(pos,
+	visitadjrnd(pos,
 	function(npos,ntl)
 		if genable(ntl) and not
 					ntl.postgenned then
@@ -1353,7 +1383,7 @@ end
 function connectareas(pos)
 	for i=1,20 do
 		--what a mess
-	 calcdist(pos)
+	 calcdist(pos,"pdist")
 	 
 		local unreach={}
 		local numtls=0
@@ -1560,7 +1590,7 @@ function postproc(pos)
 		behav=rnd{"sleep","wander"}
 		for typ in all(spawn) do
 			local found=false
-			visitadj(spawnpos,
+			visitadjrnd(spawnpos,
 			function(npos,ntl)
 				if navigable(ntl) and
 							ntl.pdist > 4 and
@@ -1636,40 +1666,40 @@ fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffffddd6dddddddff
 fff67ffffffffffffffffffffffffffffff11fffff999ffffffffffffffffffff11ff11fffffffff00000000000000000000000000000000ffffffffffffffff
 fff62f9ffffffffffff22fffffffffffff1001ff333333ffffffffffffffffff10011001ffffffff00000000000000000000000000000000ffffffffffffffff
 ff888faffff3f3fffff223fffff3f3ffff10031f33333344ffffffffffff4f4f05000050ffffffff00000000000000000000000000000000ffffff8f9989ffff
-ff88df4fff5553f6ff22234fff44439ff100038133333342ffffffffffff444f11500511fff333ff00000000000000000000000000000000fffff88988888fff
-ff88d6ffff555f6fff222f4fff4445f9f10001419333392ffff4f4ffff44422fff1011ffff35573f00000000000000000000000000000000889f8598855588ff
-ff882fffff5553ffff22234fff222366f1000341f33339ffffff55fff44422fff101ffffff35553f00000000000000000000000000000000ff899988888f8fff
-ff2f2fffff444fffff222f4fff66699ff100011ff2222fffff5555ff442402ffff1fffffff35033f00000000000000000000000000000000ff2888882086ffff
-ffd0dfffff202fffff222fffff606ffff10001fff2002ffffe544ffff202fffffff00ffff355553f00000000000000000000000000000000fff262226fffffff
+ff88df4fff5553f6ff22234fff44439ff100038133333342ffffffffffff444f11500511fffeeeff00000000000000000000000000000000fffff88988888fff
+ff88d6ffff555f6fff222f4fff4445f9f10001419333392ffff4f4ffff44422fff1011ffffe227ef00000000000000000000000000000000889f8598855588ff
+ff882fffff5553ffff22234fff222366f1000341f33339ffffff55fff44422fff101ffffffe222ef00000000000000000000000000000000ff899988888f8fff
+ff2f2fffff444fffff222f4fff66699ff100011ff2222fffff5555ff442402ffff1fffffffe20eef00000000000000000000000000000000ff2888882086ffff
+ffd0dfffff202fffff222fffff606ffff10001fff2002ffffe544ffff202fffffff00ffffe2222ef00000000000000000000000000000000fff262226fffffff
 fff67ffffffffffffffffffffffffffffff11fffff997ffffffffffffffffffff111f11fffffffff00000000000000000000000000000000ffffffffffffffff
 fff22ffffffffffffff22fffffffffffff1001ff333993ffffffffffffffffff10001001ffffffff00000000000000000000000000000000ffffffffffffffff
 ff8829fffff3f3fffff323fffff3f3ffff13031f993333ffffffffffffffffff05500050ffffffff00000000000000000000000000000000ffffff8fffffffff
-ff8ddaffff5333ffff2333ffff4333fff103331f99333344ffffffff4fffffff11580811fff333ff00000000000000000000000000000000889ff888f99fffff
-ff86d4ffff555ff6ff222f4fff44299ff100018199933f42ffffffff24424f4fff1011ffff35573f00000000000000000000000000000000ff898558888a8fff
-ff826fffff555f6fff222f4fff2445f9f1000141f999942ffef4f4fff422444ff101ffffff35553f00000000000000000000000000000000ff289855588888ff
-ff2f2fffff4453ffff22234fff664366f1000341f2299fffff5555fff204240fff1fffffff35033f00000000000000000000000000000000fff228888822ffff
-ffd0dfffff202fffff222f4fff60699ff100011ff2002fffff0555fffff202fffff00ffff355553f00000000000000000000000000000000fffff22226006fff
+ff8ddaffff5333ffff2333ffff4333fff103331f99333344ffffffff4fffffff11580811fffeeeff00000000000000000000000000000000889ff888f99fffff
+ff86d4ffff555ff6ff222f4fff44299ff100018199933f42ffffffff24424f4fff1011ffffe227ef00000000000000000000000000000000ff898558888a8fff
+ff826fffff555f6fff222f4fff2445f9f1000141f999942ffef4f4fff422444ff101ffffffe222ef00000000000000000000000000000000ff289855588888ff
+ff2f2fffff4453ffff22234fff664366f1000341f2299fffff5555fff204240fff1fffffffe20eef00000000000000000000000000000000fff228888822ffff
+ffd0dfffff202fffff222f4fff60699ff100011ff2002fffff0555fffff202fffff00ffffe2222ef00000000000000000000000000000000fffff22226006fff
 ffffffffffffffffffffc4cfffffffffff11ff8fffffffffffffffffff6fff6fffffffffffffffff00000000000000000000000000000000ffff8fff98ffffff
 fff67fffffffffffff2ec4cffffffffff1051878fff999fffffffffffff64f461ff1f1f1ffffffff00000000000000000000000000000000fff888f9888fffff
-fff88ffff66666ffff22bc4cfff3f3fff100b184f3333336f6ff6ffffff64446011010106fffff6f00000000000000000000000000000000ff85588982ff88ff
-ff8886ff6663f36fff2222bcff4443fff10005b1f3333336ff4f46fff4f4442650000005f6fffff600000000000000000000000000000000ffff65888888858f
-ff88dffff35553f6ff222ec4f4444f9ff100001ff3333336ff6556ffff44422615000551f633333600000000000000000000000000000000ffff6f8988855fff
-f8822fffff555fffff22efc4ff224f9ff10001fff3333394ff5555fff4444f2ff11011fff355557300000000000000000000000000000000ff89ff89882f6fff
-ff2f2fffff444fffff22effcff6669fff10001fff2222942ff544fffff2f4ffff101fffff355005300000000000000000000000000000000fff8999882ff6fff
-fd00dffff4004fffff222fffff606ffff10001ff200002fffe5fffffff00ffffff100fff3555555300000000000000000000000000000000ffff88888066ffff
+fff88fffff7666ffff22bc4cfff3f3fff100b184f3333336f6ff6ffffff64446011010106fffff6f00000000000000000000000000000000ff85588982ff88ff
+ff8886fff763f36fff2222bcff4443fff10005b1f3333336ff4f46fff4f4442650000005f6fffff600000000000000000000000000000000ffff65888888858f
+ff88dffff35553f6ff222ec4f4444f9ff100001ff3333336ff6556ffff44422615000551f6eeeee600000000000000000000000000000000ffff6f8988855fff
+f8822fffff555fffff22efc4ff224f9ff10001fff3333394ff5555fff4444f2ff11011fffe22227e00000000000000000000000000000000ff89ff89882f6fff
+ff2f2fffff444fffff22effcff6669fff10001fff2222942ff544fffff2f4ffff101fffffe22002e00000000000000000000000000000000fff8999882ff6fff
+fd00dffff4004fffff222fffff606ffff10001ff200002fffe5fffffff00ffffff100fffe222222e00000000000000000000000000000000ffff88888066ffff
 fffffffffffffffffffffcffffffffffff11ff8fffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000ffff8fff9a8fffff
 fff67fffffffffffff2ec4cffffffffff1051878fff999ffffffffffffffffff1ff1f1f1ffffffff00000000000000000000000000000000fff888f98888ffff
 fff22fffffffffffffb2b4cffff3f3fff1b0b141f333973fffffffffffffff6f011010106fffff6f00000000000000000000000000000000ff85588982fff8ff
-ff822ffffff3f3ffff33bc4cff4333fff133b141f9933336ffffffff4f624f4650000005f6fffff600000000000000000000000000000000ff8ff6588888858f
-ff6ddfffff5333ffff222ebcff44499ff10005b199933336ff64f6fff446444615580851f633333600000000000000000000000000000000fffff69888556f8f
-f86226ffff3555ffff222ec4f4425ff9f100001f99333366fef6556f42462406ff1011fff355557300000000000000000000000000000000ff896f98882f6fff
-ff6f2ffff3664ff6ff22efc4ff435ff9f10001ff9924466fff56556fff262f26f101fffff355005300000000000000000000000000000000fff8998888f6ffff
-fd0ffffff466666fff222fffff60699ff10001ff9444262fff55ff5ffff4fff4ff100fff3555555300000000000000000000000000000000ffff8868286fffff
+ff822ffffff3f66fff33bc4cff4333fff133b141f9933336ffffffff4f624f4650000005f6fffff600000000000000000000000000000000ff8ff6588888858f
+ff6ddfffff5363ffff222ebcff44499ff10005b199933336ff64f6fff446444615580851f6eeeee600000000000000000000000000000000fffff69888556f8f
+f86226ffff5665ffff222ec4f4425ff9f100001f99333366fef6556f42462406ff1011fffe22227e00000000000000000000000000000000ff896f98882f6fff
+ff6f2ffff3764fffff22efc4ff435ff9f10001ff9924466fff56556fff262f26f101fffffe22002e00000000000000000000000000000000fff8998888f6ffff
+fd0ffffff4f74fffff222fffff60699ff10001ff9444262fff55ff5ffff4fff4ff100fffe222222e00000000000000000000000000000000ffff8868286fffff
 fff67ffffffccffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffcd7cfffffffffffffffffffffffff7fffffffffffff7ffffffff7fff99ffffffffffffffff8ffffdffffffffffffffffffffffffffffffffffffff
 ff888fffffcddcfffffffffffffffffffffff66fffffff7fffff65fffffff997ff899ffffffffffffff8fffffffffcffffffffbfffffffcfffffff8fffffffef
-ff886ffffffccffffffafffffff5fffffffff46ffffff6fffffff457fffffd99ff998ffffffccffffff88ffffffffffffffff44ffffff66ffffff55ffffff22f
-ff88d6fffffffffffff9fffffff4ffffffff4ffffffd6fffffff4f6fffffdfffff544fffffccc7ffff898ffffffffffffff44ffffff66ffffff55ffffff22fff
+ff88d6fffffccffffffafffffff5fffffffff46ffffff6fffffff457fffffd99ff998ffffffccffffff88ffffffffffffffff44ffffff66ffffff55ffffff22f
+ff88dffffffffffffff9fffffff4ffffffff4ffffffd6fffffff4f6fffffdfffff544fffffccc7ffff898ffffffffffffff44ffffff66ffffff55ffffff22fff
 f8822ffffffffffffff4fffffff4fffffff4fffffffdfffffff4fffffffdfffffff5ffffffffdfffff8998ffffffffdff44ffffff66ffffff55ffffff22fffff
 ff22ffffffffffffffffffffffffffffff4fffffffffffffffffffffffffffffff554ffffcf2d2fffff88fffffffffffffffffffffffffffffffffffffffffff
 ff0dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff505ffffdf00fffffffffffffcfffffffffffffffffffffffffffffffffffff
@@ -1937,8 +1967,8 @@ a8011700322103e2313f2313f2312f200232002e2002f20023200002000020000200002003020038
 78020b000e91006010040110301500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 a8030400260242a011001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000000000000000000000000000000000
 040202000e0550e00501005270000000000000000000000000000000002b60029000000000000000000000000000000000000001a605290002900029005000000000000000000000000000000000000000000000
-94090900196731633307313066330d02317200006130d013001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+95070900196731632307313006330d043000100d02300013001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000000000000000000000
+000b02000f07300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
