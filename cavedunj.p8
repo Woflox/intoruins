@@ -263,14 +263,19 @@ function initpal(tl, fadefow)
 	end
 end
 
-function drawtl(tl,pos,flp,bg,i)
-	local scrpos=screenpos(pos,vec2(0,0))
+function onscreenpos(pos,pad)
+ local scrpos=screenpos(pos,vec2(0,0))
  local scrposrel=scrpos-smooth
 	if max(abs(scrposrel.x),
-        abs(scrposrel.y))>72
+        abs(scrposrel.y))<=pad
  then
-	 return
+	 return scrpos
 	end
+end
+
+function drawtl(tl,pos,flp,bg,i)
+	local scrpos=onscreenpos(pos,72)
+ if (not scrpos) return
 	
 	local typ = tl.typ
 	if not i and typ==tywall then
@@ -1031,6 +1036,7 @@ function taketurn(ent,pos,tl,group)
 			function checkaggro(p)
 				if seesplayer(ent)
 				   and rnd() < p
+				   and onscreenpos(ent.pos,62)
 				then
 				 aggro(pos)
 				 return true
