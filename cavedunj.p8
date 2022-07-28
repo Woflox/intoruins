@@ -1016,6 +1016,9 @@ function taketurn(ent,pos,tl,group)
 	 if ent.behav=="hunt" then
 		 if ent.pack then
 		 	ent.pdist = rnd()<0.5 and 0 or -2
+		 elseif ent.runaway then
+		 	ent.pdist = ent.tl.pdist>=-1 and
+		 													0 or -100		
 		 end
 		 checkseesplayer()
 		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noattack")
