@@ -604,7 +604,11 @@ function calcdist(pos,var)
 		ntl[var]=pos==npos and 0
 		         or -1000
 	end)
-	dijkstra(var,{pos},navigable)
+	dijkstra(var,{pos},
+	function(tl)
+		return navigable(tl) and not
+		(tl.ent and tl.ent.blocking)
+	end)
 end
 
 function gettile(pos)
@@ -784,9 +788,9 @@ name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:
 65\
 name:goblin,hp:7,atk:1,dmg:3,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,alertsfx:30,deathsfx:41,hurtsfx:11\
 137\
-name:mushroom,hp:1,light:4,lcol1:13,lcol2:12,deathanim:mushdeath,flippable:true,deathsfx:42\
+name:mushroom,hp:1,blocking:true,light:4,lcol1:13,lcol2:12,deathanim:mushdeath,flippable:true,deathsfx:42\
 136\
-name:brazier,hp:1,light:4,lcol1:4,lcol2:9,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23,\
+name:brazier,hp:1,blocking:true,light:4,lcol1:4,lcol2:9,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23,\
 idle3\nl012\
 fire\n0l.1.2.3f1f2f3\
 idle4\nl0123\
