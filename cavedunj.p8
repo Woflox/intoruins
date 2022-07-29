@@ -130,8 +130,8 @@ function _draw()
 		updateent(ent)
 	end
 	
-	local camtarget = entscreenpos(player)
- local center = screenpos(vec2(mapcenter,mapcenter))
+	local camtarget = screenpos(player.pos)
+ local center = screenpos(vec2(mapcenter,mapcenter-0.5))
 	camtarget=lerp(camtarget,
 																	center,
 																	0.36)
