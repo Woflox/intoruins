@@ -606,7 +606,7 @@ function calcdist(pos,var)
 	end)
 	dijkstra(var,{pos},
 	function(tl)
-		return navigable(tl) and not
+		return tileflag(tl,0) and not
 		(tl.ent and tl.ent.blocking)
 	end)
 end
