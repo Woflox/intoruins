@@ -578,16 +578,15 @@ end
 
 function dijkstra(var,tovisit,check)
 	repeat
-		local pos,tl=
-			unpack(deli(tovisit,1))
-		local d=tl[var]-1
+		local pos=deli(tovisit,1)
+		local d=gettile(pos)[var]-1
 		visitadj(pos,
 		function(npos,ntl)
 			if ntl[var]<d
 			then  
 				ntl[var]=d
 				if check(ntl) then
-					add(tovisit,{npos,ntl}) 
+					add(tovisit,npos) 
 				end
 			end
 		end)
@@ -595,13 +594,12 @@ function dijkstra(var,tovisit,check)
 end
 
 function calcdist(pos,var)
- local tl=gettile(pos)
 	alltiles(
 	function(npos,ntl)
-		ntl[var]=-1000
+		ntl[var]=pos==npos and 0
+		         or -1000
 	end)
-	tl[var]=0
-	dijkstra(var,{{pos,tl}},navigable)
+	dijkstra(var,{pos},navigable)
 end
 
 function gettile(pos)
@@ -669,7 +667,7 @@ function calclight()
 		tl.light = ent and ent.light or -20
 		tl.lightsrc = tl.light>=2
 		if tl.light>0 then
-			add(tovisit,{pos,tl})
+			add(tovisit,pos)
 		end
 	end)
 	dijkstra("light",tovisit,passlight)
