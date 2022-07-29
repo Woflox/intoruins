@@ -144,7 +144,7 @@ function _draw()
 													flr(rnd(shake*2)-
 	                shake+
 	                smooth.y-63.5))
-	shake=max(shake-0.25,0)
+	shake*=0.66
 --end
 
 --function _draw()
@@ -718,6 +718,10 @@ function rndint(maxval)
 	return flr(rnd(maxval))
 end
 
+function rndp(p)
+	return rnd()<(p or 0.5)
+end
+
 function lerp(a,b,t)
 	return (1-t)*a+t*b
 end
@@ -838,7 +842,7 @@ function create(typ,pos,behav,group)
 	end
 	ent.maxhp=ent.hp
 	if ent.flippable and
-	   rnd() > 0.5 then
+	   rndp() then
 		ent.xface *= -1
 	end
 	checkidle(ent)
@@ -1035,7 +1039,7 @@ function taketurn(ent,pos,tl,group)
 	 end
 	 if ent.behav=="hunt" then
 		 if ent.pack then
-		 	ent.pdist = rnd()<0.5 and 0 or -2
+		 	ent.pdist = rndp() and 0 or -2
 		 elseif ent.runaway then
 		 	ent.pdist = ent.tl.pdist>=-1 and
 		 													0 or -100		
@@ -1050,7 +1054,7 @@ function taketurn(ent,pos,tl,group)
 			--notice player
 			function checkaggro(p)
 				if seesplayer(ent)
-				   and rnd() < p
+				   and rndp(p)
 				   and onscreenpos(ent.pos,62)
 				then
 				 aggro(pos)
@@ -1062,7 +1066,7 @@ function taketurn(ent,pos,tl,group)
 			if ent.behav=="wander" then
 				if not wanderdsts[group]
 				   or ent.pos==wanderdsts[group]
-				   or rnd()<0.025
+				   or rndp(0.025)
 				then
 					repeat
 						wanderdsts[group]=rndpos()
@@ -1175,7 +1179,7 @@ end
 
 function interact(a,b)
 	if not(a.ai and b.ai) then
-	 local hit = rnd()<hitp(a,b)
+	 local hit = rndp(hitp(a,b))
 	 setanim(a,a.atkanim)
 	 waitforanim=true
 	 a.atkinfo={b,b.pos,hit,a.dmg}
@@ -1262,7 +1266,7 @@ function genmap(startpos)
 	end
 	
 	p=startp
-	if rnd() > 0.5 then
+	if rndp() then
 		gencave(startpos)
 	else
 		genroom(startpos)
@@ -1295,7 +1299,7 @@ function genroom(pos)
 	local maxpos=minpos+
 								vec2(w-flr(h/2),h)
 	offset=minpos-pos
-	openplan=rnd()>0.5
+	openplan=rndp()
 	local wvec = vec2(w,0)
 	if not 
 	  (validpos(minpos) and
@@ -1335,7 +1339,7 @@ function genroom(pos)
 		end
 	end
 	
-	if rnd() < 0.15 then
+	if rndp(0.15) then
 		gencave(rndpos())				 
 	end
 	genroom(rndpos())			
@@ -1352,10 +1356,10 @@ function gencave(pos)
 		function(npos,ntl)
 			if not genable(ntl) then
 				if inbounds(npos) and 
-							rnd()<p then
+							rndp(p) then
 					gentile(tl.typ,npos)
 					if genable(ntl) then
-						if rnd()<0.01 then
+						if rndp(0.01) then
 							genroom(rndpos())
 						end
 					 gencave(npos)
@@ -1372,7 +1376,7 @@ function gentile(typ,pos)
 	if (manmade(tl)) y+=16
 	settile(tl,mget(typ,y))
 	typ2=mget(typ+1,y)
-	tl.flip=rnd()<0.5
+	tl.flip=rndp()
 	tl.genned=true
  if typ2 != 0 then
   if typ2 < 64 then
@@ -1601,7 +1605,7 @@ function postproc(pos)
 	for i=1,5 do
 		local spawnpos=rndpos()
 		local spawndepth=depth
-		while rnd() < 0.45 and spawndepth <= 15 do
+		while rndp(0.45) and spawndepth <= 15 do
 		 spawndepth+=1
 		end
 		local spawn = rnd(spawns[ceil(spawndepth/2)])
