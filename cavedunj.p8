@@ -130,14 +130,17 @@ function _draw()
 		updateent(ent)
 	end
 	
-	local camtarget = player.renderpos
+	local camtarget = entscreenpos(player)
  local center = screenpos(vec2(mapcenter,mapcenter))
 	camtarget=lerp(camtarget,
 																	center,
 																	0.36)
+	smoothb = smoothb and
+											lerp(smoothb,camtarget,0.5)
+											or camtarget
 	smooth = smooth and 
-		lerp(smooth,camtarget,0.25)
-		or	camtarget
+		lerp(smooth,smoothb,0.25)
+		or	smoothb
 		
 	campos=vec2(flr(rnd(shake*2)-
 	                shake+
@@ -1112,7 +1115,7 @@ function setbehav(ent,behav)
 			animtext("!",ent)
 			sfx(ent.alertsfx)
 		elseif behav == "search"
-		 --and vistoplayer(ent.tl)
+		 and vistoplayer(ent.tl)
 		then
 			animtext("?",ent)
 		end
