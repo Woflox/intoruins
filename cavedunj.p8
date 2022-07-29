@@ -130,11 +130,13 @@ function _draw()
 		updateent(ent)
 	end
 	
-	local camtarget = screenpos(player.pos)
- local center = screenpos(vec2(mapcenter,mapcenter-0.5))
-	camtarget=lerp(camtarget,
-																	center,
-																	0.36)
+	local camtarget = 
+ 	screenpos(
+ 		lerp(player.pos,
+ 							vec2(mapcenter,
+ 												mapcenter-0.5),
+ 							0.36))
+	
 	smoothb = smoothb and
 											lerp(smoothb,camtarget,0.5)
 											or camtarget
