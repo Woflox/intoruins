@@ -130,8 +130,8 @@ function _draw()
 		updateent(ent)
 	end
 	
-	local camtarget = entscreenpos(player)
- local center = screenpos(vec2(mapcenter,mapcenter),vec2(-3,-7))
+	local camtarget = player.renderpos
+ local center = screenpos(vec2(mapcenter,mapcenter))
 	camtarget=lerp(camtarget,
 																	center,
 																	0.36)
@@ -274,7 +274,7 @@ function initpal(tl, fadefow)
 end
 
 function onscreenpos(pos,pad)
- local scrpos=screenpos(pos,vec2(0,0))
+ local scrpos=screenpos(pos)
  local scrposrel=scrpos-smooth
 	if max(abs(scrposrel.x),
         abs(scrposrel.y))<=pad
@@ -681,16 +681,14 @@ end
 -->8
 --utility
 
-function screenpos(pos,
-																			offset)
-	return vec2(offset.x+pos.x*12,
-							 				 offset.y+pos.y*8+
-							 				  pos.x*4) 
+function screenpos(pos)
+	return vec2(pos.x*12,
+							 				 pos.y*8+pos.x*4) 
 end
 
 function entscreenpos(ent)
-	return screenpos(ent.pos,
-																		vec2(-2.5,-6.5))
+	return screenpos(ent.pos)+
+	        vec2(-2.5,-6.5)
 end
 
 function hexdist(p1,p2)
@@ -897,8 +895,7 @@ function updateent(ent)
 				ent.animoffset=0.25*
 					screenpos(
 						atkinfo[2]-
-						ent.pos,
-						vec2(0,0))
+						ent.pos)
 				sfx(33)
 			elseif char=="d" then
 				local b = atkinfo[1]
@@ -1115,7 +1112,7 @@ function setbehav(ent,behav)
 			animtext("!",ent)
 			sfx(ent.alertsfx)
 		elseif behav == "search"
-		 and vistoplayer(ent.tl)
+		 --and vistoplayer(ent.tl)
 		then
 			animtext("?",ent)
 		end
