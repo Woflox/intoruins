@@ -119,6 +119,8 @@ function updateturn()
 	updateturn()
 end
 
+shake=0
+
 function _draw()	
 
 	updateturn()
@@ -135,8 +137,14 @@ function _draw()
 	smooth = smooth and 
 		lerp(smooth,camtarget,0.25)
 		or	camtarget
-	campos=vec2(flr(smooth.x-63.5),
-													flr(smooth.y-63.5))
+		
+	campos=vec2(flr(rnd(shake*2)-
+	                shake+
+	                smooth.x-63.5),
+													flr(rnd(shake*2)-
+	                shake+
+	                smooth.y-63.5))
+	shake=max(shake-0.25,0)
 --end
 
 --function _draw()
@@ -762,7 +770,7 @@ end
 
 entdata=decode
 "64\
-name:you,hp:20,atk:0,dmg:3,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,playercontrolled:true\
+name:you,hp:20,atk:0,dmg:3,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
 70\
 name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
 71\
@@ -1145,6 +1153,9 @@ end
 
 function hurt(ent,dmg)
 	ent.hp-=dmg
+	if ent.hitshake then
+		shake=1
+	end
 	if ent.hp<=0 then
 		setbehav(ent,"dead")
 		setanim(ent,ent.deathanim)
