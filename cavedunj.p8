@@ -855,6 +855,10 @@ function create(typ,pos,behav,group)
 	if ent.behav=="sleep" then
 		setanim(ent,"sleep")
 	end
+	if ent.ai then
+		ent.xface = rndp() and 1 or -1
+		ent.yface = rndp() and 1 or -1
+	end
 	return ent
 end
 
