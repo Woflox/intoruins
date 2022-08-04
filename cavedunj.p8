@@ -95,7 +95,7 @@ function _init()
 	
 	genmap(vec2(mapcenter,mapsize*0.75))--mapsize/*0.75))
 
- local torch = create(132)
+ local torch = create(135)
 	addtoinventory(torch)
 	equip(torch)
 	calclight()
@@ -193,8 +193,17 @@ function _draw()
 		end
 	end
 	camera(0,0)
-	print("fps: "..stat(7)..
-	      " cpu: "..stat(1),0,2,5)
+	--print("fps: "..stat(7)..
+	--      " cpu: "..stat(1),0,2,5)
+	cursor(1,2)
+	for entry in all(textlog) do
+		local t = time()-entry[2]
+		if t>2.5 then
+			del(textlog, entry)
+		else
+			print(entry[1],t<2.434 and 6 or 5)
+		end
+	end
 
 	local x =
 	drawbar(player.hp/player.maxhp,
@@ -213,9 +222,14 @@ function drawbar(ratio,label,x,y,col1,col2)
 end
 
 textanims={}
+textlog={}
 
 function animtext(text,ent,wavy,col,spd,offset)
  add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
+end
+
+function log(text)
+	add(textlog,{text,time()},1)
 end
 -->8
 --tiles, rendering
