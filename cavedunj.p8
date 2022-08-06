@@ -3,9 +3,16 @@ version 36
 __lua__
 --game loop
 
-depth=1
-
 function _init()
+ assigntable(_ENV,
+"depth:1,mapsize:20,mapcenter:10\
+,tempty:0,tcavefloor:50,tcavefloorvar:52\
+,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20\
+,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56\
+,thole:32,txbridge:60,tybridge:44\
+,minroomw:3,minroomh:2,roomsizevar:8\
+,startentropy:1.5")
+
 	adj=vec2list
 	"-1, 0,\
 	 0 ,-1,\
@@ -75,8 +82,7 @@ function _init()
  	1,3,\
  	3,-3,\
  	1,-2"
- 
-	
+ 	
 	spawns={}
 	for i=0,7 do
 		local curspawns={}
@@ -114,13 +120,13 @@ function updateturn()
 	 end
 	 updatemap()
 	elseif turnorder==1 then
-		for ent in all(ents) do
+		for i,ent in ipairs(ents) do
 			if ent.ai then
 			 taketurn(ent,ent.pos,ent.tl,ent.group)
 			end
 		end
 	else
-	 for ent in all(ents) do
+	 for i,ent in ipairs(ents) do
 			postturn(ent)
 		end
 		--todo: environmental changes
@@ -139,7 +145,7 @@ function _update()
 
 	updateturn()
 	waitforanim=false
-	for ent in all(ents) do
+	for i,ent in ipairs(ents) do
 		updateent(ent)
 	end
 	
@@ -177,7 +183,7 @@ function _draw()
 	pal(15,129,1)
 	fillp(█)
 
-	for anim in all(textanims) do
+	for i,anim in ipairs(textanims) do
 	 local t=(anim[5] or 1)*
 	          (time()-anim[7])
 	 local col=anim[4] or 7
@@ -196,7 +202,7 @@ function _draw()
 	--print("fps: "..stat(7)..
 	--      " cpu: "..stat(1),0,2,5)
 	cursor(1,2)
-	for entry in all(textlog) do
+	for i,entry in ipairs(textlog) do
 		local t = time()-entry[2]
 		if t>2.5 then
 			del(textlog, entry)
@@ -254,15 +260,6 @@ lit tile flags
 
 extra tile flags
 ]]
-
-tempty,tcavefloor,tcavefloorvar=
-0     ,50        ,52
-tcavewall,tdunjfloor,tywall,txwall=
-16       ,48        ,18    ,20
-tshortgrass,tflatgrass,tlonggrass,tmushroom=
-54         ,38       ,58         ,56
-thole,txbridge,tybridge=
-32   ,60      ,44
 
 function tile(typ)
 	return {typ=typ,fow=0}
@@ -433,8 +430,8 @@ function drawent(tl)
 end
 
 function drawmap()
-	for drawcall in 
-					all(drawcalls) do
+	for i,drawcall in 
+					ipairs(drawcalls) do
 		drawcall[1](
 			unpack(drawcall[2]))
 	end
@@ -528,15 +525,11 @@ function setupdrawcalls()
 					navigable(uprtl) then
 			drawcall(drawent,{uprtl})	
 		end
-	end)
-	
+	end)	
 end
 
 -->8
 --map stuff
-
-mapsize,mapcenter=
-20     ,10
 
 function inbounds(pos)
 	local x,y=pos.x,pos.y
@@ -558,7 +551,6 @@ function validpos(pos)
 								x+y<=mapsize*1.5
 end
 			
-
 function getadjtl(pos,i)
 	if (i==0) return gettile(pos)
 	local dst=pos+adj[i]
@@ -589,8 +581,8 @@ function rndpos()
 end
 
 function alltiles(func)
-	for i=1,#validposes do
-		func(validposes[i],
+	for i,pos in ipairs(validposes) do
+		func(pos,
 							validtiles[i])
 	end
 end
@@ -760,6 +752,15 @@ function vec2list(str)
 	return ret
 end
 
+function assigntable(table,str,delim1,delim2)
+ for i,var in 
+		ipairs(split(str,delim1 or ","))
+	do
+		local pair=split(var,delim2 or ":")
+		table[pair[1]]=pair[2]
+	end
+end
+
 function rndint(maxval)
 	return flr(rnd(maxval))
 end
@@ -809,57 +810,35 @@ end
 -->8
 --entities
 
-function decode(str)
-	data={}
-	strs=split(str,"\n")
-	for i=1,#strs,2 do
-		data[strs[i]]=strs[i+1]
-	end
-	return data
-end
-
-entdata=decode
-"64\
-name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
-70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-15,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
-71\
-name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,deathsfx:41,hurtsfx:21\
-65\
-name:goblin,hp:7,atk:1,dmg:3,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,alertsfx:30,deathsfx:41,hurtsfx:11\
-137\
-name:mushroom,hp:1,blocking:true,light:4,lcol1:13,lcol2:12,deathanim:mushdeath,flippable:true,deathsfx:42\
-136\
-name:brazier,hp:1,blocking:true,light:4,lcol1:4,lcol2:9,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23,\
-169\
-name:chair,hp:2,blocking:true,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23\
-175\
-name:barrel,hp:2,blocking:true,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23\
-idle3\nl012\
-fire\n0l.1.2.3f1f3\
-idle4\nl0123\
-move\n044\
-turn\n44\
-sleep\nlz000000000000000000000\
-patk\nwa22d22r\
-eatk\nwa22dr22\
-death\nwb0vc0vc0c0c0r_\
-mushdeath\nw0r_\
-brazierdeath\nw33r_\
-propdeath\nw11r_\
-fall\nwv0000c00r_\
-130\
-name:torch,slot:wpn,dmg:3,atk:1,lit:true,throw:4,fuel:50,namenofuel:club,dmgincrease:1\
-132\
-name:spear,slot:wpn,dmg:3,atk:1,pierce:true,throwbonus:1,throw:8,dmgincrease:1\
-133\
-name:rapier,slot:wpn,dmg:2,atk:2,lunge:true,throw:4,dmgincrease:1\
-134\
-name:axe,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1\
-135\
-name:hammer,slot:wpn,dmg:6,atk:1,stun:true,knockback:true,slow:true,dmgincrease:2\
-"
-
+entdata={}
+assigntable(entdata,
+"64=name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
+70=name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-15,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
+71=name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,deathsfx:41,hurtsfx:21\
+65=name:goblin,hp:7,atk:1,dmg:3,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,alertsfx:30,deathsfx:41,hurtsfx:11\
+137=name:mushroom,hp:1,blocking:true,light:4,lcol1:13,lcol2:12,deathanim:mushdeath,flippable:true,deathsfx:42\
+136=name:brazier,hp:1,blocking:true,light:4,lcol1:4,lcol2:9,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23,\
+169=name:chair,hp:2,blocking:true,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23\
+175=name:barrel,hp:2,blocking:true,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23\
+idle3=l012\
+fire=0l.1.2.3f1f3\
+idle4=l0123\
+move=044\
+turn=44\
+sleep=lz000000000000000000000\
+patk=wa22d22r\
+eatk=wa22dr22\
+death=wb0vc0vc0c0c0r_\
+mushdeath=w0r_\
+brazierdeath=w33r_\
+propdeath=w11r_\
+fall=wv0000c00r_\
+130=name:torch,slot:wpn,dmg:3,atk:1,lit:true,throw:4,fuel:50,namenofuel:club,dmgincrease:1\
+132=name:spear,slot:wpn,dmg:3,atk:1,pierce:true,throwbonus:1,throw:8,dmgincrease:1\
+133=name:rapier,slot:wpn,dmg:2,atk:2,lunge:true,throw:4,dmgincrease:1\
+134=name:axe,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1\
+135=name:hammer,slot:wpn,dmg:6,atk:1,stun:true,knockback:true,slow:true,dmgincrease:2\
+","\n","=")
 
 function setanim(ent,anim)
 	ent.anim,ent.animt,
@@ -891,12 +870,7 @@ function create(typ,pos,behav,group)
 							animflip=false,
 							animoffset=vec2(0,0),
 							animheight=1}
-	for var in 
-		all(split(entdata[typ]))
-	do
-		local pair=split(var,":")
-		ent[pair[1]]=pair[2]
-	end						
+	assigntable(ent,entdata[typ])						
 	
 	if ent.pos then
 		ent.tl=gettile(ent.pos)
@@ -1212,7 +1186,7 @@ end
 function aggro(pos)
 	setsearchpos(player.pos)
 	calcdist(pos,"aggro",true)
-	for ent in all(ents) do
+	for i,ent in ipairs(ents) do
 		if ent.ai and
 		   ent.behav != "dead" and
 					ent.tl.aggro>=-3
@@ -1314,10 +1288,6 @@ end
 -->8
 --level generation
 
-minroomw,minroomh,roomsizevar=
-       3,       2,          8
-startp=1.5
-
 function genmap(startpos)
 	printh("genmap()")
 	
@@ -1345,7 +1315,7 @@ function genmap(startpos)
 	 end
 	end
 	
-	p=startp
+	entropy=startentropy
 	if rndp() then
 		gencave(startpos)
 	else
@@ -1390,9 +1360,9 @@ function genroom(pos)
 	then
 		return genroom(rndpos())
 	end
-	p-=0.15+rnd(0.1)
+	entropy-=0.15+rnd(0.1)
 	local crumble = rnd(0.25)
-	if (p<0) return
+	if (entropy<0) return
 	for y=0,h do
 	 local alt=(pos.y+offset.y+y+1)%2
 		offset.x -= alt
@@ -1444,13 +1414,13 @@ function gencave(pos)
 	local tl = gettile(pos)
 	if(tl.typ==tempty)tl.typ=tcavefloor
 	
-	p -= 0.013
+	entropy -= 0.013
 	if inbounds(pos) then
 		visitadjrnd(pos,
 		function(npos,ntl)
 			if not genable(ntl) then
 				if inbounds(npos) and 
-							rndp(p) then
+							rndp(entropy) then
 					gentile(tl.typ,npos)
 					if genable(ntl) then
 						if rndp(0.01) then
@@ -1711,7 +1681,7 @@ function postproc(pos)
 		end
 		local spawn = rnd(spawns[ceil(spawndepth/2)])
 		behav=rnd{"sleep","wander"}
-		for typ in all(spawn) do
+		for i,typ in ipairs(spawn) do
 			local found=false
 			visitadjrnd(spawnpos,
 			function(npos,ntl)
