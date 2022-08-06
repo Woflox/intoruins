@@ -1001,10 +1001,10 @@ function findmove(ent,var,goal,special)
 	visitadjrnd(ent.pos,
 	function(npos,ntl)
 		if canmove(ent,npos) and
-		 (ntl.pdist==0 or
-		  special != "atkonly") and
-		 (ntl.pdist<0 or 
-		  special != "noatk")
+		 (ntl.pdist!=0 or
+		  special != "noatk") and
+			 (ntl.pdist==0 or 
+			  special != "atkonly")
 		then
 		 local score=
 		 							(abs(tl[var]-goal))-
@@ -1025,7 +1025,7 @@ function findmove(ent,var,goal,special)
 		then
 			aggro(ent.pos)
 		else
-			move(ent,bestpos)
+			return move(ent,bestpos)
  	end
  end
 end
@@ -1097,7 +1097,7 @@ function taketurn(ent,pos,tl,group)
 		 													0 or -15		
 		 end
 		 checkseesplayer()
-		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noattack")
+		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noatk")
 			checkseesplayer()
 			if ent.movandatk then
 				findmove(ent,"pdist",0,"atkonly")
@@ -1267,7 +1267,6 @@ function move(ent,dst,playsfx)
 				sfx(35)
 			end
 		end
-	
 	end
 
 	if delta.x != 0 then 
@@ -1282,8 +1281,6 @@ function move(ent,dst,playsfx)
 	if dsttile.typ==tlonggrass then
 		dsttile.typ=tflatgrass
 	end
-	
-	return true
 end
 -->8
 --level generation
