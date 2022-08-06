@@ -135,7 +135,7 @@ end
 
 shake=0
 
-function _draw()	
+function _update()	
 
 	updateturn()
 	waitforanim=false
@@ -164,9 +164,9 @@ function _draw()
 	                shake+
 	                smooth.y-63.5))
 	shake*=0.66
---end
+end
 
---function _draw()
+function _draw()
 	cls()
 	camera(campos.x,campos.y)
 	lfillp=localfillp(0xbe96.4,
@@ -819,7 +819,7 @@ end
 
 entdata=decode
 "64\
-name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
+name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,deathanim:death,light:1.5,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
 70\
 name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
 71\
@@ -840,11 +840,11 @@ idle4\nl0123\
 move\n044\
 turn\n44\
 sleep\nlz000000000000000000000\
-patk\nwa22d2r\
-eatk\nwa22dr2\
+patk\nwa22d22r\
+eatk\nwa22dr22\
 death\nwb0vc0vc0c0c0r_\
 mushdeath\nw0r_\
-brazierdeath\nw3r_\
+brazierdeath\nw33r_\
 propdeath\nw11r_\
 fall\nwv0000c00r_\
 130\
@@ -1059,7 +1059,8 @@ function taketurn(ent,pos,tl,group)
 	if ent.playercontrolled then
 		
 		--player
-		poke(0x5f5c,8)--key repeat
+		poke(0x5f5c,9)--key repeat
+		poke(0x5f5d,6)
 		
 		if btnp(🅾️) then
 			tock = not tock
