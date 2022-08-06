@@ -822,7 +822,7 @@ entdata=decode
 "64\
 name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,deathanim:death,light:4,lcol1:4,lcol2:9,deathsfx:41,hitshake:true,playercontrolled:true\
 70\
-name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-100,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
+name:rat,hp:3,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:-15,runaway:true,alertsfx:14,deathsfx:41,hurtsfx:15\
 71\
 name:jackal,hp:4,atk:0,dmg:2,armor:0,atkanim:eatk,deathanim:death,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,deathsfx:41,hurtsfx:21\
 65\
@@ -1120,7 +1120,7 @@ function taketurn(ent,pos,tl,group)
 		 	ent.pdist = rndp() and 0 or -2
 		 elseif ent.runaway then
 		 	ent.pdist = ent.tl.pdist>=-1 and
-		 													0 or -100		
+		 													0 or -15		
 		 end
 		 checkseesplayer()
 		 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noattack")
@@ -1211,7 +1211,7 @@ end
 
 function aggro(pos)
 	setsearchpos(player.pos)
-	calcdist(pos,"aggro")
+	calcdist(pos,"aggro",true)
 	for ent in all(ents) do
 		if ent.ai and
 		   ent.behav != "dead" and
@@ -1288,7 +1288,7 @@ function move(ent,dst,playsfx)
 				sfx(38)
 			elseif dsttile.typ==40 then
 				sfx(43)--bonez			
-				aggro(ent.pos)	
+				aggro(dst)	
 			else
 				sfx(35)
 			end
@@ -1491,7 +1491,7 @@ function postgen(pos, tl, prevtl)
 	end)
 end
 
-function connectareas(pos)
+function connectareas(pos,permissive)
 	for i=1,20 do
 		--what a mess
 	 calcdist(pos,"pdist")
@@ -1502,7 +1502,8 @@ function connectareas(pos)
 		function(pos,tl)
 			if navigable(tl) and
 						tl.pdist==-1000 and
-						((not manmade(tl)) or
+						((permissive or
+						  not manmade(tl)) or
 							pos.y%2==1)
 			then
 				add(unreach,pos)
@@ -1522,6 +1523,7 @@ function connectareas(pos)
 			gettile(p1),ceil(rnd(6))
 			
 			if manmade(tl1) and
+			   permissive and
 			 (diri==3 or diri==6) then
 					diri-=ceil(rnd(2))
 			end
@@ -1660,7 +1662,7 @@ function postproc(pos)
 		end
 	end)
 	
-	connectareas(pos)
+	connectareas(pos,true)
 	
 	--create exit hole if needed
 	if numholes==0 then
