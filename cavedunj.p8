@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 36
 __lua__
---game loop
+--
 
 function _init()
 assigntable(_ENV,
@@ -464,8 +464,8 @@ function drawtl(tl,pos,flp,bg,i)
 										flp)
 end
 
-function drawent(tl)
- local ent = tl.ent
+function drawent(tl,entvar)
+	local ent = tl[entvar]
 	if ent and (vistoplayer(tl) or
 	   (ent.lasttl and
 	   vistoplayer(ent.lasttl)))
@@ -504,6 +504,12 @@ function drawent(tl)
 		end
 		ent.lasttl=nil
 	end
+end
+
+function drawents(tl)
+	drawent(tl,"item")
+ drawent(tl,"ent")
+ drawent(tl,"effect")
 end
 
 function drawmap()
@@ -595,7 +601,7 @@ function setupdrawcalls()
 		uprtl=getadjtl(pos,3)
 		if uprtl and 
 					navigable(uprtl,true) then
-			drawcall(drawent,{uprtl})	
+			drawcall(drawents,{uprtl})	
 		end
 	end)	
 end
@@ -1846,9 +1852,9 @@ fff0000000000000fff000055100fffffffffff0055000fffff01111101110ffffff2d2d2d2d2fff
 ffffffffffffffffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042222242fffffffffffffffffff
 fffffffffffffffffffffffffffffffffffff0bbb00fffffffff3ffffffb3f33fff000110111ffffffffffffffffffffffff150000050ffffff000550111ffff
 fffffffffffffffffffffffffffffffffff10bbbbbbbf1fff33ff3fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
-ffffffffffffffffffffff0fff0fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
-1ffffffffffffffffffffffff0fffffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
-fffffffffff1ffffffff0ff0ff00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
+ffffffffffffffffffffff0ff00fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
+1ffffffffffffffffffffff0f5fffffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
+fffffffffff1ffffffff0ff50f00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
 fffff1ffffffffffffffff00ffffffffff0000155d01100fffff0b0bfbffffffff0011510050500fffffff3ffff3ffffffff042222242fffff0011110001100f
 fffffffffffffffffffffffffffffffffff00100001000fffffffffbfffffffffff00150110005fffff3ff3f3ff3f3ffffff050000020ffffff00110111000ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffffffff666666666fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
