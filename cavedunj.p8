@@ -264,8 +264,6 @@ function _draw()
 		end
 	end
 	camera(0,0)
-	--print("fps: "..stat(7)..
-	--      " cpu: "..stat(1),0,2,5)
 	cursor(1,2)
 	for i,entry in ipairs(textlog) do
 		local t = time()-entry[2]
@@ -441,10 +439,8 @@ function drawtl(tl,pos,flp,bg,i)
 			if adjtile and
 						adjtile.lightsrc then
 				typ = litsprite
-			 if adjtile.ent then
-					pal(8,adjtile.ent.lcool and 13 or 4)
-					pal(9,adjtile.ent.lcool and 12 or 9)
-			 end
+				pal(8,adjtile.lcool and 13 or 4)
+				pal(9,adjtile.lcool and 12 or 9)
 			end
 		end
 	end
@@ -777,11 +773,27 @@ function calclight()
  alltiles(
  function(pos,tl)
 		ent = tl.ent
-		tl.light = (gamestate=="gameover" and 
-		           (ent==player and 1)) or
-		           (ent and ent.light) or -20
-		tl.lightsrc = tl.light>=2
-		if tl.light>0 then
+		function checklight(var)
+			if tl[var] and tl[var].light then
+				local light=tl[var].light
+				if light>tl.light then
+					tl.light=light
+					if light>=2 then
+						tl.lightsrc=true
+						tl.lcool=tl[var].lcool
+					end
+				end
+			end	
+		end
+		tl.light=0
+		tl.lightsrc=false
+		checklight("item")
+		checklight("effect")
+		checklight("ent")
+  if gamestate=="gameover" then
+  	tl.light = ent==player and 1 or -10
+  end
+  if tl.light>0 then
 			add(tovisit,pos)
 		end
 	end)
