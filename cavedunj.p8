@@ -190,7 +190,7 @@ function updateturn()
 	 for i,ent in ipairs(ents) do
 			postturn(ent)
 		end
-		--todo: environmental changes
+		updateenv()
 		
 		calclight()
 		turnorder=0
@@ -331,10 +331,12 @@ lit tile flags
 extra tile flags
 
 0:navflying
+1:flammable
+2:flammable2
 ]]
 
 function tile(typ)
-	return {typ=typ,fow=0}
+	return {typ=typ,fow=0,fire=0,spores=0}
 end
 
 function settile(tl,typ)
@@ -802,16 +804,44 @@ end
 
 function effect(var,pos,typ,val)
 	local tl=gettile(pos)
-	pos[var]=val
+	pos[var]=max(pos[var],val)
 	if not (tl.effect and 
 									tl.effect.typ==typ) then
 		create(typ,pos)	
 	end
 end
 
-function setfire(pos,snd)
-	if (snd) sfx(36)
-	effect("fire",pos,138,1)
+function setfire(pos,val)
+	effect("fire",pos,138,val)
+end
+
+function updateenv()
+	alltiles(
+	function(pos,tl)
+		if tl.fire>=1 then
+			tl.fire+=1
+		end
+	end)
+	alltiles(
+	function(pos,tl)
+		if tl.fire>=3 then
+			visitadj(pos,
+			function(npos,ntl)
+			 local superflam=tileflag(ntl,10) or
+			                 ntl.spores
+				if ntl.fire==0 and
+					   (superflam or
+					   tileflag(ntl,9) or
+					   (ntl.ent and 
+					    ntl.ent.flammable))
+				then
+					if rndp(superflam and 1 or 0.5) then
+						setfire(npos,2)
+					end					 
+				end
+			end)	
+		end
+	end)
 end
 
 function updatemap()
@@ -1362,7 +1392,8 @@ function hurt(ent,dmg,atkr)
 				firepos=dirpos
 			end
 		end
-		setfire(firepos,true)
+		sfx(36)
+		setfire(firepos,1)
 	end
 	aggro(ent.pos)
 end
@@ -2157,7 +2188,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840084002c00b300ee00be00ee0072016300ba016b01f30109096b01b301b30173017301730123017d016b01ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000840084002c00b300ee00be00ee0072016300ba016b03f30109096b07b301b30173017301730323017d036b03ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
 464647474141424b4b4b0000000000001011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b00000000bc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
