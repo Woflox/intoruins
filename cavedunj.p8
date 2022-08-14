@@ -1,11 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 36
 __lua__
---
+--game name???
+--BY ERIC BILLINGSLEY
 
 function _init()
 assigntable(_ENV,
-[[gamestate:play,depth:5,mapsize:20,mapcenter:10
+[[gamestate:play,depth:5,mapsize:20,mapcenter:10,turnorder:0,
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -53,7 +54,6 @@ fall=wv0000c00r_
 134=name:axe,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1
 135=name:hammer,slot:wpn,dmg:6,atk:1,stun:2,knockback:true,slow:true,throw:2,dmgincrease:2
 ]],"\n","=")
-
  
 	adj=vec2list
 [[-1, 0,
@@ -65,7 +65,7 @@ fall=wv0000c00r_
 	
 	specialtiles={
 	[tcavewall]={
-		vec2(-9,-4),--baseoffset
+		vec2(-9,-4),
 		vec2list--xy
 	[[0 ,-8,
 		 5 ,-8,
@@ -80,9 +80,8 @@ fall=wv0000c00r_
 		 5, 4,
 		 11, 4,
 		 3, 4]]},
-		
 	[thole]={
-		vec2(-8,-4),--baseoffset
+		vec2(-8,-4),
 		vec2list--xy
 	[[0, 0,
 		 4, 0,
@@ -97,18 +96,16 @@ fall=wv0000c00r_
 			4,8,
 			7,7,
 			4,8]]},
-			
 	[txwall]={
-		vec2(-9,-2),--baseoffset
+		vec2(-9,-2),
 		vec2list--xy
 	[[12,-8,
  		 0,-8]],
 		vec2list--wh
 	[[7 ,17,
 		 12,17]]},
-		 
 	[tywall]={
-		vec2(-5,-2),--baseoffset
+		vec2(-5,-2),
 		vec2list--xy
 	[[9,-8,
 		 2,-8]],
@@ -131,6 +128,8 @@ fall=wv0000c00r_
  whitepal=split"7,7,7,7,7,7,7,7,7,7,7,7,7,7"
  redpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 
+	textanims={}
+	textlog={}
 	introtext=
 [[  tHE CAVE OPENING CALLS TO YOU.    
 cOULD THIS BE THE RESTING PLACE
@@ -169,7 +168,6 @@ OF THE FABLED wINGS OF yENDOR?
 	--music(0)
 end
 
-turnorder=0
 function updateturn()
  if (waitforanim) return
 	
@@ -303,9 +301,6 @@ function drawbar(ratio,label,x,y,col1,col2)
 	end
  return x+w+4
 end
-
-textanims={}
-textlog={}
 
 function animtext(text,ent,wavy,col,spd,offset)
  add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
@@ -480,7 +475,6 @@ function drawent(tl,entvar)
 			 fillp(lfillp)
 			end
 		end
-		--fillp(█)
 		local flp=ent.xface<0 or ent.animflip
 		local scrpos=ent.renderpos+
 					vec2(flp and -1 or 0,0)
@@ -834,7 +828,7 @@ function hexline(p1,p2,func)
 	end
 end
 
---adapted from observablehq.com/@jrus/hexround]]
+--adapted from observablehq.com/@jrus/hexround
 function hexnearest(pos)
 	local roundx,remx=round(pos.x)
  local roundy,remy=round(pos.y)
@@ -891,7 +885,7 @@ vec2mt={
         return vec2(v1.x+v2.x,v1.y+v2.y)
     end,
     __sub=function(v1,v2)
-        return vec2(v1.x-v2.x,v1.y-v2.y)
+        return -v2+v1
     end,
     __unm=function(self)
         return vec2(-self.x,-self.y)
@@ -899,9 +893,6 @@ vec2mt={
     __mul=function(s,v)
         return vec2(s*v.x,s*v.y)
     end,
-   -- __len=function(self)
-   --     return sqrt(self.x*self.x+self.y*self.y)
-   -- end,
     __eq=function(v1,v2)
         return v1.x==v2.x and v1.y==v2.y
     end,
@@ -1711,9 +1702,7 @@ function postproc(pos)
 		end
 	end)
 	
-	
 	connectareas(pos,true)
-	
 	local numholes=0
 	
 	alltiles(
