@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(_ENV,
-[[gamestate:play,depth:5,mapsize:20,mapcenter:10,turnorder:0,
+[[gamestate:play,depth:1,mapsize:20,mapcenter:10,turnorder:0,
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -28,10 +28,10 @@ assigntable(entdata,
 136=name:brazier,hp:1,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
 169=name:chair,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
 200=name:barrel,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
-138=name:fire,effect:true,idleanim:fire,deathanim:firedeath
-139=name:spores,effect:true,idleanim:idle4,animspeed:0.25,flippable:true
+138=name:fire,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
+139=name:spores,var:effect,light:4,idleanim:idle4,animspeed:0.25,flippable:true
 idle3=l012
-fire=0l.1.2.3f1f2f3
+fire=01f0l.1.2.3f1f2f3
 firedeath=0
 idle4=l0123
 batidle=l0022
@@ -777,15 +777,29 @@ function calclight()
  alltiles(
  function(pos,tl)
 		ent = tl.ent
-		tl.light = gamestate=="gameover" and 
-		           (ent==player and 1 or -20) or
-		           (ent and ent.light or -20)
+		tl.light = (gamestate=="gameover" and 
+		           (ent==player and 1)) or
+		           (ent and ent.light) or -20
 		tl.lightsrc = tl.light>=2
 		if tl.light>0 then
 			add(tovisit,pos)
 		end
 	end)
 	dijkstra("light",tovisit,passlight)
+end
+
+function effect(var,pos,typ,val)
+	local tl=gettile(pos)
+	pos[var]=val
+	if not (tl.effect and 
+									tl.effect.typ==typ) then
+		create(typ,pos)	
+	end
+end
+
+function setfire(pos,snd)
+	if (snd) sfx(36)
+	effect("fire",pos,138,1)
 end
 
 function updatemap()
@@ -945,13 +959,18 @@ function create(typ,pos,behav,group)
 							animheight=1,
 							deathanim="death",
 							atkanim="eatk",
-							deathsfx=41}
+							deathsfx=41,
+							var="ent"}
 	assigntable(ent,entdata[typ])						
 	
 	if ent.pos then
 		ent.tl=gettile(ent.pos)
-		ent.tl.ent = ent
+		ent.tl[ent.var] = ent
 		ent.renderpos=entscreenpos(ent)
+	end
+
+	if ent.var!="ent"then
+		ent.animoffset=vec2(0,2)
 	end
 	
 	ent.truname=ent.ai and 
@@ -1046,13 +1065,7 @@ function updateent(ent)
 			elseif char=="d" then
 				local b = atkinfo[1]
 			 if atkinfo[3] then--hits
-					sfx(b.hp<=atkinfo[4] and
-					    b.deathsfx or 34)
-					b.flash=true
-					if b.hurtsfx then
-						sfx(b.hurtsfx)
-					end
-					hurt(b,atkinfo[4])
+					hurt(b,atkinfo[4],ent)
 				else
 					aggro(b.pos)
 				end	
@@ -1078,7 +1091,7 @@ function updateent(ent)
 	end								
 end
 
-function canmove(ent,pos,speial)
+function canmove(ent,pos,special)
 	local tl=gettile(pos)
 	return
 	 (tl.ent and
@@ -1306,12 +1319,14 @@ function destroy(ent)
 	ent.tl.ent=nil
 end
 
-function hurt(ent,dmg)
+function hurt(ent,dmg,atkr)
 	ent.hp-=dmg
+ ent.flash=true
 	if ent.hitshake then
 		shake=1
 	end
 	if ent.hp<=0 then
+	 sfx(ent.deathsfx or 34)
 		setbehav(ent,"dead")
 		setanim(ent,ent.deathanim)
 		waitforanim=true
@@ -1320,6 +1335,22 @@ function hurt(ent,dmg)
 			--music(8)
 			calclight()
 		end
+	else
+		sfx(34)
+	end
+	if ent.hurtsfx then
+		sfx(ent.hurtsfx)	
+	end
+	if ent.hitfire then
+		local firepos=ent.pos
+		if atkr then
+			local dirpos=firepos+
+			 hexdir(atkr.pos,ent.pos)
+			if navigable(gettile(dirpos)) then
+				firepos=dirpos
+			end
+		end
+		setfire(firepos,true)
 	end
 	aggro(ent.pos)
 end
@@ -1920,37 +1951,37 @@ f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeef
 ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227efffc7cff28882288fffdfffffffd2dfffff8998888f6ffff
 fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002effffcfff8888822effffffffffdfdfffffff8868286fffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffff8ffffdffffffffffffffffffffffffffffffffffffff
-ff888fffffffffbfffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffff8fffffffffcfffff40ffffff50ffffff94ffffff65fff
-ff88d6fffffff44ffffafffffffffffffffff7fffffffffffffff4ffffff97ffff998ffffffccffffff88fffffffffffff4ff4ffff5ff5ffff9ff9ffff6ff6ff
-ff88dffffff44ffffff9fffffff5ffffffffdfffffff7fffffff5d6fffff997fff544fffffccc7ffff898ffffffffffffff49ffffff56ffffff9affffff67fff
-f8822ffff44ffffffff4fffffff4fffffff4ffffff56fffffff4f6fffff5f9fffff5ffffffffdfffff8998ffffffffdfff4fffffff5fffffff9fffffff6fffff
-ff22ffffffffffffffffffffffffffffff4fffffff5fffffff4fffffff5fffffff554ffffcf2d2fffff88fffffffffffffffffffffffffffffffffffffffffff
-ff0dfffffffffffffffffffffffffffff4ffffffffffffffffffffffffffffffff505ffffdf00fffffffffffffcfffffffffffffffffffffffffffffffffffff
-fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8fffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffff
-fff22fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff899fffffffffffff88fffffcffffffffffffffffffffffffffffffffffffff
-ff882fffffffffcfffffffffffffffffffffffffffffffffffffffffffffffffff998ffffffcffffff898fffffffffffff9fffffff8fffffffbfffffffcfffff
-ff8d9ffffffff66ffffaffffffffffffffffffffffffffffffffffffffffffffff998ffffffcfffff88988fffffffdffff9999ffff8888ffffbbbbffffccccff
-ff86dffffff66ffffff9fffffff5ffffffffffffffff7fffffffffffffff97ffff454fffcfffffcff899998ffffffffffff999fffff888fffffbbbfffffcccff
-f82626fff66ffffffff4fffffff4ffff44ffffffff56fffffffff4fffff5997ffff5fffffcfffcfff899998fffffffcffffff9fffffff8fffffffbfffffffcff
-fff22fffffffffffffffffffffffffffff44ffffffdfffffff445d6fff5ff9ffff554fffffffffffff8988ffffdfffffffffffffffffffffffffffffffffffff
-ff0dffffffffffffffffffffffffffffffffd7fffffffffffffff6ffffffffffff505fffccfffccff8ffff8fffffffffffffffffffffffffffffffffffffffff
-fffffffffffffffff988fffffffffffffffffffffffffffffffffffffffffffffff9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-ffffffffffffffffa9998ffffffff6fffffffff7ff6667fff66676fffffff6ffff998fffffffffffff88ff8fffffffffffffffffffffffffffffffffffffffff
-ffffffffffffff8f9fff98ffffffff6fffffff6fffff6f6f656ff67fffffff6fff999ffffffdffffff8888fffdfffffffffccffffffaaffffff88ffffff66fff
-fffffffffffff55ff4fff98fffffff6ffffff46fffff5ff664ffff67ffffff6fff899fffffd5ffffff89898ffffffcffffcd7cffffa97affff8278ffff6576ff
-fffffffffff55ffffffffffffffff56fffff4ffffffffff6ffffff66fffff66fff554fffff51bbfff899998fffffffdfffcddcffffa99affff8228ffff6556ff
-fffdd8fff55fffffffffffffffff445ffff4fffffffffffffffffffffffff66ffff5ffffff5bb5fff889998ffffffffffffccffffffaaffffff88ffffff66fff
-f2288887ffffffffffffffffffffffffffffffffffffffffffffff66fff5557fff554fffff5155ffff88988fffcfffffffffffffffffffffffffffffffffffff
-d8888886fffffffffffffffffffffffffffffffffffffffffffffffffffff99fff505ffff0505fff88ffff8fffffffffffffffffffffffffffffffffffffffff
-ffffffffffffffffffffffffffffffffffffffffffffffffffffff66ffff6fffffffffffffffffffffff8fffffffffffffffffffffffffffffffffffffffffff
-fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6fffffffffffffffffffff898ffffffffffffffffffffffffffffffffffffffffff
-ffffffffffffffefffffffffffffff6fffffffffffffff6fffffff66fffff6ffffffffffffffffffff8898fffcfffdfffff33ffffff99ffffffddffffffeefff
-fffffffffffff22fffffff9fffffff6ff44fffffffffff6fffffff66ffff66ffffffffffffffffffff89988fffffffffff3b73ffff9879ffffd27dffffe87eff
-fffffffffff22ffffffff98fff4fff6ffff446fff5ffff6fffffff7fff5f66fffffffffffffbbbfff899998fffffffcfff3bb3ffff9889ffffd22dffffe88eff
-ff8888fff22fffffff4998fffff456fffffff46fff6f76ff6f4ff6fffff577ffff54f4ffff5550fff899998ffffffffffff33ffffff99ffffffddffffffeefff
-f826d226ffffffffffa98fffffff5fffffffff67fff67fff656667ffffff99fffff555fffb51110fff8888ffffffffffffffffffffffffffffffffffffffffff
-d66d9227fffffffffffffffffffffffffffffffffff7fffff667ffffffffffffff5505ff555550fff8ffff88ffdfffffffffffffffffffffffffffffffffffff
+fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99fffffffffffffffffffffdffffffffffffffffffffffffffffffffffffff
+ff888fffffffffbfffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffffffffffffffcfffff40ffffff50ffffff94ffffff65fff
+ff88d6fffffff44ffffafffffffffffffffff7fffffffffffffff4ffffff97ffff998ffffffccffffff8ffffffffffffff4ff4ffff5ff5ffff9ff9ffff6ff6ff
+ff88dffffff44ffffff9fffffff5ffffffffdfffffff7fffffff5d6fffff997fff544fffffccc7ffff8ffffffffffffffff49ffffff56ffffff9affffff67fff
+f8822ffff44ffffffff4fffffff4fffffff4ffffff56fffffff4f6fffff5f9fffff5ffffffffdffff898ffffffffffdfff4fffffff5fffffff9fffffff6fffff
+ff22ffffffffffffffffffffffffffffff4fffffff5fffffff4fffffff5fffffff554ffffcf2d2fff8998fffffffffffffffffffffffffffffffffffffffffff
+ff0dfffffffffffffffffffffffffffff4ffffffffffffffffffffffffffffffff505ffffdf00fffff88ffffffcfffffffffffffffffffffffffffffffffffff
+fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+fff22fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff899fffffffffffff8ffffffcffffffffffffffffffffffffffffffffffffff
+ff882fffffffffcfffffffffffffffffffffffffffffffffffffffffffffffffff998ffffffcfffff998ffffffffffffff9fffffff8fffffffbfffffffcfffff
+ff8d9ffffffff66ffffaffffffffffffffffffffffffffffffffffffffffffffff998ffffffcfffff8998ffffffffdffff9999ffff8888ffffbbbbffffccccff
+ff86dffffff66ffffff9fffffff5ffffffffffffffff7fffffffffffffff97ffff454fffcfffffcf899998fffffffffffff999fffff888fffffbbbfffffcccff
+f82626fff66ffffffff4fffffff4ffff44ffffffff56fffffffff4fffff5997ffff5fffffcfffcff8999998fffffffcffffff9fffffff8fffffffbfffffffcff
+fff22fffffffffffffffffffffffffffff44ffffffdfffffff445d6fff5ff9ffff554fffffffffff8899998fffdfffffffffffffffffffffffffffffffffffff
+ff0dffffffffffffffffffffffffffffffffd7fffffffffffffff6ffffffffffff505fffccfffccff88888ffffffffffffffffffffffffffffffffffffffffff
+fffffffffffffffff988fffffffffffffffffffffffffffffffffffffffffffffff9fffffffffffff88fffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffa9998ffffffff6fffffffff7ff6667fff66676fffffff6ffff998fffffffffff8988ffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffff8f9fff98ffffffff6fffffff6fffff6f6f656ff67fffffff6fff999ffffffdfffff88ff8fffdfffffffffccffffffaaffffff88ffffff66fff
+fffffffffffff55ff4fff98fffffff6ffffff46fffff5ff664ffff67ffffff6fff899fffffd5fffff898fffffffffcffffcd7cffffa97affff8278ffff6576ff
+fffffffffff55ffffffffffffffff56fffff4ffffffffff6ffffff66fffff66fff554fffff51bbff899988ffffffffdfffcddcffffa99affff8228ffff6556ff
+fffdd8fff55fffffffffffffffff445ffff4fffffffffffffffffffffffff66ffff5ffffff5bb5ff8999998ffffffffffffccffffffaaffffff88ffffff66fff
+f2288887ffffffffffffffffffffffffffffffffffffffffffffff66fff5557fff554fffff5155ff8999998fffcfffffffffffffffffffffffffffffffffffff
+d8888886fffffffffffffffffffffffffffffffffffffffffffffffffffff99fff505ffff0505ffff88888ffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffff66ffff6ffffffffffffffffffff8fff8ffffffffffffffffffffffffffffffffffffffffff
+fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffefffffffffffffff6fffffffffffffff6fffffff66fffff6ffffffffffffffffffff8ffffffcfffdfffff33ffffff99ffffffddffffffeefff
+fffffffffffff22fffffff9fffffff6ff44fffffffffff6fffffff66ffff66fffffffffffffffffff8988fffffffffffff3b73ffff9879ffffd27dffffe87eff
+fffffffffff22ffffffff98fff4fff6ffff446fff5ffff6fffffff7fff5f66fffffffffffffbbbff8999988fffffffcfff3bb3ffff9889ffffd22dffffe88eff
+ff8888fff22fffffff4998fffff456fffffff46fff6f76ff6f4ff6fffff577ffff54f4ffff5550ff8899998ffffffffffff33ffffff99ffffffddffffffeefff
+f826d226ffffffffffa98fffffff5fffffffff67fff67fff656667ffffff99fffff555fffb51110ff88988ffffffffffffffffffffffffffffffffffffffffff
+d66d9227fffffffffffffffffffffffffffffffffff7fffff667ffffffffffffff5505ff555550fff88888ffffdfffffffffffffffffffffffffffffffffffff
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffff0100000fffffffff0000000ffffff0000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 000ff00100011fff00fff0000000000fff00000000000fffffffffffffffffffff222fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
