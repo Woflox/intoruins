@@ -191,7 +191,6 @@ function updateturn()
 			postturn(ent)
 		end
 		updateenv()
-		
 		calclight()
 		turnorder=0
 		return
@@ -688,7 +687,7 @@ function dijkstra(var,tovisit,check)
 		local d=gettile(pos)[var]-1
 		visitadj(pos,
 		function(npos,ntl)
-			if ntl[var]<d
+				if ntl[var]<d
 			then  
 				ntl[var]=d
 				if check(ntl) then
@@ -804,7 +803,7 @@ end
 
 function effect(var,pos,typ,val)
 	local tl=gettile(pos)
-	pos[var]=max(pos[var],val)
+	tl[var]=max(tl[var],val)
 	if not (tl.effect and 
 									tl.effect.typ==typ) then
 		create(typ,pos)	
@@ -828,7 +827,7 @@ function updateenv()
 			visitadj(pos,
 			function(npos,ntl)
 			 local superflam=tileflag(ntl,10) or
-			                 ntl.spores
+			                 ntl.spores>0
 				if ntl.fire==0 and
 					   (superflam or
 					   tileflag(ntl,9) or
@@ -837,7 +836,7 @@ function updateenv()
 				then
 					if rndp(superflam and 1 or 0.5) then
 						setfire(npos,2)
-					end					 
+					end	 
 				end
 			end)	
 		end
@@ -1012,7 +1011,7 @@ function create(typ,pos,behav,group)
 	end
 
 	if ent.var!="ent"then
-		ent.animoffset=vec2(0,2)
+		ent.animoffset=vec2(0,1)
 	end
 	
 	ent.truname=ent.ai and 
@@ -1393,9 +1392,15 @@ function hurt(ent,dmg,atkr)
 			end
 		end
 		sfx(36)
+		ent.light=nil
 		setfire(firepos,1)
+		calclight()
 	end
 	aggro(ent.pos)
+end
+
+function burn(ent)
+	setstatus(ent,"BURN","5,5,8,9")
 end
 
 function hitp(a,b)
