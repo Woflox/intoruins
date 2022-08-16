@@ -183,7 +183,9 @@ function updateturn()
 		for i,ent in ipairs(ents) do
 			if ent.ai then
 			 taketurn(ent,ent.pos,ent.tl,ent.group)
-	   tickstatuses(ent)
+			end
+			if ent != player then
+				tickstatuses(ent)
 			end
 		end
 	else
@@ -1215,7 +1217,8 @@ function findmove(ent,var,goal,special)
 	local bestscore=-2
 	visitadjrnd(ent.pos,
 	function(npos,ntl)
-		if canmove(ent,npos,special)
+		if canmove(ent,npos,special) and
+		   ntl.fire==0
 		then
 		 local score=
 		 							(abs(tl[var]-goal))-
@@ -1424,7 +1427,7 @@ function hurt(ent,dmg,atkr)
 		shake=1
 	end
 	if ent.hp<=0 then
-	 sfx(ent.deathsfx or 34)
+	 sfx(ent.deathsfx or 41)
 		setbehav(ent,"dead")
 		setanim(ent,ent.deathanim)
 		waitforanim=true
@@ -2011,10 +2014,10 @@ fff0000000000000fff000055100fffffffffff0055000fffff01111101110ffffff2d2d2d2d2fff
 ffffffffffffffffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042222242fffffffffffffffffff
 fffffffffffffffffffffffffffffffffffff0bbb00fffffffff3ffffffb3f33fff000110111ffffffffffffffffffffffff150000050ffffff000550111ffff
 fffffffffffffffffffffffffffffffffff10bbbbbbbf1fff33ff3fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
-ffffffffffffffffffffff0fff0fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
-1ffffffffffffffffffffff0f0f50ffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
-fffffffffff1ffffffff0ff00f00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
-fffff1ffffffffffffffff00ffffffffff0000155d01100fffff0b0bfbffffffff0011510050500fffffff3ffff3ffffffff042222242fffff0011110001100f
+fffffffffffffffffffff50fff0fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
+1fffffffffffffffffffff05f0f50ffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
+fffffffffff1fffffff05f005f00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
+fffff1ffffffffffffffff0fffffffffff0000155d01100fffff0b0bfbffffffff0011510050500fffffff3ffff3ffffffff042222242fffff0011110001100f
 fffffffffffffffffffffffffffffffffff00100001000fffffffffbfffffffffff00150110005fffff3ff3f3ff3f3ffffff050000020ffffff00110111000ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffffffff666666666fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
 fff000110111fffffff01111111110fffff01111111110fffffffffffbfffffffff6dddd6dddddffffff3f3ff3bf3ffffffffff5502202ffffff5055d11000ff
