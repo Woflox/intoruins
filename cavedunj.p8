@@ -247,7 +247,7 @@ function _draw()
 	pal(11,131,1)
 	fillp()
 
-	for i,anim in ipairs(textanims) do
+	for anim in all(textanims) do
 	 local t=(anim[5] or 1)*
 	          (time()-anim[7])
 	 local col=anim[4] or 7
@@ -264,7 +264,7 @@ function _draw()
 	end
 	camera(0,0)
 	cursor(1,2)
-	for i,entry in ipairs(textlog) do
+	for entry in all(textlog) do
 		local t = time()-entry[2]
 		if t>2.5 then
 			del(textlog, entry)
@@ -497,9 +497,7 @@ function drawent(tl,entvar)
 	end
 end
 
-function drawents(tl)
-	drawent(tl,"item")
- drawent(tl,"ent")
+function effectsprs(tl)
  local hasfire=tl.fire>0 or
  						tl.ent and 
  						tl.ent.statuses.BURN
@@ -511,8 +509,9 @@ function drawents(tl)
 	 	not effect.dead and
 	 	not hasfire
 	 then
-	  effect.dead=true
 	 	setanim(effect,"firedeath")
+	 	effect.light=nil
+	 	effect.dead=true
 	 elseif effect.name=="spores" and 
 	  not hasspores
 	 then
@@ -526,7 +525,12 @@ function drawents(tl)
  		create(139,tl.pos)
  	end
  end
- 
+end
+
+function drawents(tl)
+	drawent(tl,"item")
+ drawent(tl,"ent")
+ effectsprs(tl)
  drawent(tl,"effect")
 end
 
@@ -841,42 +845,55 @@ function setfire(tl)
  tl.fire=max(tl.fire,1)
 end
 
-function trysetfire(tl,p)
- if tileflag(tl,10) or
-    tl.spores>0 or
-    (rndp(p) and
-    	tileflag(tl,9)) then
+function trysetfire(pos,tl,nop)
+	if tileflag(tl,10) or
+	    tl.spores>0 or
+	    (rndp() or nop) and
+    	(tileflag(tl,9) or
+	    	tl.ent and
+						tl.ent.flammable)
+	then
  	setfire(tl)
- elseif rndp(p) and
-		 	tl.ent and
-		 	tl.ent.flammable then
- 	burn(tl.ent)
  end
 end
 
+function entfire(tl)
+	if tl.ent and 
+		  not tl.ent.nofire then
+		 burn(tl.ent)
+	end
+end
+		
 function updateenv()
 	alltiles(
 	function(pos,tl)
 		if tl.fire>=2 then
-			visitadj(pos,
-			function(npos,ntl)
-			 trysetfire(ntl,0.5)
-			end)
-		elseif tl.ent and
-		  tl.ent.statuses.BURN
-		then
-			trysetfire(tl,1)
+			entfire(tl)
+			visitadj(pos,trysetfire)
+			if tileflag(tl,9) then
+			 if rndp(0.2) then
+			 	tl.fire=0
+			 	tl.typ=34
+			 end
+			else
+				tl.fire=0
+				if tileflag(tl,10) then
+					tl.typ=thole
+				end
+			end
+		end
+		if tl.ent and 
+		tl.ent.statuses.BURN then
+		 trysetfire(nil,tl,true)
 		end
 	end)
 	alltiles(
 	function(pos,tl)
 		if tl.fire>=1 then
 			tl.fire+=1
-			if tl.ent and 
-			  not tl.ent.nofire then
-			 burn(tl.ent)
-			end
+		 entfire(tl)
 		end
+		effectsprs(tl)
 	end)
 end
 
@@ -1084,6 +1101,9 @@ function tickstatuses(ent)
 				ent.wpn.lit=false
 				ent.wpn.typ+=1
 			end
+		end
+		if k=="BURN" then
+		 hurt(ent,1,nil)
 		end
 	end
 	if ent==player then
@@ -1425,9 +1445,7 @@ function hurt(ent,dmg,atkr)
 			local dirpos=firepos+
 			 hexdir(atkr.pos,ent.pos)
 			local ntl = gettile(dirpos)
-			if navigable(ntl) and not
-			   (ntl.ent and ntl.ent.nofire)
-			   then
+			if navigable(ntl) then
 				firepos=dirpos
 			end
 		end
@@ -1993,9 +2011,9 @@ fff0000000000000fff000055100fffffffffff0055000fffff01111101110ffffff2d2d2d2d2fff
 ffffffffffffffffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042222242fffffffffffffffffff
 fffffffffffffffffffffffffffffffffffff0bbb00fffffffff3ffffffb3f33fff000110111ffffffffffffffffffffffff150000050ffffff000550111ffff
 fffffffffffffffffffffffffffffffffff10bbbbbbbf1fff33ff3fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
-ffffffffffffffffffffff0ff00fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
-1ffffffffffffffffffffff0f5fffffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
-fffffffffff1ffffffff0ff50f00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
+ffffffffffffffffffffff0fff0fffffff10b11bbbbd111ffff3ff3f33ff3ffff01150dd1d5015d0ffffffffffff3fffffff050000050ffff011110110001110
+1ffffffffffffffffffffff0f0f50ffffff055511b5dffffffff3f3fff3fbfff00005550050d0000fffffffffff3ffffffff042222240fff0000001111050001
+fffffffffff1ffffffff0ff00f00fffff01055155d501100fffffbfbffb00ffff011000050050100fffff3fffff3ffffffff021000100ffff001000010111100
 fffff1ffffffffffffffff00ffffffffff0000155d01100fffff0b0bfbffffffff0011510050500fffffff3ffff3ffffffff042222242fffff0011110001100f
 fffffffffffffffffffffffffffffffffff00100001000fffffffffbfffffffffff00150110005fffff3ff3f3ff3f3ffffff050000020ffffff00110111000ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffffffff666666666fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
@@ -2233,7 +2251,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840084002c00b300ee00be00ee0072016300ba016b03f30109096b07b301b30173017301730323017d036b03ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000840084002c00b300ee00be00ee0072016300ba016b03f30109096b05b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
 464647474141424b4b4b0000000000001011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b00000000bc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
