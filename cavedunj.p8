@@ -25,14 +25,14 @@ assigntable(entdata,
 72=name:bat,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:true,behav:wander,darksight:true,burnlight:true,pdist:0,flying:true,idleanim:batidle,alertsfx:32,hurtsfx:13
 73=name:pink jelly,hp:10,atk:1,dmg:2,armor:0,ai:true,pdist:0,moveanim:emove,movratio:0.33,alertsfx:19,hurtsfx:19
 137=name:mushroom,hp:1,blocking:true,light:4,lcool:true,deathanim:mushdeath,flippable:true,deathsfx:42
-136=name:brazier,hp:1,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
-169=name:chair,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
+136=name:brazier,hp:1,nofire:true,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
+169=name:chair,hp:2,nofire:true,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
 200=name:barrel,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
-138=name:fire,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
+138=name:fire,var:effect,light:4,idleanim:fire,animspeed:0.33
 139=name:spores,var:effect,light:4,idleanim:idle4,animspeed:0.25,flippable:true
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
-firedeath=0
+firedeath=0_
 idle4=l0123
 batidle=l0022
 move=044
@@ -334,8 +334,8 @@ extra tile flags
 2:flammable2
 ]]
 
-function tile(typ)
-	return {typ=typ,fow=0,fire=0,spores=0}
+function tile(typ,pos)
+	return {typ=typ,pos=pos,fow=0,fire=0,spores=0}
 end
 
 function settile(tl,typ)
@@ -500,6 +500,33 @@ end
 function drawents(tl)
 	drawent(tl,"item")
  drawent(tl,"ent")
+ local hasfire=tl.fire>0 or
+ 						tl.ent and 
+ 						tl.ent.statuses.BURN
+ local hasspores=tl.spores>0
+  
+ local effect=tl.effect
+ if effect then
+	 if	effect.name=="fire" and
+	 	not effect.dead and
+	 	not hasfire
+	 then
+	  effect.dead=true
+	 	setanim(effect,"firedeath")
+	 elseif effect.name=="spores" and 
+	  not hasspores
+	 then
+	 	destroy(effect) 
+	 end
+	end
+ if not tl.effect then
+ 	if hasfire then
+ 		create(138,tl.pos)
+ 	elseif hasspores then
+ 		create(139,tl.pos)
+ 	end
+ end
+ 
  drawent(tl,"effect")
 end
 
@@ -810,35 +837,45 @@ function effect(var,pos,typ,val)
 	end
 end
 
-function setfire(pos,val)
-	effect("fire",pos,138,val)
+function setfire(tl)
+ tl.fire=max(tl.fire,1)
+end
+
+function trysetfire(tl,p)
+ if tileflag(tl,10) or
+    tl.spores>0 or
+    (rndp(p) and
+    	tileflag(tl,9)) then
+ 	setfire(tl)
+ elseif rndp(p) and
+		 	tl.ent and
+		 	tl.ent.flammable then
+ 	burn(tl.ent)
+ end
 end
 
 function updateenv()
 	alltiles(
 	function(pos,tl)
-		if tl.fire>=1 then
-			tl.fire+=1
+		if tl.fire>=2 then
+			visitadj(pos,
+			function(npos,ntl)
+			 trysetfire(ntl,0.5)
+			end)
+		elseif tl.ent and
+		  tl.ent.statuses.BURN
+		then
+			trysetfire(tl,1)
 		end
 	end)
 	alltiles(
 	function(pos,tl)
-		if tl.fire>=3 then
-			visitadj(pos,
-			function(npos,ntl)
-			 local superflam=tileflag(ntl,10) or
-			                 ntl.spores>0
-				if ntl.fire==0 and
-					   (superflam or
-					   tileflag(ntl,9) or
-					   (ntl.ent and 
-					    ntl.ent.flammable))
-				then
-					if rndp(superflam and 1 or 0.5) then
-						setfire(npos,2)
-					end	 
-				end
-			end)	
+		if tl.fire>=1 then
+			tl.fire+=1
+			if tl.ent and 
+			  not tl.ent.nofire then
+			 burn(tl.ent)
+			end
 		end
 	end)
 end
@@ -1011,7 +1048,7 @@ function create(typ,pos,behav,group)
 	end
 
 	if ent.var!="ent"then
-		ent.animoffset=vec2(0,1)
+		ent.animoffset=vec2(0,2)
 	end
 	
 	ent.truname=ent.ai and 
@@ -1197,7 +1234,7 @@ function taketurn(ent,pos,tl,group)
 		end
 		
 		local movx,movy=
-		axisinput(1,0),axisinput(3,2)
+		axisinput(➡️,⬅️),axisinput(⬇️,⬆️)
 		
 		if movx != 0 then
 			movy = 0
@@ -1357,7 +1394,7 @@ end
 
 function destroy(ent)
 	del(ents,ent)
-	ent.tl.ent=nil
+	ent.tl[ent.var]=nil
 end
 
 function hurt(ent,dmg,atkr)
@@ -1387,20 +1424,23 @@ function hurt(ent,dmg,atkr)
 		if atkr then
 			local dirpos=firepos+
 			 hexdir(atkr.pos,ent.pos)
-			if navigable(gettile(dirpos)) then
+			local ntl = gettile(dirpos)
+			if navigable(ntl) and not
+			   (ntl.ent and ntl.ent.nofire)
+			   then
 				firepos=dirpos
 			end
 		end
 		sfx(36)
 		ent.light=nil
-		setfire(firepos,1)
+		setfire(gettile(firepos))
 		calclight()
 	end
 	aggro(ent.pos)
 end
 
 function burn(ent)
-	setstatus(ent,"BURN","5,5,8,9")
+	setstatus(ent,"BURN","6,6,8,9")
 end
 
 function hitp(a,b)
@@ -1482,7 +1522,7 @@ function genmap(startpos)
 	for x=0,mapsize do
 	 world[x] = {}
 		for y=0,mapsize do
-		 world[x][y] = tile(tempty)
+		 world[x][y] = tile(tempty,vec2(x,y))
 		end
 	end
 	for y=0,mapsize do
@@ -1982,8 +2022,8 @@ ff86dfffffbbbff6ff222f4fff44299ff1000181499bbf42ffffffff24424f4f11101111ffe227ef
 ff826fffffbbbf6fff222f4fff2445f9f1000141f449942ffef4f4fff422444ffff1ffffffe222effffcfffff2f28f2ffffcfffffddcddffff289855588888ff
 ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eeffffffffff288822ffffdfffffdfd22fffff228888822ffff
 ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222efffffffff2828882ffffffffffffdfdfffffff22226006fff
-ffffffffffffffffffffc4cfffffffffff11ff8fffffffffffffffffff6fff6f11ffff11ffffffffffcccffffffffffffff7ffffffffffffffff8fff98ffffff
-fff67fffffffffffff2ec4cffffffffff1051878ffffff6ffffffffffff64f460011f100ffffffffffffccffff28ff28ffc77efffffffffffff888f9888fffff
+ffffffffffffffffffffc4cfffffffffff11ff8fffffff6fffffffffff6fff6f11ffff11ffffffffffcccffffffffffffff7ffffffffffffffff8fff98ffffff
+fff67fffffffffffff2ec4cffffffffff1051878fffffff6fffffffffff64f460011f100ffffffffffffccffff28ff28ffc77efffffffffffff888f9888fffff
 fff88fffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005fffffffffffffccfffff88d8ecc777eeff2ddc77ff85588982ff88ff
 ff8886fff763f36fff22223cff4443fff1000531ff333336ff4f46fff4f4442615000051fffffffffffcfccff8682262ffdccffffff2c7c7ffff65888888858f
 ff88dffff3bbb3f6ff222ec4f4444f9ff100001ff33333b6ff6556ffff444226f100051ffffffffffffcc77cfff68226ffdccfffcf2cddd7ffff6f8988855fff
