@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(_ENV,
-[[gamestate:play,depth:1,mapsize:20,mapcenter:10,turnorder:0,fireplaying:false
+[[mode:play,depth:1,mapsize:20,mapcenter:10,turnorder:0,fireplaying:false,btnheld:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -14,22 +14,22 @@ assigntable(_ENV,
 ,minroomw:3,minroomh:2,roomsizevar:8]])
 entdata={}
 assigntable(entdata,
-[[64=name:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,hitshake:true,moveanim:move,deathanim:pdeath
-70=name:rat,hp:3,atk:0,dmg:1,armor:0,ai:true,pdist:-15,runaway:true,alertsfx:14,hurtsfx:15
-71=name:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21
-65=name:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11
-66=name:goblin mystic,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-2,alertsfx:30,hurtsfx:11
-67=name:goblin archer,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
-68=name:goblin warlock,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
-69=name:ogre,hp:15,atk:2,dmg:8,armor:1,slow:true,knockback:true,stun:2,ai:true,pdist:0,alertsfx:31,hurtsfx:16
-72=name:bat,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:true,behav:wander,darksight:true,burnlight:true,pdist:0,flying:true,idleanim:batidle,alertsfx:32,hurtsfx:13
-73=name:pink jelly,hp:10,atk:1,dmg:2,armor:0,ai:true,pdist:0,moveanim:emove,movratio:0.33,alertsfx:19,hurtsfx:19
-137=name:mushroom,hp:1,blocking:true,sporeburst:12,light:4,lcool:true,deathanim:mushdeath,flippable:true,deathsfx:42
-136=name:brazier,hp:1,nofire:true,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
-169=name:chair,hp:2,nofire:true,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
-200=name:barrel,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
-138=name:fire,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
-139=name:spores,var:effect,light:4,lcool:true,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:true
+[[64=n:you,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,hitshake:true,moveanim:move,deathanim:pdeath
+70=n:rat,hp:3,atk:0,dmg:1,armor:0,ai:true,pdist:-15,runaway:true,alertsfx:14,hurtsfx:15
+71=n:jackal,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21
+65=n:goblin,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11
+66=n:goblin mystic,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-2,alertsfx:30,hurtsfx:11
+67=n:goblin archer,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
+68=n:goblin warlock,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
+69=n:ogre,hp:15,atk:2,dmg:8,armor:1,slow:true,knockback:true,stun:2,ai:true,pdist:0,alertsfx:31,hurtsfx:16
+72=n:bat,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:true,behav:wander,darksight:true,burnlight:true,pdist:0,flying:true,idleanim:batidle,alertsfx:32,hurtsfx:13
+73=n:pink jelly,hp:10,atk:1,dmg:2,armor:0,ai:true,pdist:0,moveanim:emove,movratio:0.33,alertsfx:19,hurtsfx:19
+137=n:mushroom,hp:1,blocking:true,sporeburst:12,light:4,lcool:true,deathanim:mushdeath,flippable:true,deathsfx:42
+136=n:brazier,hp:1,nofire:true,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
+169=n:chair,hp:2,nofire:true,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
+200=n:barrel,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
+138=n:fire,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
+139=n:spores,var:effect,light:4,lcool:true,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:true
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
 firedeath=0_
@@ -48,11 +48,11 @@ mushdeath=w01r_
 brazierdeath=w33r_
 propdeath=w11r_
 fall=wv0000c00r_
-130=name:torch,slot:wpn,dmg:3,atk:1,lit:true,throw:4,fuel:160,light:4,namenofuel:club,dmgincrease:1
-132=name:spear,slot:wpn,dmg:3,atk:1,pierce:true,throwbonus:1,throw:8,dmgincrease:1
-133=name:rapier,slot:wpn,dmg:2,atk:2,lunge:true,throw:4,dmgincrease:1
-134=name:axe,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1
-135=name:hammer,slot:wpn,dmg:6,atk:1,stun:2,knockback:true,slow:true,throw:2,dmgincrease:2
+130=n:torch,slot:wpn,dmg:3,atk:1,lit:true,throw:4,fuel:160,light:4,namenofuel:club,dmgincrease:1
+132=n:spear,slot:wpn,dmg:3,atk:1,pierce:true,throwbonus:1,throw:8,dmgincrease:1
+133=n:rapier,slot:wpn,dmg:2,atk:2,lunge:true,throw:4,dmgincrease:1
+134=n:axe,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1
+135=n:hammer,slot:wpn,dmg:6,atk:1,stun:2,knockback:true,slow:true,throw:2,dmgincrease:2
 ]],"\n","=")
  
 	adj=vec2list
@@ -201,22 +201,37 @@ end
 
 shake=0
 
-function _update()	
 
-	updateturn()
-	waitforanim=false
-	for i,ent in ipairs(ents) do
-		updateent(ent)
+function _update()	
+ btnup=false
+	if btn(❎) then
+	 btnheld+=1
+	elseif btnheld>0 then
+	 btnheld=0
+	 btnup=true
 	end
+	btnpress=btnheld==1
+
+
+	if mode=="play" then
+		updateturn()
+	end
+	
+	if mode!="ui" then
+		waitforanim=false
+		for i,ent in ipairs(ents) do
+			updateent(ent)
+		end
+ end
 	
 	local camtarget = 
  	screenpos(
  		lerp(player.pos,
  							vec2(mapcenter,
  												mapcenter-0.5),
- 							gamestate=="gameover" and 0 or 0.36))
+ 							mode=="gameover" and 0 or 0.36))
 	local tmod = 
-		gamestate=="gameover" and
+		mode=="gameover" and
 													 0.25 or 0.5	
 	smoothb = smoothb and
 											lerp(smoothb,camtarget,
@@ -263,17 +278,9 @@ function _draw()
 		end
 	end
 	camera()
-	cursor(1,2)
-	for entry in all(textlog) do
-		local t = time()-entry[2]
-		if t>2.5 then
-			del(textlog, entry)
-		else
-			?entry[1],t<2.434 and 6 or 5
-		end
-	end
 
-	if gamestate=="play" then
+	if mode!="start" or
+	   mode!="gameover" then
 		local x=drawbar(player.hp/player.maxhp,
 		        "HP",2,123,2,8)
 		for k,v in 
@@ -306,11 +313,13 @@ function drawbar(ratio,label,x,y,col1,col2)
 end
 
 function animtext(text,ent,wavy,col,spd,offset)
- add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
+ local pos=entscreenpos(ent)
+ pos.x-=#text*2-2
+ add(textanims,{text,pos,wavy,col,spd,offset,time()})
 end
 
-function log(text)
-	add(textlog,{text,time()},1)
+function dialog(id)
+ mode="ui"
 end
 -->8
 --tiles, rendering
@@ -360,10 +369,11 @@ function initpal(tl, fadefow)
 	palt(15, true)
 	fow=0
 	if fadefow then
-		if vistoplayer(tl) then
+		if vistoplayer(tl) and
+		   mode != "ui" then
 			fow=tl.light>=2 and 3 or 2
 		elseif tl.explored then
-			fow=gamestate=="gameover"
+			fow=mode=="gameover"
 			    and 0 or 1
 		end
 		local oldfow=tl.fow
@@ -824,7 +834,7 @@ function calclight()
 		checklight("item")
 		checklight("effect")
 		checklight("ent")
-  if gamestate=="gameover" then
+  if mode=="gameover" then
   	tl.light = ent==player and 1 or -10
   end
   if tl.light>0 then
@@ -1298,6 +1308,11 @@ function taketurn(ent,pos,tl,group)
 		poke(0x5f5c,9)--key repeat
 		poke(0x5f5d,6)
 		
+		if btnheld>8 then
+		 dialog("inventory")
+		 return
+		end
+		
 		if btnp(🅾️) then
 			tock = not tock
 			sfx(40,-1,not tock and 16 or 0, 8)
@@ -1314,13 +1329,6 @@ function taketurn(ent,pos,tl,group)
 		if	ent.yface != movx then
 			movy -= movx
 		end
-		local yfacechange =
-					btnp(❎) or 
-					(movy!=0 and
-					 movy!=ent.yface)
-		if yfacechange then
-			ent.yface *= -1
-		end
 		
 		if movx!=0 or movy!=0 then
 			local dst=pos+
@@ -1336,11 +1344,18 @@ function taketurn(ent,pos,tl,group)
 				return true
 			end
 		end
+		
+		local yfacechange =
+		   btnup or
+					(movy!=0 and
+					 movy!=ent.yface)
+		
 		if yfacechange then
+			ent.yface *= -1
 		 setanim(ent,"turn")
 		 sfx(39)
 		end
-		return false
+		return
 	elseif ent.ai and ent.canact and
 	 ent.behav != "dead" then
 	 --ai
@@ -1480,7 +1495,7 @@ function hurt(ent,dmg,atkr)
 		setanim(ent,ent.deathanim)
 		waitforanim=true
 		if ent==player then
-			gamestate="gameover"
+			mode="gameover"
 			--music(8)
 			calclight()
 		elseif ent.sporeburst then
