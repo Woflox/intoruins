@@ -121,6 +121,8 @@ fall=wv0000c00r_
  	1,3,
  	3,-3,
  	1,-2]]
+
+	playerdir=2
  	
  darkpal=split"15,255,255,255,255,255,255,255,255,255,255,255,255,255"
 	dimpal=split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
@@ -540,6 +542,11 @@ function effectsprs(tl)
 end
 
 function drawents(tl)
+ if tl.pos == playerdst then
+  initpal(player.tl)
+ 	local scrp=screenpos(tl.pos)
+ 	spr(24,scrp.x-8,scrp.y-4,2,1)
+ end
 	drawent(tl,"item")
  drawent(tl,"ent")
  effectsprs(tl)
@@ -996,11 +1003,6 @@ function hexdir(p1,p2)
 	       )-p1
 end
 
-function axisinput(pos,neg)
-	return tonum(btnp(pos))-
-								tonum(btnp(neg))
-end
-
 function vec2list(str)
 	local vals = split(str)
 	local ret = {}
@@ -1319,41 +1321,24 @@ function taketurn(ent,pos,tl,group)
 			return true --wait 1 turn
 		end
 		
-		local movx,movy=
-		axisinput(➡️,⬅️),axisinput(⬇️,⬆️)
-		
-		if movx != 0 then
-			movy = 0
-		end
-		
-		if	ent.yface != movx then
-			movy -= movx
-		end
-		
-		if movx!=0 or movy!=0 then
-			local dst=pos+
-										vec2(movx,movy)
-			local dst2=dst-
-										vec2(0,ent.yface)
-			if canmove(ent,dst) then
-				move(ent,dst,true) 
-				return true
-			elseif movx!= 0 and
-			 canmove(ent,dst2) then
-				move(ent,dst2,true) 
-				return true
+		function turn(btnid,i)
+		 if btnp(btnid) then
+				playerdir=(playerdir+i+5)%6+1
+				--sfx(39)
+				setanim(ent,"turn")
+				updatefacing(ent,adj[playerdir])
 			end
 		end
 		
-		local yfacechange =
-		   btnup or
-					(movy!=0 and
-					 movy!=ent.yface)
+		turn(⬅️,-1)
+		turn(➡️,1)
+		turn(⬇️,3)
 		
-		if yfacechange then
-			ent.yface *= -1
-		 setanim(ent,"turn")
-		 sfx(39)
+		playerdst=ent.pos+adj[playerdir]
+		if btnp(⬆️) and 
+		   canmove(ent,playerdst) then
+			move(ent,playerdst,true)
+			return true
 		end
 		return
 	elseif ent.ai and ent.canact and
@@ -1581,6 +1566,14 @@ function move(ent,dst,playsfx)
 		end
 	end
 
+	updatefacing(ent,dir)
+	
+	if dsttile.typ==tlonggrass then
+		dsttile.typ=tflatgrass
+	end
+end
+
+function updatefacing(ent,dir)
 	if dir.x != 0 then 
 		ent.xface = sgn(dir.x)
  end
@@ -1589,10 +1582,6 @@ function move(ent,dst,playsfx)
  elseif x != 0 then
   ent.yface = sgn(dir.x)
  end
-	
-	if dsttile.typ==tlonggrass then
-		dsttile.typ=tflatgrass
-	end
 end
 -->8
 --level generation
