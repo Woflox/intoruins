@@ -14,22 +14,23 @@ assigntable(_ENV,
 ,minroomw:3,minroomh:2,roomsizevar:8]])
 entdata={}
 assigntable(entdata,
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,hitshake:true,moveanim:move,deathanim:pdeath
-70=n:rAR,hp:3,atk:0,dmg:1,armor:0,ai:true,pdist:-15,runaway:true,alertsfx:14,hurtsfx:15
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:true,pdist:0,pack:true,movandatk:true,alertsfx:20,hurtsfx:21
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:0,alertsfx:30,hurtsfx:11
-66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-2,alertsfx:30,hurtsfx:11
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
-68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:true,pdist:-3,alertsfx:30,hurtsfx:11
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:true,knockback:true,stun:2,ai:true,pdist:0,alertsfx:31,hurtsfx:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:true,behav:wander,darksight:true,burnlight:true,pdist:0,flying:true,idleanim:batidle,alertsfx:32,hurtsfx:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:true,pdist:0,moveanim:emove,movratio:0.33,alertsfx:19,hurtsfx:19
-137=n:mUSHROOM,hp:1,blocking:true,sporeburst:12,light:4,lcool:true,deathanim:mushdeath,flippable:true,deathsfx:42
-136=n:bRAZIER,hp:1,nofire:true,blocking:true,hitfire:true,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
-169=n:cHAIR,hp:2,nofire:true,blocking:true,hitpush:true,dmg:2,stun:1,flippable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
-200=n:bARREL,hp:2,blocking:true,hitpush:true,dmg:2,stun:1,flammable:true,deathanim:propdeath,animspeed:0.3,deathsfx:23
+[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,hitshake:t,moveanim:move,deathanim:pdeath
+70=n:rAR,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alertsfx:14,hurtsfx:15
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alertsfx:20,hurtsfx:21
+65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alertsfx:30,hurtsfx:11
+66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-2,alertsfx:30,hurtsfx:11
+67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alertsfx:30,hurtsfx:11
+68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alertsfx:30,hurtsfx:11
+69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,
+ack:t,stun:2,ai:t,pdist:0,alertsfx:31,hurtsfx:16
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alertsfx:32,hurtsfx:13
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,pdist:0,moveanim:emove,movratio:0.33,alertsfx:19,hurtsfx:19
+137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,deathsfx:42
+136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,deathsfx:23
+169=n:cHAIR,hp:2,nofire:t,blocking:t,hitpush:t,dmg:2,stun:1,flippable:t,deathanim:propdeath,animspeed:0.3,deathsfx:23
+200=n:bARREL,hp:2,blocking:t,hitpush:t,dmg:2,stun:1,flammable:t,deathanim:propdeath,animspeed:0.3,deathsfx:23
 138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
-139=n:sPORES,var:effect,light:4,lcool:true,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:true
+139=n:sPORES,var:effect,light:4,lcool:t,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:t
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
 firedeath=0_
@@ -48,12 +49,12 @@ mushdeath=w01r_
 brazierdeath=w33r_
 propdeath=w11r_
 fall=wv0000c00r_
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:true,throw:4,fuel:160,light:4,namenofuel:club,dmgincrease:1
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:true,throwbonus:1,throw:8,dmgincrease:1
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:true,throw:4,dmgincrease:1
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,swing:true,throw:6,dmgincrease:1
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:true,slow:true,throw:2,dmgincrease:2
-129=n:oAKEN STAFF,var:item
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,fuel:160,light:4,id:t
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:8
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,swing:t,throw:6
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:2,dmgincrease:2
+129=n:oAKEN STAFF,var:item,unid:t
 145=n:dRIFTWOOD STAFF,var:item
 161=n:eBONY STAFF,var:item
 177=n:pUPLEHEART STAFF,var:item
@@ -65,14 +66,14 @@ fall=wv0000c00r_
 157=n:rED CLOAK,var:item,slot:cloak
 158=n:nAVY CLOAK,var:item,slot:cloak
 159=n:cYAN CLOAK,var:item,slot:cloak
-172=n:cYAN ORB,var:item,light:2,lcool:true
+172=n:cYAN ORB,var:item,light:2,lcool:t
 173=n:yELLOW ORB,var:item,light:2
 174=n:rED ORB,var:item,light:2
-175=n:bLACK ORB,var:item,light:2,lcool:true
-188=n:gREEN ORB,var:item,light:2,lcool:true
+175=n:bLACK ORB,var:item,light:2,lcool:t
+188=n:gREEN ORB,var:item,light:2,lcool:t
 189=n:oRANGE ORB,var:item,light:2
-190=n:pURPLE ORB,var:item,light:2,lcool:true
-191=n:pINK ORB,var:item,light:2,lcool:true
+190=n:pURPLE ORB,var:item,light:2,lcool:t
+191=n:pINK ORB,var:item,light:2,lcool:t
 ]],"\n","=")
  
 	adj=vec2list
@@ -432,15 +433,50 @@ function info()
  local eqpd = selitem.equipped
  local x=gettrans(42,5)
  frame(x,2,gettrans(42,90.5),111,rectfill)
- menuindex=getindex(menuindex,4)
+ menuindex=getindex(menuindex,3)
 
- rect(x,2,x+10,13,1)
- spr(selitem.typ,x+2,4)
- ?"\fd    "..selitem.n.."\n"
+ spr(selitem.typ+(selitem.ai and 16 or 0),x+3,4)
+ ?"\fd    "..selitem.n
+ local statstr="\f1 ……………………………\n\fd"
+ if selitem.id then
+ 	for str in all(split([[
+ 
+  nAME: =name|
+  cASTS LIGHT
+  tHROW TO START FIRE
+=lit|
+  pIERCING ATTACK=pierce|
+  aRC ATTACK=arc|
+  lUNGE ATTACK=lunge|
+  kNOCKBACK=knockback|
+  hEALTH:      =hp|/=maxhp|
+  aCCURACY:   +=atk|
+  dAMAGE:      =dmg|
+  aRMOR:       =armor|
+  tHROW RANGE: =throw|
+  tHROW ACC:   =throwatk|
+  sTUN:        =stun|
+  cHARGES:     =charge|/=maxcharges]]
+  ,"|"))
+  do
+  	k,v=unpack(split(str,"="))
+	  local val=selitem[v]
+	  if val then
+	   statstr..=k..(val=="t" and "" or selitem[v])
+	  end
+	 end
+	else
+		statstr..="\n  ??????"
+	end
+ ?statstr
+ 
+ --menu
  cursor(x-3,84)
- ?"\f1  -------------------"
+ ?"\f1 ……………………………"
  listitem(selitem.slot and
-  (eqpd and "sTOW" or "eQUIP")
+  (eqpd and 
+   (selitem.lit and "eXTINGUISH" or "sTOW") 
+   or "eQUIP")
   or "uSE")
  listitem"tHROW"
  listitem"dROP"
@@ -1258,7 +1294,7 @@ function create(typ,pos,behav,group)
 	
 	ent.truname=ent.ai and 
 		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
-		rnd(split"y,o,us maximus,ox,erbee,elia")
+		rnd(split"y,o,us,ox,erbee,elia")
 	add(ents,ent)
 	ent.maxhp=ent.hp
 	ent.statuses={}
