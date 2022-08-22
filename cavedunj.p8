@@ -285,7 +285,7 @@ function _draw()
 								-campos.x,
 								-campos.y)
 	drawmap(world)
-	pal()
+	basepal()
 	pal(15,129,1)
 	pal(11,131,1)
 	fillp()
@@ -308,7 +308,7 @@ function _draw()
 		end
 	end
 	camera()
-
+ 
 	if mode!="start" and
 	   mode!="gameover" then
 		local x=drawbar(player.hp/player.maxhp,
@@ -376,7 +376,7 @@ function frame(x,y,x2,y2,func)
  func(x-1,y-1,x2+1,y2+1,0)
 	rect(x,y,x2,y2,1)
 	cursor(x-3,y+4)
-	clip(x-3,y,x2-x+3,y2-y)
+	clip(x-3,y,x2-x+2,y2-y)
 end
 
 invindex=1
@@ -400,7 +400,7 @@ function getindex(cur,maxind)
 end
 
 function gettrans(a,b)
-	return lerp(b,a,focus and uitrans or 0)
+	return lerp(b,a,focus and uitrans or 0.53*(1-uitrans))
 end
 
 function inv()
@@ -416,7 +416,7 @@ function inv()
 			if item.equipped==eqpd then
 			 i+=1
 				if listitem(item.n,i==invindex) then
-					dialog(itemopt)
+					dialog(info)
 					selitem=item
 				end
 			end
@@ -428,13 +428,17 @@ function inv()
 	listitems()
 end
 
-function itemopt()
+function info()
  local eqpd = selitem.equipped
-	local topy=invindex*8+6+
-	 (eqpd and 0 or 18)
- frame(gettrans(45,6),topy,44,topy+32,rectfill)
+ local x=gettrans(42,5)
+ frame(x,2,gettrans(42,90.5),111,rectfill)
  menuindex=getindex(menuindex,4)
- 
+
+ rect(x,2,x+10,13,1)
+ spr(selitem.typ,x+2,4)
+ ?"\fd    "..selitem.n.."\n"
+ cursor(x-3,84)
+ ?"\f1  -------------------"
  listitem(selitem.slot and
   (eqpd and "sTOW" or "eQUIP")
   or "uSE")
@@ -443,8 +447,9 @@ function itemopt()
 end
 
 function dialog(func)
+	uitrans=mode=="ui" and 
+	        0.33 or 1
  mode="ui"
-	uitrans=1
 	menuindex=1
 	inputblocked=true
  add(diags,func)
@@ -492,10 +497,14 @@ function drawcall(func,args)
 	add(drawcalls, {func,args})
 end
 
-function initpal(tl, fadefow)
-	pal()	
+function basepal()
+ pal()	
 	palt(0, false)
 	palt(15, true)
+end
+
+function initpal(tl, fadefow)
+	basepal()
 	fow=0
 	if fadefow then
 		if vistoplayer(tl) and
