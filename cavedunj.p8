@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(_ENV,
-[[mode:play,depth:1,mapsize:20,mapcenter:10,turnorder:0,fireplaying:false,btnheld:0,shake:0
+[[mode:play,depth:1,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -14,7 +14,8 @@ assigntable(_ENV,
 ,minroomw:3,minroomh:2,roomsizevar:8]])
 entdata={}
 assigntable(entdata,
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,hitshake:t,moveanim:move,deathanim:pdeath
+[[def=var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,deathsfx:41
+64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,moveanim:move,deathanim:pdeath
 70=n:rAR,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alertsfx:14,hurtsfx:15
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alertsfx:20,hurtsfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alertsfx:30,hurtsfx:11
@@ -59,10 +60,10 @@ fall=wv0000c00r_
 145=n:dRIFTWOOD STAFF,var:item
 161=n:eBONY STAFF,var:item
 177=n:pUPLEHEART STAFF,var:item
-140=n:bRONZE AMULET,col:9,var:item,slot:neck
-141=n:pEWTER AMULET,col:5,var:item,slot:neck
-142=n:gOLDEN AMULET,col:10,var:item,slot:neck
-143=n:sILVER AMULET,col:7,var:item,slot:neck
+140=n:bRONZE AMULET,col:9,var:item,slot:amulet
+141=n:pEWTER AMULET,col:5,var:item,slot:amulet
+142=n:gOLDEN AMULET,col:10,var:item,slot:amulet
+143=n:sILVER AMULET,col:7,var:item,slot:amulet
 156=n:gOLD CLOAK,col:9,var:item,slot:cloak
 157=n:gREY CLOAK,col:5,var:item,slot:cloak
 158=n:gREEN CLOAK,col:3,var:item,slot:cloak
@@ -86,55 +87,55 @@ fall=wv0000c00r_
 		-1, 1]]
 	
 	specialtiles={
-	[tcavewall]={
-		vec2(-9,-4),
-		vec2list--xy
-	[[0 ,-8,
-		 5 ,-8,
-		 13,-8,
-		 13, 4,
-		 4 , 4,
-		 2 , 4]],
- 	vec2list--wh
-	[[5,13,
-		 8,13,
-		 5,13,
-		 5, 4,
-		 11, 4,
-		 3, 4]]},
-	[thole]={
-		vec2(-8,-4),
-		vec2list--xy
-	[[0, 0,
-		 4, 0,
-		 13,0,
-		 0,0,
-		 4,1,
-		 13,0]],--last 3 are brick
-		vec2list--wh
-	[[4,8,
-		 8,8,
-			3,8,
-			4,8,
-			7,7,
-			4,8]]},
-	[txwall]={
-		vec2(-9,-2),
-		vec2list--xy
-	[[12,-8,
- 		 0,-8]],
-		vec2list--wh
-	[[4 ,15,
-		 12,17]]},
-	[tywall]={
-		vec2(-5,-2),
-		vec2list--xy
-	[[9,-8,
-		 2,-8]],
-		vec2list--wh
-	[[6 ,17,
-		 7,17]]}
- }
+[tcavewall]={
+	vec2(-9,-4),
+	vec2list--xy
+[[0 ,-8,
+	 5 ,-8,
+	 13,-8,
+	 13, 4,
+	 4 , 4,
+	 2 , 4]],
+	vec2list--wh
+[[5,13,
+	 8,13,
+	 5,13,
+	 5, 4,
+	 11, 4,
+	 3, 4]]},
+[thole]={
+	vec2(-8,-4),
+	vec2list--xy
+[[0, 0,
+	 4, 0,
+	 13,0,
+	 0,0,
+	 4,1,
+	 13,0]],--last 3 are brick
+	vec2list--wh
+[[4,8,
+	 8,8,
+		3,8,
+		4,8,
+		7,7,
+		4,8]]},
+[txwall]={
+	vec2(-9,-2),
+	vec2list--xy
+[[12,-8,
+		 0,-8]],
+	vec2list--wh
+[[4 ,15,
+	 12,17]]},
+[tywall]={
+	vec2(-5,-2),
+	vec2list--xy
+[[9,-8,
+	 2,-8]],
+	vec2list--wh
+[[6 ,17,
+	 7,17]]}
+}
  
  wpnpos=vec2list
 [[3,-2,
@@ -143,17 +144,12 @@ fall=wv0000c00r_
  	1,3,
  	3,-3,
  	1,-2]]
-
-	playerdir=2
  	
- darkpal,
- dimpal,
- blackpal,
- whitepal,
- redpal=
- split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
-	split"241,18,179,36,21,214,103,72,73,154,27,220,93,46",
-	split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+ fowpals={
+ split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+	split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
+	split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"}
+	whitepal,redpal=
  split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",
  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 
@@ -199,13 +195,12 @@ OF THE FABLED wINGS OF yENDOR?
 	items,specitems=
 	mapgroup(64,0),mapgroup(65,0)
 	
-	genmap(vec2(mapcenter,mapsize*0.75))--mapsize/*0.75))
+	genmap(vec2(10,15))
 
  local torch = create(130)
 	addtoinventory(torch)
 	torch.eQUIP()
 	calclight()
-	--music(0)
 end
 
 function updateturn()
@@ -224,7 +219,7 @@ function updateturn()
 			if ent.ai then
 			 taketurn(ent,ent.pos,ent.tl,ent.group)
 			end
-			if ent != player then
+			if ent!=player then
 				tickstatuses(ent)
 			end
 		end
@@ -253,29 +248,21 @@ function _update()
 		end
  end
 	
-	local camtarget = 
+	local camtarget= 
  	screenpos(
  		lerp(player.pos,
- 							vec2(mapcenter,
- 												mapcenter-0.5),
- 							mode=="gameover" and 0 or 0.36))
-	local tmod = 
-		mode=="gameover" and
-													 0.25 or 0.5	
-	smoothb = smoothb and
-											lerp(smoothb,camtarget,
-											tmod)
-											or camtarget
-	smooth = smooth and 
-		lerp(smooth,smoothb,0.5*tmod)
-		or	smoothb
-		
-	campos=vec2(flr(rnd(shake*2)-
-	                shake+
-	                smooth.x-63.5),
-													flr(rnd(shake*2)-
-	                shake+
-	                smooth.y-63.5))
+ 							vec2(10,9.5),
+ 							mode=="gameover" and 0 or 0.36))	
+	smoothb=lerp(smoothb,camtarget,0.5)
+	smooth=lerp(smooth,smoothb,0.25)
+	
+	function getcampos(val)
+	 return flr(rnd(shake*2)-
+	            shake+val-63.5)
+	end
+	
+	campos=vec2(getcampos(smooth.x),
+													getcampos(smooth.y))
 	shake*=0.66
 end
 
@@ -300,8 +287,9 @@ function _draw()
 				del(textanims, anim)
 			else
 				anim[2].y-=0.5-t
-				print(anim[1],
-										anim[2].x+2-
+				local text,x=anim[1],anim[2].x
+				print(text,
+										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
 										(anim[3] and cos(t*2) or 0),
 										anim[2].y+(anim[6] or 0)-6,
 										t>0.433 and 5 or col)
@@ -310,8 +298,8 @@ function _draw()
 	end
 	camera()
  
-	if mode!="start" and
-	   mode!="gameover" then
+	if mode=="play" or
+	   mode=="ui" then
 		local x=drawbar(player.hp/player.maxhp,
 		        "HP",2,123,2,8)
 		for k,v in 
@@ -321,13 +309,11 @@ function _draw()
 		end
 	end
 	if mode=="ui" then
-	 if btnp()!= 0 then
-			if btnp(🅾️) then
-				deli(diags)
-				if #diags==0 then
-					mode="play"
-					return
-				end
+		if btnp(🅾️) then
+			deli(diags)
+			if #diags==0 then
+				mode="play"
+				return
 			end
 		end
 		uitrans*=0.33
@@ -340,19 +326,9 @@ function _draw()
 	inputblocked=false
 end
 
-function popdiag()
-
-end
-
-function outlinetext(txt,x,y,col)
-	for offs in all(adj) do
-		?txt,x+offs.x,y+offs.y,0
-	end
-	?txt,x,y,col
-end
-
 function drawbar(ratio,label,x,y,col1,col2)
- outlinetext(label,x,y-6,col1)
+ ?label,x-1,y-7,0
+ ?label,x,y-6,col1
  
  local w = max(#label*4-1,20)
  local barw=ceil(ratio*w)-1
@@ -366,10 +342,7 @@ function drawbar(ratio,label,x,y,col1,col2)
 end
 
 function animtext(text,ent,wavy,col,spd,offset)
- local pos=entscreenpos(ent)
- pos.x-=#text*2-2
- pos.x=mid(campos.x,pos.x,campos.x+128-#text*4)
- add(textanims,{text,pos,wavy,col,spd,offset,time()})
+ add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
 end
 
 function log(text)
@@ -465,7 +438,7 @@ function info()
   	k,v=unpack(split(str,"="))
 	  local val=selitem[v]
 	  if val then
-	   statstr..=k..(val=="t" and "" or selitem[v])
+	   statstr..=k..(val=="t" and "" or val)
 	  end
 	 end
 	else
@@ -480,16 +453,13 @@ function info()
  for action in all(
  {selitem.slot and
   (eqpd and 
-   (selitem.lit and "eXTINGUISH" or "sTOW") 
-   or "eQUIP")
-  or "uSE",
+   (selitem.lit and"eXTINGUISH" or "sTOW") 
+   or"eQUIP")or "uSE",
   "tHROW","dROP"})
  do
  	if listitem(action) then
- 	 diags={}
- 	 mode="play"
- 	 skipturn=true
- 	 waitforanim=true
+ 	 diags,mode,skipturn,waitforanim=
+ 	 {},"play",true,true
  		selitem[action]()
  	end
  end
@@ -505,10 +475,9 @@ function dialog(func)
  sfx(39)
 end
 -->8
---tiles, rendering
+--[[tiles, rendering
 
---[[
-tile flags
+flags:
 
 0:navigable
 1:passlight
@@ -518,22 +487,15 @@ tile flags
 5:drawnormal
 6:flippable
 7:manmade
-
-lit tile flags
-
-0:lit from this tile
-1-6:lit from adj tile
-7:emits light
-
-extra tile flags
-
-0:navflying
-1:flammable
-2:flammable2
+8:navflying
+9:flammable
+10:flammable2
+11:wall
+12:bridge
 ]]
 
 function tile(typ,pos)
-	return {typ=typ,pos=pos,fow=0,fire=0,spores=0,newspores=0}
+	return {typ=typ,pos=pos,fow=1,fire=0,spores=0,newspores=0}
 end
 
 function settile(tl,typ)
@@ -554,28 +516,25 @@ end
 
 function initpal(tl, fadefow)
 	basepal()
-	fow=0
+	fow=1
 	if fadefow then
 		if vistoplayer(tl) and
 		   mode != "ui" then
-			fow=tl.light>=2 and 3 or 2
+			fow=tl.light>=2 and 4 or 3
 		elseif tl.explored then
 			fow=mode=="gameover"
-			    and 0 or 1
+			    and 1 or 2
 		end
-		local oldfow=tl.fow
-		tl.fow = mid(oldfow-1,fow,oldfow+1)
+		tl.fow+=mid(-1,fow-tl.fow,1)
 	end
 	fow=tl.fow
-	fillp(fow==3 and █	or 
-						 lfillp)
-	if fow==0 then
-		pal(blackpal)
-	elseif fow==1 then
-		pal(darkpal,2)
+
+	if fow<4 then
+		fillp(lfillp)
+		pal(fowpals[fow],2)
 	else
-	 pal(dimpal,2)
-	end
+		fillp()
+ end
 end
 
 function onscreenpos(pos,pad)
@@ -592,7 +551,7 @@ function drawtl(tl,pos,flp,bg,i)
 	local scrpos=onscreenpos(pos,72)
  if (not scrpos) return
 	
-	local typ = tl.typ
+	local typ=tl.typ
 	if not i and typ==tywall then
 		typ=tdunjfloor
 	end
@@ -600,49 +559,47 @@ function drawtl(tl,pos,flp,bg,i)
 		typ=tl.bg
 	end
 	
-	local xtraheight = fget(typ,2)
-																	   and 8 or 0
-	local baseoffset = vec2(-8,-4)
-	local offset = vec2(1,
-																		  -xtraheight)
-	local size = vec2(15,
-																		 8+xtraheight)
-	local litsprite = typ+192
+	local xtraheight,baseoffset=
+	fget(typ,2)and 8 or 0,
+	vec2(-8,-4)
+	local offset,size,litsprite=
+	vec2(1,-xtraheight),
+	vec2(15,8+xtraheight),typ+192
  
 	--special tiles
 	if i then
-		local tileinfo = 
+		local tileinfo= 
 									specialtiles[typ]
 		baseoffset,offset,size=
 			tileinfo[1],
 			tileinfo[2][i],
 			tileinfo[3][i]
-		if typ == tywall and
-					pos.y%2 == 1 then
+		if typ==tywall and
+					pos.y%2==1 then
 			baseoffset+=vec2(-6,-2)
 		end
 		if typ==thole then
 		 typ=litsprite
 			if i>3 then
 			 typ += 2--brick hole
-			 flp = false
+			 flp=false
 			 baseoffset+=vec2(0,1)
 			end
 		end
 		if (i-2)%3 !=0 then
-		 flp = false
+		 flp=false
 		end
 	end
 	
 	--lighting
 	for i=0,6 do
-		if not bg and fow==3 and 
+		if not bg and fow==4 and 
 		   fget(litsprite,i) then
-			local adjtile =
+			local adjtile=
 				getadjtl(pos,i)
 			if adjtile and
 						adjtile.lightsrc then
-				typ = litsprite
+				typ=litsprite
 				pal(8,adjtile.lcool and 13 or 4)
 				pal(9,adjtile.lcool and 12 or 9)
 			end
@@ -659,18 +616,16 @@ function drawtl(tl,pos,flp,bg,i)
 										flp)
 end
 
-function drawent(tl,entvar)
-	local ent = tl[entvar]
-	if ent and (vistoplayer(tl) or
-	   (ent.lasttl and
-	   vistoplayer(ent.lasttl)))
+function drawent(ent)
+	if ent and (vistoplayer(ent.tl) or
+	   ent.lasttl and vistoplayer(ent.lasttl))
  then
-		initpal(tl)
+		initpal(ent.tl)
 		if ent==player then
 			pal(12,ent.cloak and
-			      ent.cloak.col or 8)
-			pal(14,ent.neck and 
-			       ent.neck.col or 13) 
+			       ent.cloak.col or 8)
+			pal(14,ent.amulet and 
+			       ent.amulet.col or 13) 
 		end
 		if ent.flash then
 			pal(whitepal)
@@ -692,8 +647,8 @@ function drawent(tl,entvar)
 						1,ent.animheight,
 						flp)
 		if ent.wpn and frame <= 4 then
-			local wpnpos=wpnpos[frame+1]
-			local wpnframe = frame%4
+			local wpnpos,wpnframe=
+			wpnpos[frame+1],frame%4
 			
 			spr(ent.wpn.typ+wpnframe*16,
 							scrpos.x+
@@ -720,8 +675,8 @@ function effectsprs(tl)
 		 	not has
 		 then
 		 	setanim(effect,effect.deathanim)
-		 	effect.light=nil
-		 	effect.dead=true
+		 	effect.light,effect.dead=
+		 	nil,true
 		 end
 		elseif has then
 		 create(typ,tl.pos)
@@ -733,7 +688,7 @@ function effectsprs(tl)
 end
 
 function drawents(tl)
- if tl.pos == playerdst and
+ if tl.pos==playerdst and
  			mode=="play" then
   initpal(player.tl)
   pal(2,34,2)
@@ -745,10 +700,10 @@ function drawents(tl)
  	end
  	spr(24,scrp.x-8,scrp.y-4,2,1)
  end
-	drawent(tl,"item")
- drawent(tl,"ent")
+	drawent(tl.item)
+ drawent(tl.ent)
  effectsprs(tl)
- drawent(tl,"effect")
+ drawent(tl.effect)
 end
 
 function drawmap()
@@ -765,8 +720,8 @@ function setupdrawcalls()
 	alltiles(
 	
 	function(pos,tl)
-		local typ = tl.typ
-		local palready=false
+		local typ,palready=
+		tl.typ,false
 		
 		function draw(tltodraw,pos,i,bg)
 			if not palready then
@@ -788,15 +743,13 @@ function setupdrawcalls()
 		
 		if not infront and
 					fget(typ,5) or
-					(typ == tywall and
+					(typ==tywall and
 					 pos.y%2==0) then
 			draw(tl,pos)
 		end
 		
 		for n=1,6 do
-			i=n
-			if (n==1)i=2
-			if (n==2)i=1
+			i=split"2,1,3,4,5,6"[n]
 			
 			if infront and i==4 then
 				draw(tl,pos)		
@@ -806,14 +759,13 @@ function setupdrawcalls()
 			if adjtl then
 				adjtyp = adjtl.typ
 				
-			 if typ != tcavewall and
-				 		typ != tempty and
+			 if typ!=tcavewall and
+				 		typ!=tempty and
 				 		adjtyp==tcavewall 
 				then
 					draw(adjtl,pos,i)
 				elseif i<=2 and
-					     (adjtyp==txwall or
-					      adjtyp==tywall) 
+					      tileflag(adjtl,11)
 				then
 				 wallpos=pos+adj[i]
 					if adjtyp==tywall and
@@ -824,11 +776,11 @@ function setupdrawcalls()
 					end
 					draw(adjtl,wallpos,i)
 				end
-				if i <= 3 and
-				   (typ == thole or
-				   tl.bg == thole) and
-							adjtyp != thole and
-							adjtl.bg != thole
+				if (typ==thole or
+				    tl.bg==thole) and
+				   i<=3 and
+							adjtyp!=thole and
+							adjtl.bg!=thole
 				then
 				 draw(tl,pos,i+
 				 	(manmade(adjtl)
@@ -837,7 +789,7 @@ function setupdrawcalls()
 				end 
 			end
 		end
-		uprtl=getadjtl(pos,3)
+		local uprtl=getadjtl(pos,3)
 		if uprtl and 
 					navigable(uprtl,true) then
 			drawcall(drawents,{uprtl})	
@@ -848,24 +800,20 @@ end
 -->8
 --map stuff
 
-function inbounds(pos)
+function within(pos,mina,maxa,minb,maxb)
 	local x,y=pos.x,pos.y
-	return x>0 and
-							 x<mapsize and
-								y>0  and
-								y<mapsize and
-								x+y>mapcenter and
-								x+y<mapsize*1.5
+	return min(x,y)>=mina and
+							 max(x,y)<=maxa and
+								x+y>=minb and
+								x+y<=maxb
+end
+
+function inbounds(pos)
+ return within(pos,1,19,11,29)
 end
 
 function validpos(pos)
-	local x,y=pos.x,pos.y
-	return x>=0 and
-								x<=mapsize and
-								y>=0 and
-								y<=mapsize and
-								x+y>=mapcenter and
-								x+y<=mapsize*1.5
+ return within(pos,0,20,10,30)
 end
 			
 function getadjtl(pos,i)
@@ -877,17 +825,17 @@ function getadjtl(pos,i)
 end
 
 function visitadj(pos,func)
-	for i = 1,6 do
-		local npos = pos+adj[i]
+	for i=1,6 do
+		local npos=pos+adj[i]
 		func(npos,gettile(npos))
 	end
 end
 
 function visitadjrnd(pos,func)
 	local indices=split"1,2,3,4,5,6"
-	for i = 1,6 do
-		local n = i+rndint(7-i)
-		local npos = pos+adj[indices[n]]
+	for i=1,6 do
+		local n=i+rndint(7-i)
+		local npos=pos+adj[indices[n]]
 		indices[n]=indices[i]
 		func(npos,gettile(npos))
 	end
@@ -965,18 +913,18 @@ function gettile(pos)
 end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
-	pos += dir1
+	pos+=dir1
 	local lastvis=false
 	local notfirst=false
 	for i=ceil(lim1),flr(lim2) do
 	 local tlpos=pos+i*dir2
 	 if validpos(tlpos) then
-			local tl = gettile(tlpos)
-			local vis = passlight(tl)
-			tl.vis = tileflag(tl,5) or
-												(tl.typ==tywall and
-												 player.pos.x<
-												 tlpos.x)
+			local tl=gettile(tlpos)
+			local vis=passlight(tl)
+			tl.vis=tileflag(tl,5) or
+											(tl.typ==tywall and
+											 player.pos.x<
+											 tlpos.x)
 			if vistoplayer(tl) then
 			 tl.explored=true
 			end
@@ -986,7 +934,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 					not lastvis then
 					lim1=i-0.5
 				end
-				if i == flr(lim2) then
+				if i==flr(lim2) then
 					splitlim=lim2
 				end
 			elseif lastvis then
@@ -1009,7 +957,7 @@ end
 function calcvis(pos)
 	alltiles(
 	function(npos,tl)
-		tl.vis = npos == pos
+		tl.vis=npos==pos
 	end)
 	for i=1,6 do
 		viscone(pos,adj[i],adj[(i+1)%6+1],0,1,1)
@@ -1021,7 +969,7 @@ function calclight()
 
  alltiles(
  function(pos,tl)
-		ent = tl.ent
+		ent=tl.ent
 		function checklight(var)
 			if tl[var] and tl[var].light then
 				local light=tl[var].light
@@ -1040,7 +988,7 @@ function calclight()
 		checklight("effect")
 		checklight("ent")
   if mode=="gameover" then
-  	tl.light = ent==player and 1 or -10
+  	tl.light=ent==player and 1 or -10
   end
   if tl.light>0 then
 			add(tovisit,pos)
@@ -1071,11 +1019,11 @@ end
 
 function trysetfire(pos,tl,nop)
 	if tileflag(tl,10) or
-	    tl.spores>0 or
-	    (rndp() or nop) and
-    	(tileflag(tl,9) or
-	    	tl.ent and
-						tl.ent.flammable)
+    tl.spores>0 or
+    (rndp() or nop) and
+   	(tileflag(tl,9) or
+    	tl.ent and
+					tl.ent.flammable)
 	then
  	setfire(tl)
  end
@@ -1198,13 +1146,11 @@ end
 function hexdir(p1,p2)
  local dist=hexdist(p1,p2)
 	return hexnearest(
-	        lerp(p1,p2,1/dist)
-	       )-p1
+	        lerp(p1,p2,1/dist))-p1
 end
 
 function vec2list(str)
-	local vals = split(str)
-	local ret = {}
+	local vals,ret=split(str),{}
 	for i=1,#vals,2 do
 		add(ret,vec2(vals[i],vals[i+1]))
 	end
@@ -1212,8 +1158,8 @@ function vec2list(str)
 end
 
 function assigntable(table,str,delim1,delim2)
- for i,var in 
-		ipairs(split(str,delim1 or ","))
+ for var in 
+		all(split(str,delim1 or ","))
 	do
 		local pair=split(var,delim2 or ":")
 		table[pair[1]]=pair[2]
@@ -1229,48 +1175,44 @@ function rndp(p)
 end
 
 function lerp(a,b,t)
-	return (1-t)*a+t*b
+	return a and (1-t)*a+t*b or b
 end
 
 --vec2 by mrh & felice 
 vec2mt={
-    __add=function(v1,v2)
-        return vec2(v1.x+v2.x,v1.y+v2.y)
-    end,
-    __sub=function(v1,v2)
-        return -v2+v1
-    end,
-    __unm=function(self)
-        return vec2(-self.x,-self.y)
-    end,
-    __mul=function(s,v)
-        return vec2(s*v.x,s*v.y)
-    end,
-    __eq=function(v1,v2)
-        return v1.x==v2.x and v1.y==v2.y
-    end,
+ __add=function(v1,v2)
+  return vec2(v1.x+v2.x,v1.y+v2.y)
+ end,
+ __sub=function(v1,v2)
+  return -v2+v1
+ end,
+ __unm=function(self)
+  return vec2(-self.x,-self.y)
+ end,
+ __mul=function(s,v)
+  return vec2(s*v.x,s*v.y)
+ end,
+ __eq=function(v1,v2)
+  return v1.x==v2.x and v1.y==v2.y
+ end
 }
 vec2mt.__index=vec2mt
-
 function vec2(x,y)
-    return setmetatable({x=x,y=y},vec2mt)
+ return setmetatable({x=x,y=y},vec2mt)
 end
 
 --local fillp by makke, felice & sparr
-
 function localfillp(p, x, y)
-    local p16, x = flr(p), band(x, 3)
-    local f, p32 = flr(15 / 2 ^ x) * 0x1111, rotr(p16 + lshr(p16, 16), band(y, 3) * 4 + x)
-    return p - p16 + flr(band(p32, f) + band(rotl(p32, 4), 0xffff - f))
+ local p16, x = flr(p), band(x, 3)
+ local f, p32 = flr(15 / 2 ^ x) * 0x1111, rotr(p16 + lshr(p16, 16), band(y, 3) * 4 + x)
+ return p - p16 + flr(band(p32, f) + band(rotl(p32, 4), 0xffff - f))
 end
 -->8
 --entities
 
 function setanim(ent,anim)
-	ent.anim,ent.animt,
-	ent.animloop=
-		split(entdata[anim],""),0,
-		false
+	ent.anim,ent.animt,ent.animloop=
+	split(entdata[anim],""),0,false
 		
 	if ent.anim[1]=="w" then
 		waitforanim=true
@@ -1288,29 +1230,18 @@ function checkidle(ent)
 end
 
 function create(typ,pos,behav,group)
-	local ent = {typ=typ,pos=pos,
-							behav=behav,group=group,
-							xface=1,yface=-1,
-							animframe=0,animt=1,
-							animspeed=0.5,
-							animflip=false,
-							animoffset=vec2(0,0),
-							animheight=1,
-							deathanim="death",
-							atkanim="eatk",
-							deathsfx=41,
-							var="ent"}
+	local ent={typ=typ,pos=pos,
+							behav=behav,group=group}
+	assigntable(ent,entdata.def)
 	assigntable(ent,entdata[typ])						
 	
 	if ent.pos then
 		ent.tl=gettile(ent.pos)
-		ent.tl[ent.var] = ent
+		ent.tl[ent.var]=ent
 		ent.renderpos=entscreenpos(ent)
 	end
 
-	if ent.var!="ent"then
-		ent.animoffset=vec2(0,2)
-	end
+	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
 	
 	ent.truname=ent.ai and 
 		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
@@ -1320,10 +1251,10 @@ function create(typ,pos,behav,group)
 	ent.statuses={}
 	if (ent.flippable or ent.ai)
 	   and rndp() then
-		ent.xface *= -1
+		ent.xface*=-1
 	end
 	if ent.ai and rndp() then
-		ent.yface *= -1
+		ent.yface*=-1
 	end
 	checkidle(ent)
 	if ent.behav=="sleep" then
@@ -1359,6 +1290,7 @@ function tickstatuses(ent)
 			ent.statuses[k]=nil
 			if k=="TORCH" then
 				ent.wpn.eXTINGUISH()
+				log"tORCH BURNT OUT"
 			end
 		end
 		if k=="BURN" then
@@ -1390,7 +1322,6 @@ function updateent(ent)
 			 end
 			end
 		else
-			
 			ent.animflip=char=="f"
 			if char=="l"then
 			 ent.animloop=index+1
@@ -1425,12 +1356,6 @@ function updateent(ent)
 				local b = atkinfo[1]
 			 if atkinfo[3] then--hits
 					hurt(b,atkinfo[4],ent)
-					--[[if ent.wpn and ent.wpn.lit
-				 then
-						burn(b)
-						ent.statuses.TORCH[1]-=8
-						sfx(36)
-					end]]
 				else
 					aggro(b.pos)
 				end	
@@ -1438,7 +1363,7 @@ function updateent(ent)
 			ent.animt+=1
 			tickanim()
 		end
-	end--tickanim()
+	end
 	
 	if ent.anim then
 		tickanim()
@@ -1516,7 +1441,7 @@ function taketurn(ent,pos,tl,group)
 		poke(0x5f5d,6)
 		
 		if skipturn then
-		 skipturn = false
+		 skipturn=false
 		 return true
 		end
 		
@@ -1526,7 +1451,7 @@ function taketurn(ent,pos,tl,group)
 		end
 		
 		if btnp(🅾️) then
-			tock = not tock
+			tock=not tock
 			sfx(40,-1,not tock and 16 or 0, 8)
 			return true --wait 1 turn
 		end
@@ -1574,7 +1499,8 @@ function taketurn(ent,pos,tl,group)
 		end
 		return
 	elseif ent.ai and ent.canact and
-	 ent.behav != "dead" then
+	 ent.behav!="dead"
+	then
 	 --ai
 	 function checkseesplayer()
 	 	if seesplayer(ent) then
@@ -1584,9 +1510,9 @@ function taketurn(ent,pos,tl,group)
 	 end
 	 if ent.behav=="hunt" then
 		 if ent.pack then
-		 	ent.pdist = rndp() and 0 or -2
+		 	ent.pdist=rndp() and 0 or -2
 		 elseif ent.runaway then
-		 	ent.pdist = ent.tl.pdist>=-1 and
+		 	ent.pdist=ent.tl.pdist>=-1 and
 		 													0 or -15		
 		 end
 		 checkseesplayer()
@@ -1651,26 +1577,24 @@ function postturn(ent)
 end
 
 function setbehav(ent,behav)
-	if ent.behav != behav then
+	if ent.behav!=behav then
 		if ent.behav=="sleep" then
 		 checkidle(ent)
 		end
 		
-		ent.behav = behav
-		if behav == "hunt" then
+		ent.behav=behav
+		if behav=="hunt" then
 			animtext("!",ent)
 			sfx(ent.alertsfx)
-		elseif behav == "search"
-		 --and vistoplayer(ent.tl)
-		then
+		elseif behav=="search"	then
 			animtext("?",ent)
 		end
-		ent.canact = false 
+		ent.canact=false 
 	end
 end
 
 function setsearchpos(pos)
-	if (searchpos == pos)return
+	if (searchpos==pos)return
  lastpseenpos=pos
 	calcdist(pos,"search")
 	searchpos=lastpseenpos
@@ -1681,13 +1605,13 @@ function aggro(pos)
 	calcdist(pos,"aggro",true)
 	for i,ent in ipairs(ents) do
 		if ent.ai and
-		   ent.behav != "dead" and
+		   ent.behav!="dead" and
 					ent.tl.aggro>=-3
 		then
 			if seesplayer(ent) then
 				setbehav(ent,"hunt")
 				pseen=true
-			elseif ent.behav != "hunt"
+			elseif ent.behav!="hunt"
 			then
 				setbehav(ent,"search")
 			end
@@ -1703,7 +1627,7 @@ end
 function hurt(ent,dmg,atkr)
 	ent.hp-=dmg
  ent.flash=true
-	if ent.hitshake then
+	if ent==player then
 		shake=1
 	end
 	if ent.hp<=0 then
@@ -1713,7 +1637,6 @@ function hurt(ent,dmg,atkr)
 		waitforanim=true
 		if ent==player then
 			mode="gameover"
-			--music(8)
 			calclight()
 		elseif ent.sporeburst then
 			sporeburst(ent.tl,ent.sporeburst)
@@ -1729,7 +1652,7 @@ function hurt(ent,dmg,atkr)
 		if atkr then
 			local dirpos=firepos+
 			 hexdir(atkr.pos,ent.pos)
-			local ntl = gettile(dirpos)
+			local ntl=gettile(dirpos)
 			if navigable(ntl) then
 				firepos=dirpos
 			end
@@ -1762,17 +1685,17 @@ function interact(a,b,wpn)
 end
 
 function move(ent,dst)
-	local dir = hexdir(ent.pos,dst)
-	local dsttile = gettile(dst)
+	local dir=hexdir(ent.pos,dst)
+	local dsttile=gettile(dst)
 	ent.lasttl=ent.tl
 	
 	if dsttile.ent then
 		interact(ent,dsttile.ent,
 		         ent.wpn or ent)
 	else
-		ent.tl.ent = nil
+		ent.tl.ent=nil
 		ent.pos=dst
-		dsttile.ent = ent
+		dsttile.ent=ent
 		ent.tl=dsttile
 		
 		if ent.moveanim then
@@ -1788,13 +1711,13 @@ function move(ent,dst)
 end
 
 function updatefacing(ent,dir)
-	if dir.x != 0 then 
-		ent.xface = sgn(dir.x)
+	if dir.x!=0 then 
+		ent.xface=sgn(dir.x)
  end
- if dir.y != 0 then
- 	ent.yface = sgn(dir.y)
- elseif x != 0 then
-  ent.yface = sgn(dir.x)
+ if dir.y!=0 then
+ 	ent.yface=sgn(dir.y)
+ elseif x!=0 then
+  ent.yface=sgn(dir.x)
  end
 end
 -->8
@@ -1803,19 +1726,16 @@ end
 function genmap(startpos)
 	printh("genmap()")
 	
-	world={}
-	ents={}
-	inboundposes = {}
-	validposes = {}
-	validtiles = {}
-	for x=0,mapsize do
+	world,ents,inboundposes,validposes,validtiles=
+	{},{},{},{},{}
+	for x=0,20 do
 	 world[x] = {}
-		for y=0,mapsize do
+		for y=0,20 do
 		 world[x][y] = tile(tempty,vec2(x,y))
 		end
 	end
-	for y=0,mapsize do
-	 for x=0,mapsize do
+	for y=0,20 do
+	 for x=0,20 do
 	 	local pos=vec2(x,y)
 			if validpos(pos) then
 				add(validposes,pos)
@@ -1851,18 +1771,17 @@ function genroom(pos)
 		 
 	h=flr(h/4+1)*4
 	w+=w%2
-	yoffset=ceil(rnd(h-1))
+	local yoffset=ceil(rnd(h-1))
 	local minpos=pos+
 														vec2(-ceil(rnd(w-2)+1)
 																			+ceil(yoffset/2),
 																			-yoffset)
 	minpos.x+=(minpos.x)%2
 	minpos.y=flr(minpos.y/4)*4+1
-	local maxpos=minpos+
-								vec2(w-flr(h/2),h)
-	offset=minpos-pos
-	openplan=rndp()
-	local wvec = vec2(w,0)
+	local maxpos,
+	offset,openplan,wvec=
+	minpos+vec2(w-flr(h/2),h),
+	minpos-pos,rndp(),vec2(w,0)
 	if not 
 	  (validpos(minpos) and
 				validpos(minpos+wvec) and
@@ -1877,15 +1796,13 @@ function genroom(pos)
 	if (entropy<0) return
 	for y=0,h do
 	 local alt=(pos.y+offset.y+y+1)%2
-		offset.x -= alt
-		local xwall = y==0 or
-										y==h
+		offset.x-=alt
+		local xwall=y==0 or y==h
 		for x=0,w do
-			local ywall = x==0 or
-											x==w
-			npos = pos+offset+vec2(x,y)
+			local ywall=x==0 or	x==w
+			local npos=pos+offset+vec2(x,y)
 			if inbounds(npos) then
-				tl=gettile(npos)
+				local tl=gettile(npos)
 				if tl.ent then
 				 destroy(tl.ent)
 				end
@@ -1947,15 +1864,15 @@ function gencave(pos)
 end
 
 function gentile(typ,pos)
-	local y = ceil(rnd(15))
-	tl = gettile(pos)
+	local y,tl = 
+	ceil(rnd(15)),gettile(pos)
 	if (manmade(tl)) y+=16
 	settile(tl,mget(typ,y))
-	typ2=mget(typ+1,y)
+	local typ2=mget(typ+1,y)
 	tl.flip=rndp()
 	tl.genned=true
- if typ2 != 0 then
-  if typ2 < 64 then
+ if typ2!=0 then
+  if typ2<64 then
  		tl.bg=typ2
 	 else
  		create(typ2,pos)
@@ -1998,23 +1915,19 @@ function connectareas(pos,permissive)
 		
 		if (#unreach==0)	return
 			
-		local bestdist = 100
+		local bestdist=100
 		
 		for j=1,200 do
 			if #unreach==0 then
 				return
 			end
 			local p1=rnd(unreach)
-			local tl1,diri=
-			gettile(p1),ceil(rnd(6))
-			
-			if manmade(tl1) and
-			   permissive and
-			 (diri==3 or diri==6) then
-					diri-=ceil(rnd(2))
-			end
+			local diri=
+	   manmade(gettile(p1)) and
+	   not permissive and 
+	   rnd(split"1,2,4,5") or
+	   ceil(rnd(6)) 
 			local dir=adj[diri]
-			if (not dir) break--wtf??
 			local p2=p1+rndint(18)*dir
 			if validpos(p2) then
 				local tl2=gettile(p2)
@@ -2040,13 +1953,11 @@ function connectareas(pos,permissive)
 				 if manmade(tl) then
 				 	tl.typ=tdunjfloor
 				 elseif tl.typ == thole then
-				 	if bestdiri==2 
-				 				or bestdiri==5 then
+				 	if bestdiri%3==2 then
 				 		tl.typ=tybridge
 				 	else
 				 		tl.typ=txbridge
-				 		tl.flip=bestdiri==1 or 
-				 		        bestdiri==4
+				 		tl.flip=bestdiri%3==1
 				 	end
 				 	tl.bg=thole
 				 else
@@ -2083,8 +1994,7 @@ function postproc(pos)
 	--delete bridges lol
 	alltiles(
 	function(pos,tl)
-		if tl.typ==txbridge or
-					tl.typ==tybridge then
+		if tileflag(tl,12) then
 			settile(tl,thole)
 		end			
 	end)
@@ -2115,6 +2025,8 @@ function postproc(pos)
 	
 	alltiles(
 	function(pos,tl)
+		local uptl,uprighttl,righttl=
+				getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
 		if tl.typ==tempty then
 			--add cavewalls
 			for i = 1,6 do
@@ -2126,9 +2038,6 @@ function postproc(pos)
 			end
 		elseif tl.typ==txwall then
 			--swap x walls for y
-			uptl=getadjtl(pos,2)
-			uprighttl=getadjtl(pos,3)
-			righttl=getadjtl(pos,4)
 			if uptl and righttl and
 			 uprighttl and
 				uptl.typ==tywall and
@@ -2137,12 +2046,10 @@ function postproc(pos)
 			then
 				tl.typ=tywall
 			end
-		elseif tl.typ==tywall then
-			--swap y walls for x
-			righttl=getadjtl(pos,4)
-			if righttl.typ==txwall then
-				tl.typ=txwall
-			end
+		elseif tl.typ==tywall and
+		  righttl.typ==txwall
+		then
+			tl.typ=txwall
 		elseif tl.typ==thole and
 									tl.pdist>-1000 then
 			numholes+=1
@@ -2168,12 +2075,11 @@ function postproc(pos)
 		 	tilesfound+=1
 		 end
 		end
-		
 	 settile(besttl,thole)
 	end
 	
 	if not player then
-		player = create(64,pos)
+		player=create(64,pos)
 	else
 	 player.tl=gettile(pos)
   player.pl.ent = player
@@ -2200,9 +2106,9 @@ function postproc(pos)
 		while rndp(0.45) and spawndepth <= 19 do
 		 spawndepth+=1
 		end
-		local spawn = rnd(spawns[ceil(spawndepth/2)])
+		local spawn=rnd(spawns[ceil(spawndepth/2)])
 		behav=rnd{"sleep","wander"}
-		local spawnedany = false
+		local spawnedany=false
 		for i,typ in ipairs(spawn) do
 			local found=false
 			visitadjrnd(spawnpos,
@@ -2221,7 +2127,6 @@ function postproc(pos)
 			create(rnd(items),itempos)
 		end
 	end
-	
 end
 -->8
 --items
@@ -2543,7 +2448,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840084002c00b300ee00be00ee0072016300ba016b03f30109096b05b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000840884082c00b300ee00be00ee0072016300ba016b03f30109096b15b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
 464647474141424b4b4b0000000000001011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b00000000acac0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -2622,7 +2527,7 @@ a8030400260242a01100100001000010000100001000010000100001000010000100001000010000
 930100003b3153461034615270000000000000000000000000000000002b6002e600000000000000000000003931530610306151a6052900029000290053b6000000000000000003b600000003b600000003b600
 90070b001967316333073130060315333073131530315303153130010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000
 000102003401535005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-90010000076150061100615245003160000600006000060031625006100061100601006010060100605006010060100601006010060500000000000560004600000000000000000000000a600086050000000000
+90010d0007615006110061524500316000060000600006003162500610006110060100601006011e60500601006010060100601006051d600006050560004600000000060500000000000a600086050000002600
 900100003b61500605000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
