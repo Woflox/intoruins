@@ -1055,7 +1055,7 @@ function updateenv()
 				end
 			end
 		elseif tl.spores>0 then
-			tl.spores=max(0,tl.spores-rnd(0.25))
+			tl.spores=max(tl.spores-rnd(0.25))
 			if tl.spores>1 then
 				adjtls={}
 				visitadj(pos,
@@ -1671,7 +1671,7 @@ end
 function hitp(a,b)
 	if b.armor then
 	 local diff=a.atk-b.armor
-	 return (max(diff,0)+1)/
+	 return (max(diff)+1)/
 	        (abs(diff)+2)
 	end
 	return 1
