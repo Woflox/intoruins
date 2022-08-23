@@ -1308,6 +1308,7 @@ function updateent(ent)
 	   ent.anim,flr(ent.animt),
 	   ent.atkinfo
 		local char=anim[index]
+		
 		if type(char)=="number" or
 		   flr(ent.animt) > #anim then
 			ent.animframe=char
@@ -1322,41 +1323,44 @@ function updateent(ent)
 			 end
 			end
 		else
-			ent.animflip=char=="f"
-			if char=="l"then
+		 function case(c)
+		 	return char==c
+		 end
+			ent.animflip=case"f"
+			if case"l"then
 			 ent.animloop=index+1
 			 ent.animt+=rnd(#anim-index-1)
-			elseif char=="r" then
+			elseif case"r" then
 				ent.animwait=false
-			elseif char=="z" and
+			elseif case"z" and
 			 vistoplayer(ent.tl) 
 			then
 		 	animtext("z",ent,true)
-			elseif char=="_" then
+			elseif case"_" then
 				destroy(ent)
-			elseif char=="v" then
+			elseif case"v" then
 			 ent.animoffset.y+=ent.animt/4
-			elseif char=="c" then
+			elseif case"c" then
 				ent.animheight=1-
 													ent.animoffset.y/8
-			elseif char=="!" then
+			elseif case"!" then
 				ent.flash=true
-			elseif char=="b" then
+			elseif case"b" then
 				ent.pal=redpal
 				ent.fillp=true
 				animtext(".",ent,false,8,3,6)
-			elseif char=="a" then
+			elseif case"a" then
 				ent.animoffset=
 				(ent.movratio or 0.25)*
 					screenpos(
 						atkinfo[2]-
 						ent.pos)
 				sfx(33)
-			elseif char=="d" then
+			elseif case"d" then
 				local b = atkinfo[1]
 			 if atkinfo[3] then--hits
 					hurt(b,atkinfo[4],ent)
-				else
+				else 
 					aggro(b.pos)
 				end	
 			end
