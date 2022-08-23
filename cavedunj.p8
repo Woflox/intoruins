@@ -40,6 +40,7 @@ move=044
 turn=44
 emove=022
 sleep=lz000000000000000000000
+flash=l!0000000000000000000000000000000000000000000
 patk=wa22d22r
 eatk=wa22dr22
 batatk=wa20dr22
@@ -63,7 +64,7 @@ fall=wv0000c00r_
 142=n:gOLDEN AMULET,col:10,var:item,slot:neck
 143=n:sILVER AMULET,col:7,var:item,slot:neck
 156=n:gOLD CLOAK,col:9,var:item,slot:cloak
-157=n:rED CLOAK,col:8,var:item,slot:cloak
+157=n:gREY CLOAK,col:5,var:item,slot:cloak
 158=n:gREEN CLOAK,col:3,var:item,slot:cloak
 159=n:cYAN CLOAK,col:12,var:item,slot:cloak
 172=n:cYAN ORB,var:item,light:2,lcool:t
@@ -667,7 +668,7 @@ function drawent(tl,entvar)
 		initpal(tl)
 		if ent==player then
 			pal(12,ent.cloak and
-			      ent.cloak.col or 4)
+			      ent.cloak.col or 8)
 			pal(14,ent.neck and 
 			       ent.neck.col or 13) 
 		end
@@ -1407,6 +1408,8 @@ function updateent(ent)
 			elseif char=="c" then
 				ent.animheight=1-
 													ent.animoffset.y/8
+			elseif char=="!" then
+				ent.flash=true
 			elseif char=="b" then
 				ent.pal=redpal
 				ent.fillp=true
@@ -2242,7 +2245,7 @@ fire,lightning,ice,blinking
 ]]
 
 function inititem(item)
-
+setanim(item,"flash")
 item.eQUIP=function()
 	if player[item.slot] then
 		player[item.slot].sTOW()
@@ -2355,10 +2358,10 @@ ff22fffff00fffffffffffffffffffffff4fffffff5fffffff4fffffff5fffffff554ffffcf2d2ff
 ff0dfffffffffffffffffffffffffffff4ffffffffffffffffffffffffffffffff505ffffdf00fffff88ffffffdfffffffffffffffffffffffffffffffffffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff22fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff899fffffcfcfffff8fffffcfffffffffffffffffffffffffffffffffffffff
-ffcc2fffffffffcfffffffffffffffffffffffffffffffffffffffffffffffffff998ffff7dfd7fff998ffffffffffffffff9fffffff8fffffff3fffffffcfff
-ffcdeffffffff66ffffaffffffffffffffffffffffffffffffffffffffffffffff998fffcdfffdcff8998ffffffff7ffff9999ffff8888ffff3333ffffccccff
-ffc6dffffff6600ffff9fffffff5ffffffffffffffffffffffffffffffff97ffff454fffffffffff899998fffffffffff4490ffff4480ffffbb30ffffddc0fff
-fc2626fff6600ffffff4fffffff4ffff44ffffffff567ffffffff4fffff5997ffff5ffffcdfffdcf8999998ffffffffcf900fffff800fffff300fffffc00ffff
+ffcc2fffffffffcfffffffffffffffffffffffffffffffffffffffffffffffffff998ffff7dfd7fff998ffffffffffffffff9fffffffdfffffff3fffffffcfff
+ffcdeffffffff66ffffaffffffffffffffffffffffffffffffffffffffffffffff998fffcdfffdcff8998ffffffff7ffff9999ffffdd5dffff3333ffffccccff
+ffc6dffffff6600ffff9fffffff5ffffffffffffffffffffffffffffffff97ffff454fffffffffff899998fffffffffff4490ffff5550ffffbb30ffffddc0fff
+fc2626fff6600ffffff4fffffff4ffff44ffffffff567ffffffff4fffff5997ffff5ffffcdfffdcf8999998ffffffffcf900fffff500fffff300fffffc00ffff
 fff22ffff00fffffffffffffffffffffff44ffffffdfffffff445d6fff5ff9ffff554ffff7dfd7ff8899998ffffffffff0fffffff0fffffff0fffffff0ffffff
 ff0dffffffffffffffffffffffffffffffffd7fffffffffffffff6ffffffffffff505fffffcfcffff88888ffffcfffffffffffffffffffffffffffffffffffff
 fffffffffffffffff988fffffffffffffffffffffffffffffffffffffffffffffff9fffffffffffff88fffffffffffffffffffffffffffffffffffffffffffff
