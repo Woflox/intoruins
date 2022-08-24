@@ -9,7 +9,7 @@ assigntable(_ENV,
 [[mode:play,statet:0,depth:5,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
-,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
+,tshortgrass:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8]])
 entdata={}
@@ -24,7 +24,7 @@ assigntable(entdata,
 68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,knockback:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
 72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,hurt:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,hurtsplit:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
 137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,death:42
 136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:t,blocking:t,hitpush:t,dmg:2,stun:1,flippable:t,deathanim:propdeath,animspeed:0.3,death:23
@@ -435,7 +435,7 @@ function info()
  local eqpd = selitem.equipped
  local x=gettrans(42,5)
  frame(x,2,gettrans(42,90.5),111,rectfill)
- menuindex=getindex(menuindex,3)
+ menuindex=getindex(menuindex,2)
 
  spr(selitem.typ+(selitem.ai and 16 or 0),x+3,4)
  ?"\fd    "..selitem.n
@@ -475,7 +475,7 @@ function info()
  ?statstr
  
  --menu
- cursor(x-3,84)
+ cursor(x-3,90)
  ?"\f1 ……………………………"
  
  for action in all(
@@ -483,7 +483,7 @@ function info()
   (eqpd and 
    (selitem.lit and"eXTINGUISH" or "sTOW") 
    or"eQUIP")or "uSE",
-  "tHROW","dROP"})
+  "tHROW"})
  do
  	if listitem(action) then
  	 diags,mode,skipturn,waitforanim=
@@ -1135,6 +1135,27 @@ function updateenv()
 	end
 end
 
+--[[
+function findfree(pos,var,recurse)
+ if not gettile(pos)[var] then
+ 	return pos
+ end
+ for i=1,recurse do
+  local res=nil
+		visitadjrnd(pos,
+		function(npos,ntl)
+			if navigable(ntl) and not
+			   (ntl.ent and ntl.ent.blocking)
+			then
+			 if not ntl[var] then
+			 	return npos
+			 end
+			 pos=npos
+			end
+		end)
+	end
+end]]
+
 function updatemap()
 	calclight()
 	calcdist(player.pos,"pdist",true)
@@ -1278,9 +1299,7 @@ function create(typ,pos,behav,group)
 	assigntable(ent,entdata[typ])						
 	
 	if ent.pos then
-		ent.tl=gettile(ent.pos)
-		ent.tl[ent.var]=ent
-		ent.renderpos=entscreenpos(ent)
+		setpos(ent,ent.pos,true)	
 	end
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -1325,6 +1344,15 @@ function create(typ,pos,behav,group)
 	end
 	
 	return ent
+end
+
+function setpos(ent,pos,setrender)
+	ent.pos=pos
+	ent.tl=gettile(pos)
+	ent.tl[ent.var]=ent
+	if setrender then
+		ent.renderpos=entscreenpos(ent)
+	end
 end
 
 function setstatus(ent,name,str)
@@ -1542,25 +1570,26 @@ function taketurn(ent,pos,tl,group)
 			
 			local dsttile=gettile(playerdst)
 			
-			if player.tl.item then
-				pickup(player.tl.item)
+			if player.tl==dsttile then
+				if dsttile.item then
+					pickup(dsttile.item)
+				end
+				
+				if dsttile.typ==tlonggrass then
+				 sfx(37)
+				elseif dsttile.typ==tshortgrass or
+											dsttile.typ==tflatgrass then
+					sfx(10)
+				elseif dsttile.typ==txbridge or
+											dsttile.typ==tybridge then
+					sfx(38)
+				elseif dsttile.typ==40 then
+					sfx(43)--bonez			
+					aggro(playerdst)	
+				else
+					sfx(35)
+				end
 			end
-			
-			if dsttile.typ==tlonggrass then
-			 sfx(37)
-			elseif dsttile.typ==tshortgrass or
-										dsttile.typ==tflatgrass then
-				sfx(10)
-			elseif dsttile.typ==txbridge or
-										dsttile.typ==tybridge then
-				sfx(38)
-			elseif dsttile.typ==40 then
-				sfx(43)--bonez			
-				aggro(playerdst)	
-			else
-				sfx(35)
-			end
-			
 			return true
 		end
 		return
@@ -1709,6 +1738,26 @@ function hurt(ent,dmg,atkr)
 		end
 	else
 		sfx(34)
+		if ent.hurtsplit and atkr then
+			local splitpos=nil
+			visitadjrnd(ent.pos,
+			function(npos,ntl)
+				if navigable(ntl) and not
+				   ntl.ent then
+				  splitpos=npos
+				end
+			end)
+			if splitpos then
+				ent.hp/=2
+				local newent=create(ent.typ,splitpos,ent.behav,ent.group)
+			 newent.hp=ent.hp
+			 for k,v in pairs(ent.statuses) do
+			 	newent.statuses[k]={unpack(v)}
+			 end
+			 newent.renderpos=ent.renderpos
+				setanim(newent,"emove")
+			end
+		end
 	end
 	if ent.hurt then
 		sfx(ent.hurt)	
@@ -1760,9 +1809,7 @@ function move(ent,dst)
 		         ent.wpn or ent)
 	else
 		ent.tl.ent=nil
-		ent.pos=dst
-		dsttile.ent=ent
-		ent.tl=dsttile
+		setpos(ent,dst)
 		
 		if ent.moveanim then
 			setanim(ent,ent.moveanim)
@@ -2229,17 +2276,31 @@ item.eQUIP=function()
 end
 
 item.sTOW=function(staylit)
-	item.equipped=nil
-	if item.lit and not staylit
-	then
-	 item.eXTINGUISH()
+	if item.equipped then
+		item.equipped=nil
+		if item.lit and not staylit
+		then
+		 item.eXTINGUISH()
+		end
+		player[item.slot]=nil
 	end
-	player[item.slot]=nil
 end
 
 item.tHROW=function()
  aim(item,true,item.throw)
 end
+
+--[[item.dROP=function()
+	local pos = findfree(player.pos,"item",100)
+	if pos then	
+	 sfx(25)
+		item.sTOW()
+		setpos(item,pos,true)
+		del(inventory,item)
+	else
+		log"nO ROOM"
+	end
+end]]
 
 item.eXTINGUISH=function()
 	item.lit,item.light,
@@ -2576,7 +2637,7 @@ c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f
 9002060017a1417a1017a1017a1017a1017a100060009a0009a0009a0009a0009a0009a0000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
 00020a001414015151151611216111141061330613105121051200512102100011000210003100031000210003100081000810000100001000010000100001000010000100001000010000100001000010000000
 900117000062000621056310a64112641186512065110051060310302101621006210262000610006100061000610006000061000600006100000000610000000000000600000000000000000006000000000000
-a8010600322303f2613e2413c231342010b2002e2002f2002320000200002000020000200002002d2001d20000200002000020000200002000020000200002000020000200002000020000200002000020000200
+a8020600322303f2613e2413c231342010b2002e2002f2002320000200002000020000200002002d2001d20000200002000020000200002000020000200002000020000200002000020000200002000020000200
 aa0506003e6143a5213f5213f5113d501005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500
 aa0407003e6143e5213f521355112f511005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500
 d402170000120071501a2701665013260122601015009250041500e15000250052000024004200031000023000100001000023000100001000010000100001000010000100001000010000200002000020000200
