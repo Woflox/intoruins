@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(_ENV,
-[[mode:play,depth:5,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2,tgameover:0
+[[mode:play,statet:0,depth:5,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -15,16 +15,15 @@ assigntable(_ENV,
 entdata={}
 assigntable(entdata,
 [[def=var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,death:41
-64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,moveanim:move,deathanim:pdeath
+64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alert:20,hurt:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alert:30,hurt:11
 66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-2,alert:30,hurt:11
 67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
 68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,
-ack:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,movandatk:t,hurt:13
+69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,knockback:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,hurt:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
 137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,death:42
 136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
@@ -238,9 +237,9 @@ end
 function _update()
 	if mode=="play" then
 		updateturn()
-	elseif mode=="gameover" then
-		tgameover+=0.066
 	end
+	
+	statet+=0.033
 	
 	if mode!="ui" then
 		waitforanim=false
@@ -253,7 +252,9 @@ function _update()
  	screenpos(
  		lerp(player.pos,
  							vec2(10,9.5),
- 							max(0.36-tgameover)))
+ 							mode=="gameover" and
+ 							max(0.36-statet*2) or
+ 							0.36))
 	smoothb=lerp(smoothb,camtarget,0.5)
 	smooth=lerp(smooth,smoothb,0.25)
 	
@@ -313,7 +314,7 @@ function _draw()
 		if btnp(🅾️) then
 			deli(diags)
 			if #diags==0 then
-				mode="play"
+				setmode"play"
 				return
 			end
 		end
@@ -324,7 +325,7 @@ function _draw()
 		 d()
 	 end
 	elseif mode=="gameover" and
-	 tgameover>2 then
+	 statet>1 then
 	 if not musicplayed then
 	 	music(8)
 	 	musicplayed=true
@@ -332,8 +333,8 @@ function _draw()
 	 if btnp(❎) then
 	 	run()
 	 end
-	print([[
-  game over
+	print(sub([[
+  game over                        
 
 
 
@@ -343,7 +344,9 @@ function _draw()
 
 
 
-❎:tRY AGAIN]],38,29,tgameover>2.2and 13 or 1)
+
+
+❎:tRY AGAIN]],0,statet*30-16),39,29,statet>1.1and 13 or 1)
 	end
 	inputblocked=false
 end
@@ -407,7 +410,7 @@ function inv()
  frame(gettrans(126,42),2,126,111,rect)
  local i=0
  local sely=0
-	?"\fd  eQUIPPED\n  …………"
+	?"\fd  iNVENTORY\n\f1 ……………………………\n\fd  -eQUIPPED-\n"
 	
 	invindex=getindex(invindex,#inventory)
 	
@@ -424,7 +427,7 @@ function inv()
 	end
 	
 	listitems(true)
-	?"\fd\n  sTOWED\n  ………"
+	?"\f1 ……………………………\fd\n  -sTOWED-\n"
 	listitems()
 end
 
@@ -498,6 +501,11 @@ function dialog(func)
 	inputblocked=true
  add(diags,func)
  sfx(39)
+end
+
+function setmode(m)
+	mode=m
+	statet=0
 end
 -->8
 --[[tiles, rendering
@@ -643,57 +651,68 @@ function drawtl(tl,pos,flp,bg,i)
 										flp)
 end
 
-function drawent(ent)
-	if ent and (vistoplayer(ent.tl) or
-	   ent.lasttl and vistoplayer(ent.lasttl))
- then
-		initpal(ent.tl)
-		if ent==player then
-			pal(12,ent.cloak and
-			       ent.cloak.col or 8)
-			pal(14,ent.amulet and 
-			       ent.amulet.col or 13) 
-		end
-		if ent.flash then
-			pal(whitepal)
-			ent.flash=false
-		elseif ent.pal then
-			pal(ent.pal)
-			if ent.fillp then
-			 fillp(lfillp)
+function drawents(tl)
+ function drawent(var)
+  local ent=tl[var]
+		if ent and (vistoplayer(tl) or
+		   ent.lasttl and vistoplayer(ent.lasttl))
+	 then
+			initpal(ent.tl)
+			if ent==player then
+				pal(12,ent.cloak and
+				       ent.cloak.col or 8)
+				pal(14,ent.amulet and 
+				       ent.amulet.col or 13) 
 			end
-		end
-		local flp=ent.xface<0 or ent.animflip
-		local scrpos=ent.renderpos+
-					vec2(flp and -1 or 0,0)
-		local frame=
-						ent.animframe
-						+0.5+ent.yface*0.5
-		spr(ent.typ+frame*16,
-						scrpos.x,scrpos.y,
-						1,ent.animheight,
-						flp)
-		if ent.wpn and frame <= 4 then
-			local wpnpos,wpnframe=
-			wpnpos[frame+1],frame%4
-			
-			spr(ent.wpn.typ+wpnframe*16,
-							scrpos.x+
-							wpnpos.x*ent.xface,
-							scrpos.y+wpnpos.y,
+			if ent.flash then
+				pal(whitepal)
+				ent.flash=false
+			elseif ent.pal then
+				pal(ent.pal)
+				if ent.fillp then
+				 fillp(lfillp)
+				end
+			end
+			local flp=ent.xface<0 or ent.animflip
+			local scrpos=ent.renderpos+
+						vec2(flp and -1 or 0,0)
+			local frame=
+							ent.animframe
+							+0.5+ent.yface*0.5
+			spr(ent.typ+frame*16,
+							scrpos.x,scrpos.y,
 							1,ent.animheight,
 							flp)
+			if ent.wpn and frame <= 4 then
+				local wpnpos,wpnframe=
+				wpnpos[frame+1],frame%4
+				
+				spr(ent.wpn.typ+wpnframe*16,
+								scrpos.x+
+								wpnpos.x*ent.xface,
+								scrpos.y+wpnpos.y,
+								1,ent.animheight,
+								flp)
+			end
+			ent.lasttl=nil
 		end
-		ent.lasttl=nil
 	end
-end
 
-function effectsprs(tl)
- local hasfire=tl.fire>0 or
- 						tl.ent and 
- 						tl.ent.statuses.BURN
- local hasspores=tl.spores>0
- 
+ if tl.pos==playerdst and
+ 			mode=="play" then
+  initpal(player.tl)
+  pal(2,34,2)
+ 	local scrp=screenpos(tl.pos)
+ 	if playerdst!=lastplayerdst then
+ 		lastplayerdst=playerdst
+ 		pal(13,5)
+ 		pal(2,1)
+ 	end
+ 	spr(24,scrp.x-8,scrp.y-4,2,1)
+ end
+	drawent"item"
+ drawent"ent"
+  
  function checkeffect(typ,has)
  	local effect=tl.effect
  	if effect then
@@ -710,27 +729,15 @@ function effectsprs(tl)
 		end
 	end
 	
+	local hasfire=tl.fire>0 or
+ 						tl.ent and 
+ 						tl.ent.statuses.BURN
+ local hasspores=tl.spores>0
+
  checkeffect(138,hasfire)
  checkeffect(139,hasspores)
-end
 
-function drawents(tl)
- if tl.pos==playerdst and
- 			mode=="play" then
-  initpal(player.tl)
-  pal(2,34,2)
- 	local scrp=screenpos(tl.pos)
- 	if playerdst!=lastplayerdst then
- 		lastplayerdst=playerdst
- 		pal(13,5)
- 		pal(2,1)
- 	end
- 	spr(24,scrp.x-8,scrp.y-4,2,1)
- end
-	drawent(tl.item)
- drawent(tl.ent)
- effectsprs(tl)
- drawent(tl.effect)
+ drawent"effect"
 end
 
 function drawmap()
@@ -998,9 +1005,9 @@ function calclight()
  function(pos,tl)
 		ent=tl.ent
 		function checklight(var)
-			if tl[var] and tl[var].light then
-				local light=tl[var].light
-				if light>tl.light then
+			if tl[var] then
+				local light=tl[var].stat"light"
+				if light and light>tl.light then
 					tl.light=light
 					if light>=3 then
 						tl.lightsrc=true
@@ -1011,9 +1018,9 @@ function calclight()
 		end
 		tl.light=-10
 		tl.lightsrc=false
-		checklight("item")
-		checklight("effect")
-		checklight("ent")
+		checklight"item"
+		checklight"effect"
+		checklight"ent"
   if tl.light>0 then
 			add(tovisit,pos)
 		end
@@ -1110,7 +1117,6 @@ function updateenv()
 		end
 		tl.spores+=tl.newspores
 		tl.newspores=0
-		effectsprs(tl)
 	end)
 	if anyfire != fireplaying then
 		fireplaying=anyfire
@@ -1301,6 +1307,23 @@ function create(typ,pos,behav,group)
 		inititem(ent)
 	end
 	
+	ent.stat=function(name)
+	 local val=0
+	 function checkslot(slot)
+	  if ent[slot] then
+				local s = ent[slot][name]
+				if s then
+					val=type(s)=="number" and val+s or s
+				end
+			end
+	 end
+		checkslot"wpn"
+		checkslot"cloak"
+		checkslot"amulet"
+		
+		return val!=0 and val or ent[name]
+	end
+	
 	return ent
 end
 
@@ -1332,9 +1355,6 @@ function tickstatuses(ent)
 		if k=="BURN" then
 		 hurt(ent,1,nil)
 		end
-	end
-	if ent==player then
-		ent.light=ent.wpn and ent.wpn.lit and 4 or nil
 	end
 end
 
@@ -1458,10 +1478,10 @@ function findmove(ent,var,goal,special)
 		 	ntl.ent.blocking then
 		 	score-=ent.flying and 10 or 1
 		 end
-		 if ent.burnlight and 
+		 if ent.stat"burnlight" and 
 		    tl.light>-1 and 
 		    tl.pdist<-1 then
-		 	score-=2*(ntl.light-tl.light)
+		 	score-=3*(ntl.light-tl.light)
 		 end
 			if score>bestscore then
 				bestscore=score
@@ -1682,7 +1702,7 @@ function hurt(ent,dmg,atkr)
 		setanim(ent,ent.deathanim)
 		waitforanim=true
 		if ent==player then
-			mode="gameover"
+			setmode"gameover"
 			calclight()
 		elseif ent.sporeburst then
 			sporeburst(ent.tl,ent.sporeburst)
@@ -1716,18 +1736,18 @@ end
 
 function hitp(a,b)
 	if b.armor then
-	 local diff=a.atk-b.armor
+	 local diff=a.stat"atk"-b.stat"armor"
 	 return (max(diff)+1)/
 	        (abs(diff)+2)
 	end
 	return 1
 end
 
-function interact(a,b,wpn)
- local hit = rndp(hitp(wpn,b))
+function interact(a,b)
+ local hit = rndp(hitp(a,b))
  setanim(a,a.atkanim)
  waitforanim=true
- a.atkinfo={b,b.pos,hit,wpn.dmg}
+ a.atkinfo={b,b.pos,hit,a.stat"dmg"}
 end
 
 function move(ent,dst)
@@ -2222,9 +2242,9 @@ item.tHROW=function()
 end
 
 item.eXTINGUISH=function()
-	item.lit=false
-	item.typ+=1
+	item.lit,item.light,
 	player.statuses.TORCH=nil
+	item.typ+=1
 end
 end
 
@@ -2245,7 +2265,7 @@ function aim(item,thrown,range)
 	aimitem,aimthrow,aimrange=
 	item,thrown,range
 	
-	mode="aim"
+	setmode"aim"
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffff0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff
