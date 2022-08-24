@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(_ENV,
-[[mode:play,depth:1,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
+[[mode:play,depth:5,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2,tgameover:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58,tmushroom:56
@@ -16,7 +16,7 @@ entdata={}
 assigntable(entdata,
 [[def=var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,death:41
 64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,light:4,moveanim:move,deathanim:pdeath
-70=n:rAR,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15
+70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alert:20,hurt:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alert:30,hurt:11
 66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-2,alert:30,hurt:11
@@ -24,7 +24,7 @@ assigntable(entdata,
 68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,
 ack:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,hurt:13
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,movandatk:t,hurt:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
 137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,death:42
 136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
@@ -228,7 +228,6 @@ function updateturn()
 			postturn(ent)
 		end
 		updateenv()
-		calclight()
 		turnorder=0
 		return
 	end
@@ -239,6 +238,8 @@ end
 function _update()
 	if mode=="play" then
 		updateturn()
+	elseif mode=="gameover" then
+		tgameover+=0.066
 	end
 	
 	if mode!="ui" then
@@ -252,7 +253,7 @@ function _update()
  	screenpos(
  		lerp(player.pos,
  							vec2(10,9.5),
- 							mode=="gameover" and 0 or 0.36))	
+ 							max(0.36-tgameover)))
 	smoothb=lerp(smoothb,camtarget,0.5)
 	smooth=lerp(smooth,smoothb,0.25)
 	
@@ -322,6 +323,27 @@ function _draw()
 		 curindex=0
 		 d()
 	 end
+	elseif mode=="gameover" and
+	 tgameover>2 then
+	 if not musicplayed then
+	 	music(8)
+	 	musicplayed=true
+	 end
+	 if btnp(❎) then
+	 	run()
+	 end
+	print([[
+  game over
+
+
+
+
+
+
+
+
+
+❎:tRY AGAIN]],38,29,tgameover>2.2and 13 or 1)
 	end
 	inputblocked=false
 end
@@ -421,9 +443,12 @@ function info()
   nAME: =name|
   cASTS LIGHT
 =lit|
-  pIERCING ATTACK=pierce|
-  aRC ATTACK=arc|
-  lUNGE ATTACK=lunge|
+  pIERCING ATTACK
+=pierce|
+  aRC ATTACK
+=arc|
+  lUNGE ATTACK
+=lunge|
   kNOCKBACK=knockback|
   hEALTH:      =hp|/=maxhp|
   aCCURACY:   +=atk|
@@ -522,8 +547,10 @@ function initpal(tl, fadefow)
 		   mode != "ui" then
 			fow=tl.light>=2 and 4 or 3
 		elseif tl.explored then
-			fow=mode=="gameover"
-			    and 1 or 2
+			fow=2
+		end
+		if mode=="gameover" then
+			fow=tl==player.tl and 3 or 1
 		end
 		tl.fow+=mid(-1,fow-tl.fow,1)
 	end
@@ -874,11 +901,11 @@ function manmade(tl)
 end
 
 function vistoplayer(tl)
-	return tl.vis and tl.light>0
+	return tl.vis and (tl.light>0 or tl.pdist>-2)
 end
 
 function dijkstra(var,tovisit,check)
-	repeat
+	while #tovisit>0 do
 		local pos=deli(tovisit,1)
 		local d=gettile(pos)[var]-1
 		visitadj(pos,
@@ -891,7 +918,7 @@ function dijkstra(var,tovisit,check)
 				end
 			end
 		end)
-	until #tovisit==0
+	end
 end
 
 function calcdist(pos,var,ignblock)
@@ -982,14 +1009,11 @@ function calclight()
 				end
 			end	
 		end
-		tl.light=0
+		tl.light=-10
 		tl.lightsrc=false
 		checklight("item")
 		checklight("effect")
 		checklight("ent")
-  if mode=="gameover" then
-  	tl.light=ent==player and 1 or -10
-  end
   if tl.light>0 then
 			add(tovisit,pos)
 		end
@@ -1091,6 +1115,17 @@ function updateenv()
 	if anyfire != fireplaying then
 		fireplaying=anyfire
 		music(anyfire and 32 or -1, 500, 3)
+	end
+	calclight()
+	
+	for k,ent in ipairs(ents) do
+		if ent.burnlight and 
+		   ent.tl.light>=2 and
+		   not ent.statuses.BURN
+		then
+			burn(ent)
+			sfx(36)
+		end
 	end
 end
 
@@ -1299,7 +1334,7 @@ function tickstatuses(ent)
 		end
 	end
 	if ent==player then
-		ent.light=ent.wpn and ent.wpn.lit and 4 or 1.5
+		ent.light=ent.wpn and ent.wpn.lit and 4 or nil
 	end
 end
 
@@ -1404,7 +1439,8 @@ end
 function seesplayer(ent)
 	return ent.tl.vis and
 	       (ent.tl.pdist>=-1 or
-				    player.tl.light>=2)				 
+				    player.tl.light>=2 or
+				    ent.darksight)				 
 end
 
 function findmove(ent,var,goal,special)
@@ -1420,7 +1456,12 @@ function findmove(ent,var,goal,special)
 		 							(abs(ntl[var]-goal))
 		 if ntl.ent and 
 		 	ntl.ent.blocking then
-		 	score-=1
+		 	score-=ent.flying and 10 or 1
+		 end
+		 if ent.burnlight and 
+		    tl.light>-1 and 
+		    tl.pdist<-1 then
+		 	score-=2*(ntl.light-tl.light)
 		 end
 			if score>bestscore then
 				bestscore=score
@@ -2095,14 +2136,14 @@ function postproc(pos)
 	--spawn entities										
 	wanderdsts={}
 	
-	function checkspawn(pos,spec)
+	function checkspawn(pos,nolight)
 		local tl=gettile(pos)
-		return (navigable(tl) or
-		 tl.typ==spec) and
+		return navigable(tl) and
 		 tl.pdist < -4 and
 			tl.pdist > -1000 and
 			notblocking(pos) and
-			not tl.ent
+			not tl.ent and
+			(not nolight or tl.light<=0)
 	end
 	
 	for n=1,6 do
@@ -2119,7 +2160,7 @@ function postproc(pos)
 			visitadjrnd(spawnpos,
 			function(npos)
 				if not found and
-			 	checkspawn(npos)
+			 	checkspawn(npos,typ==72)
 			 then
 					found=true
 					create(typ,npos,behav,i)
@@ -2128,7 +2169,7 @@ function postproc(pos)
 			end)
 		end
 		local itempos=rndpos()
-		if checkspawn(itempos,36) then
+		if checkspawn(itempos) then
 			create(rnd(items),itempos)
 		end
 	end
@@ -2176,6 +2217,10 @@ item.sTOW=function(staylit)
 	player[item.slot]=nil
 end
 
+item.tHROW=function()
+ aim(item,true,item.throw)
+end
+
 item.eXTINGUISH=function()
 	item.lit=false
 	item.typ+=1
@@ -2192,6 +2237,15 @@ end
 
 function addtoinventory(item)
 	add(inventory,item)
+end
+-->8
+--aiming
+
+function aim(item,thrown,range)
+	aimitem,aimthrow,aimrange=
+	item,thrown,range
+	
+	mode="aim"
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffff0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff
