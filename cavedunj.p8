@@ -197,7 +197,7 @@ OF THE FABLED wINGS OF yENDOR?
 	
 	genmap(vec2(10,15))
 
- local torch = create(130)
+	local torch=create(130)
 	addtoinventory(torch)
 	torch.eQUIP()
 	calclight()
@@ -394,7 +394,7 @@ function listitem(str,sel)
   curindex+=1
   sel=curindex==menuindex
  end
- ?(sel and "\#0\f7❎ "or"\fd  ")..str
+ ?(sel and "\#0\f7\|h❎ "or"\fd\|h  ")..str
 	return sel and focus and 
 	 not inputblocked and btnp(❎) 
 end
@@ -412,10 +412,10 @@ function gettrans(a,b)
 end
 
 function inv()
- frame(gettrans(126,42),2,126,111,rect)
+ frame(gettrans(126,42),6,126,111,rect)
  local i=0
  local sely=0
-	?"\fd  iNVENTORY\n\f1 ……………………………\n\fd  -EQUIPPED-\n"
+	?"\fd  iNVENTORY\n\f1 …………… EQUIPPED"
 	
 	invindex=getindex(invindex,#inventory)
 	
@@ -432,19 +432,19 @@ function inv()
 	end
 	
 	listitems(true)
-	?"\f1 ……………………………\fd\n  -STOWED-\n"
+	?"\n\f1 ……………… STOWED \fd"
 	listitems()
 end
 
 function info()
  local eqpd = selitem.equipped
  local x=gettrans(42,5)
- frame(x,2,gettrans(42,90.5),111,rectfill)
+ frame(x,6,gettrans(42,90.5),111,rectfill)
  menuindex=getindex(menuindex,2)
 
- spr(selitem.typ+(selitem.ai and 16 or 0),x+3,4)
+ spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
  ?"\fd    "..selitem.n
- local statstr="\f1 ……………………………\fd\n"
+ local statstr="\f1 ……………………………\fd\|j"
  if selitem.id then
  	for str in all(split([[
  
@@ -480,7 +480,7 @@ function info()
  ?statstr
  
  --menu
- cursor(x-3,90)
+ cursor(x-3,86)
  ?"\f1 ……………………………"
  
  for action in all(
@@ -500,17 +500,17 @@ function info()
 end
 
 function confirmjump()
-	frame(32,gettrans(34,41.5),96,gettrans(34,79.5),rect)
+	frame(32,gettrans(33,39.5),96,gettrans(33,81.5),rect)
 	menuindex=getindex(menuindex,2)
 	?"\fd  tHE HOLE OPENS\n  UP BELOW YOU..\n"
 	
-	if listitem"\-jjUMP DOWN" then
+	if listitem" jUMP DOWN" then
 	 popdiag()
 	 move(player,playerdst)
 	 setanim(player,"fall")
 	 calclight()
 	 sfx(24)
-	elseif listitem"\-jdON'T JUMP" then
+	elseif listitem" dON'T JUMP" then
 	 popdiag()
 	end
 end
@@ -725,7 +725,8 @@ function drawents(tl)
   initpal(player.tl)
   pal(2,34,2)
  	local scrp=screenpos(tl.pos)
- 	if playerdst!=lastplayerdst then
+ 	if playerdst!=lastplayerdst 
+ 	 or turnorder!=0then
  		lastplayerdst=playerdst
  		pal(13,5)
  		pal(2,1)
