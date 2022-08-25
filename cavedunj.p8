@@ -1840,15 +1840,12 @@ function move(ent,dst,playsfx)
 		end
 		
 		if playsfx then
-		 if tlsfx[dsttile.typ] then
-		  sfx(tlsfx[dsttile.typ])
-		 else
-		  sfx(35)
-		 end
-		 if dsttile.typ==40 then
+		 local snd=tlsfx[dsttile.typ]
+	  sfx(snd or 35)
+	  if snd==43 then
 				--bonez			
 				aggro(playerdst)	
-			end
+		 end
 		end
 					
 	end
