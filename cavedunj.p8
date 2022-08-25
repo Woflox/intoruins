@@ -500,9 +500,9 @@ function info()
 end
 
 function confirmjump()
-	frame(32,gettrans(33,39.5),96,gettrans(33,81.5),rect)
+	frame(32,gettrans(33,38.5),96,gettrans(33,82.5),rect)
 	menuindex=getindex(menuindex,2)
-	?"\fd  tHE HOLE OPENS\n  UP BELOW YOU..\n"
+	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU..\n"
 	
 	if listitem" jUMP DOWN" then
 	 popdiag()
