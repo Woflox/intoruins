@@ -415,7 +415,7 @@ function inv()
  frame(gettrans(126,42),2,126,111,rect)
  local i=0
  local sely=0
-	?"\fd  iNVENTORY\n\f1 ……………………………\n\fd  -eQUIPPED-\n"
+	?"\fd  iNVENTORY\n\f1 ……………………………\n\fd  -EQUIPPED-\n"
 	
 	invindex=getindex(invindex,#inventory)
 	
@@ -432,7 +432,7 @@ function inv()
 	end
 	
 	listitems(true)
-	?"\f1 ……………………………\fd\n  -sTOWED-\n"
+	?"\f1 ……………………………\fd\n  -STOWED-\n"
 	listitems()
 end
 
@@ -502,15 +502,15 @@ end
 function confirmjump()
 	frame(32,gettrans(34,41.5),96,gettrans(34,79.5),rect)
 	menuindex=getindex(menuindex,2)
-	?"\fd  tHE HOLE OPENS\n  UP BELOW YOU\n"
+	?"\fd  tHE HOLE OPENS\n  UP BELOW YOU..\n"
 	
-	if listitem("jUMP DOWN") then
+	if listitem"\-jjUMP DOWN" then
 	 popdiag()
 	 move(player,playerdst)
 	 setanim(player,"fall")
 	 calclight()
 	 sfx(24)
-	elseif listitem("dON'T JUMP") then
+	elseif listitem"\-jdON'T JUMP" then
 	 popdiag()
 	end
 end
