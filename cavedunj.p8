@@ -5,15 +5,15 @@ __lua__
 --BY ERIC BILLINGSLEY
 
 function _init()
-assigntable(_ENV,
-[[mode:play,statet:0,depth:5,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
+assigntable(
+[[mode:play,statet:0,depth:1,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
-,minroomw:3,minroomh:2,roomsizevar:8]])
-entdata={}
-assigntable(entdata,
+,minroomw:3,minroomh:2,roomsizevar:8]],
+_ENV)
+entdata=assigntable(
 [[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alert:20,hurt:21
@@ -75,7 +75,10 @@ fall=wv0v0v0v0cv0v0vor_
 189=n:oRANGE ORB,var:item,light:2
 190=n:pURPLE ORB,var:item,light:2
 191=n:pINK ORB,var:item,light:2
-]],"\n","=")
+]],nil,"\n","=")
+
+	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
+
  
 	adj=vec2list
 [[-1, 0
@@ -551,7 +554,7 @@ flags:
 
 function tile(typ,pos)
 	local tl={typ=typ,pos=pos}
-	assigntable(tl,"fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0")
+	assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0",tl)
 	return tl
 end
 
@@ -714,11 +717,16 @@ function drawents(tl)
 							scrpos.x,scrpos.y,
 							1,ent.animheight,
 							flp)
-			if ent.wpn and frame <= 5 then
+			if ent==player and
+			   (ent.wpn or aimitem) and
+			   frame<=5 then
 				local wpnpos,wpnframe=
 				wpnpos[frame+1],frame%4
-				
-				spr(ent.wpn.typ+wpnframe*16,
+				pal(12,12)
+				pal(14,14)
+				       
+				spr(aimitem and aimitem.typ
+				    or ent.wpn.typ+wpnframe*16,
 								scrpos.x+
 								wpnpos.x*ent.xface,
 								scrpos.y+wpnpos.y,
@@ -1239,13 +1247,15 @@ function vec2list(str)
 	return ret
 end
 
-function assigntable(table,str,delim1,delim2)
+function assigntable(str,table,delim1,delim2)
+ table = table or {}
  for var in 
 		all(split(str,delim1 or ","))
 	do
 		local pair=split(var,delim2 or ":")
 		table[pair[1]]=pair[2]
 	end
+	return table
 end
 
 function rndint(maxval)
@@ -1314,8 +1324,8 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable(ent,"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,death:41")
-	assigntable(ent,entdata[typ])						
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,death:41",ent)
+	assigntable(entdata[typ],ent)						
 	
 	if ent.pos then
 		setpos(ent,ent.pos,true)	
@@ -1600,21 +1610,6 @@ function taketurn(ent,pos,tl,group)
 					if dsttile.item then
 						pickup(dsttile.item)
 					end
-					
-					if dsttile.typ==tlonggrass then
-					 sfx(37)
-					elseif dsttile.typ==tshortgrass or
-												dsttile.typ==tflatgrass then
-						sfx(10)
-					elseif dsttile.typ==txbridge or
-												dsttile.typ==tybridge then
-						sfx(38)
-					elseif dsttile.typ==40 then
-						sfx(43)--bonez			
-						aggro(playerdst)	
-					else
-						sfx(35)
-					end
 				end
 				return true
 			elseif dsttile.typ==thole then
@@ -1828,7 +1823,7 @@ function interact(a,b)
  a.atkinfo={b,b.pos,hit,a.stat"dmg"}
 end
 
-function move(ent,dst)
+function move(ent,dst,playsfx)
 	local dir=hexdir(ent.pos,dst)
 	local dsttile=gettile(dst)
 	ent.lasttl=ent.tl
@@ -1843,6 +1838,19 @@ function move(ent,dst)
 		if ent.moveanim then
 			setanim(ent,ent.moveanim)
 		end
+		
+		if playsfx then
+		 if tlsfx[dsttile.typ] then
+		  sfx(tlsfx[dsttile.typ])
+		 else
+		  sfx(35)
+		 end
+		 if dsttile.typ==40 then
+				--bonez			
+				aggro(playerdst)	
+			end
+		end
+					
 	end
 
 	updatefacing(ent,dir)
@@ -2617,7 +2625,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840884082c000000ee00be00ee007a016300ba016b03f30009096b15b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000840884082c000000ee00be00ee007a016300ba016b03f30109096b15b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
 464647474141424b4b4b00000000acac1011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
