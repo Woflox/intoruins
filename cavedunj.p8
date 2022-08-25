@@ -50,7 +50,7 @@ pdeath=w444l6
 mushdeath=w01r_
 brazierdeath=w33r_
 propdeath=w11r_
-fall=wv0000c00r_
+fall=wv0v0v0v0cv0cv0cvor_
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,id:t
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:8
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
@@ -313,11 +313,7 @@ function _draw()
 	end
 	if mode=="ui" then
 		if btnp(🅾️) then
-			deli(diags)
-			if #diags==0 then
-				setmode"play"
-				return
-			end
+			if (popdiag())	return
 		end
 		uitrans*=0.33
 		for i,d in ipairs(diags) do
@@ -350,6 +346,14 @@ function _draw()
 ❎:tRY AGAIN]],0,statet*30-16),39,29,statet>1.1and 13 or 1)
 	end
 	inputblocked=false
+end
+
+function popdiag()
+	deli(diags)
+	if #diags==0 then
+		setmode"play"
+		return true
+	end
 end
 
 function drawbar(ratio,label,x,y,col1,col2)
@@ -396,7 +400,7 @@ function listitem(str,sel)
 end
 
 function getindex(cur,maxind)
-	return focus and 
+	return focus and not inputblocked and
 												(cur+tonum(btnp(⬇️))-
 													tonum(btnp(⬆️))+
 												maxind-1)%maxind+1
@@ -487,11 +491,28 @@ function info()
   "tHROW"})
  do
  	if listitem(action) then
- 	 diags,mode,skipturn,waitforanim=
- 	 {},"play",true,true
+ 	 popdiag()popdiag()
+ 	 skipturn,waitforanim=
+ 	 true,true
  		selitem[action]()
  	end
  end
+end
+
+function confirmjump()
+	frame(32,gettrans(34,41.5),96,gettrans(34,79.5),rect)
+	menuindex=getindex(menuindex,2)
+	?"\fd  tHE HOLE OPENS\n  UP BELOW YOU\n"
+	
+	if listitem("jUMP DOWN") then
+	 popdiag()
+	 move(player,playerdst)
+	 setanim(player,"fall")
+	 calclight()
+	 sfx(24)
+	elseif listitem("dON'T JUMP") then
+	 popdiag()
+	end
 end
 
 function dialog(func)
@@ -1565,33 +1586,35 @@ function taketurn(ent,pos,tl,group)
 		turn(⬇️,3)
 		
 		playerdst=ent.pos+adj[playerdir]
-		if btnp(⬆️) and 
-		   canmove(ent,playerdst) then
-			move(ent,playerdst,true)
-			
-			local dsttile=gettile(playerdst)
-			
-			if player.tl==dsttile then
-				if dsttile.item then
-					pickup(dsttile.item)
+		local dsttile=gettile(playerdst)
+		if btnp(⬆️) then
+		 if canmove(ent,playerdst) then
+				move(ent,playerdst,true)
+								
+				if player.tl==dsttile then
+					if dsttile.item then
+						pickup(dsttile.item)
+					end
+					
+					if dsttile.typ==tlonggrass then
+					 sfx(37)
+					elseif dsttile.typ==tshortgrass or
+												dsttile.typ==tflatgrass then
+						sfx(10)
+					elseif dsttile.typ==txbridge or
+												dsttile.typ==tybridge then
+						sfx(38)
+					elseif dsttile.typ==40 then
+						sfx(43)--bonez			
+						aggro(playerdst)	
+					else
+						sfx(35)
+					end
 				end
-				
-				if dsttile.typ==tlonggrass then
-				 sfx(37)
-				elseif dsttile.typ==tshortgrass or
-											dsttile.typ==tflatgrass then
-					sfx(10)
-				elseif dsttile.typ==txbridge or
-											dsttile.typ==tybridge then
-					sfx(38)
-				elseif dsttile.typ==40 then
-					sfx(43)--bonez			
-					aggro(playerdst)	
-				else
-					sfx(35)
-				end
+				return true
+			elseif dsttile.typ==thole then
+				dialog(confirmjump)
 			end
-			return true
 		end
 		return
 	elseif ent.ai and ent.canact and
@@ -1751,11 +1774,11 @@ function hurt(ent,dmg,atkr)
 			if splitpos then
 				ent.hp/=2
 				local newent=create(ent.typ,splitpos,ent.behav,ent.group)
-			 newent.hp=ent.hp
 			 for k,v in pairs(ent.statuses) do
 			 	newent.statuses[k]={unpack(v)}
 			 end
-			 newent.renderpos=ent.renderpos
+			 newent.renderpos,newent.hp,newent.xfacing=
+			 ent.renderpos,ent.hp,ent.xfacing
 				setanim(newent,"esplit")
 			end
 		end
