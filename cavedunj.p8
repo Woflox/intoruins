@@ -55,26 +55,26 @@ fall=wv0v0v0v0cv0v0vor_
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:t,throw:6
 135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:2,dmgincrease:2
-129=n:oAKEN STAFF,var:item,unid:t
-145=n:dRIFTWOOD STAFF,var:item
-161=n:eBONY STAFF,var:item
-177=n:pUPLEHEART STAFF,var:item
-140=n:bRONZE AMULET,col:9,var:item,slot:amulet
-141=n:pEWTER AMULET,col:5,var:item,slot:amulet
-142=n:gOLDEN AMULET,col:10,var:item,slot:amulet
-143=n:sILVER AMULET,col:7,var:item,slot:amulet
-156=n:gOLD CLOAK,col:9,var:item,slot:cloak
-157=n:gREY CLOAK,col:5,var:item,slot:cloak
-158=n:gREEN CLOAK,col:3,var:item,slot:cloak
-159=n:cYAN CLOAK,col:12,var:item,slot:cloak
-172=n:cYAN ORB,var:item,light:2
-173=n:yELLOW ORB,var:item,light:2
-174=n:rED ORB,var:item,light:2
-175=n:bLACK ORB,var:item,light:2
-188=n:gREEN ORB,var:item,light:2
-189=n:oRANGE ORB,var:item,light:2
-190=n:pURPLE ORB,var:item,light:2
-191=n:pINK ORB,var:item,light:2
+129=n:oAKEN STAFF,var:item,unid:t,throw:4
+145=n:dRIFTWOOD STAFF,var:item,throw:4
+161=n:eBONY STAFF,var:item,throw:4
+177=n:pUPLEHEART STAFF,var:item,throw:4
+140=n:bRONZE AMULET,col:9,var:item,slot:amulet,throw:4
+141=n:pEWTER AMULET,col:5,var:item,slot:amulet,throw:4
+142=n:gOLDEN AMULET,col:10,var:item,slot:amulet,throw:4
+143=n:sILVER AMULET,col:7,var:item,slot:amulet,throw:4
+156=n:gOLD CLOAK,col:9,var:item,slot:cloak,throw:2
+157=n:gREY CLOAK,col:5,var:item,slot:cloak,throw:2
+158=n:gREEN CLOAK,col:3,var:item,slot:cloak,throw:2
+159=n:cYAN CLOAK,col:12,var:item,slot:cloak,throw:2
+172=n:cYAN ORB,var:item,light:2,throw:8
+173=n:yELLOW ORB,var:item,light:2,throw:8
+174=n:rED ORB,var:item,light:2,throw:8
+175=n:bLACK ORB,var:item,light:2,throw:8
+188=n:gREEN ORB,var:item,light:2,throw:8
+189=n:oRANGE ORB,var:item,light:2,throw:8
+190=n:pURPLE ORB,var:item,light:2,throw:8
+191=n:pINK ORB,var:item,light:2,throw:8
 ]],nil,"\n","=")
 
 	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
@@ -237,10 +237,14 @@ function updateturn()
 	updateturn()
 end
 
+function modeis(m)
+	return mode==m
+end
+
 function _update()
-	if mode=="play" then
+	if modeis"play" then
 		updateturn()
-	elseif mode=="aim" then
+	elseif modeis"aim" then
 		updateaim()
 	end
 	
@@ -285,7 +289,7 @@ function _draw()
 	pal(11,131,1)
 	fillp()
 
- if mode=="play" then
+ if modeis"play" then
 		for anim in all(textanims) do
 		 local t=(anim[5] or 1)*
 		          (time()-anim[7])
@@ -302,14 +306,14 @@ function _draw()
 										t>0.433 and 5 or col)
 			end
 		end
-	elseif mode=="aim" then
+	elseif modeis"aim" then
 	 local scrpos=screenpos(aimpos)
 		?"\19",scrpos.x-1,scrpos.y-2,7
 	end
 	camera()
  
-	if mode=="play" or
-	   mode=="ui" then
+	if modeis"play" or
+	   modeis"ui" then
 		local x=drawbar(player.hp/player.maxhp,
 		        "HP",2,123,2,8)
 		for k,v in 
@@ -317,8 +321,10 @@ function _draw()
 		do
 			x=drawbar(v[1]/v[2],k,x,123,v[3],v[4])	
 		end
+	elseif modeis"aim" then
+		?"\fd  ⬆️\n\|d⬅️\|j⬇️\|d➡️:aIM    ❎:"..(aimthrow and "tHROW" or "fIRE"),24,115
 	end
-	if mode=="ui" then
+	if modeis"ui" then
 		if btnp(🅾️) then
 			if (popdiag())	return
 		end
@@ -328,7 +334,7 @@ function _draw()
 		 curindex=0
 		 d()
 	 end
-	elseif mode=="gameover" and
+	elseif modeis"gameover" and
 	 statet>1 then
 	 if not musicplayed then
 	 	music(8,300)
@@ -408,8 +414,8 @@ end
 
 function getindex(cur,maxind)
 	return focus and not inputblocked and
-												(cur+btntonum(⬇️)-
-													btntonum(⬆️)+
+												(cur+tonum(btnp(⬇️))-
+													tonum(btnp(⬆️))+
 												maxind-1)%maxind+1
 												or cur
 end
@@ -526,9 +532,8 @@ end
 function dialog(func)
 	uitrans=mode=="ui" and 
 	        0.33 or 1
- mode="ui"
+ setmode"ui"
 	menuindex=1
-	inputblocked=true
  add(diags,func)
  sfx(39)
 end
@@ -536,6 +541,7 @@ end
 function setmode(m)
 	mode=m
 	statet=0
+	inputblocked=true
 end
 -->8
 --[[tiles, rendering
@@ -587,7 +593,7 @@ function initpal(tl, fadefow)
 		elseif tl.explored then
 			fow=2
 		end
-		if mode=="gameover" then
+		if modeis"gameover" then
 			fow=tl==player.tl and 3 or 1
 		end
 		tl.fow+=mid(-1,fow-tl.fow,1)
@@ -682,7 +688,7 @@ function drawtl(tl,pos,flp,bg,i)
 	if not i and not bg then
 	 tl.hifade+=mid(-1,tl.hilight-tl.hifade,1)
 	 if tl.hifade>0 then
-	  if (tl.fow>(aimpos and 1 or 2))pal(2,34,2)
+	  if (tl.explored)pal(2,34,2)
 	 	local scrp=screenpos(tl.pos)+baseoffset
 	 	spr(tl.hifade*16-8,scrp.x,scrp.y,2,1)
 	 end
@@ -1201,6 +1207,11 @@ function screenpos(pos)
 							 				 pos.y*8+pos.x*4) 
 end
 
+function invscreenpos(pos)
+	return vec2(pos.x/12,
+	            pos.y/8-pos.x/24)
+end
+
 function entscreenpos(ent)
 	return screenpos(ent.pos)+
 	        vec2(-2.5,-6.5)
@@ -1236,10 +1247,6 @@ function hexnearest(pos)
  return abs(remx) > abs(remy) and
  	vec2(roundx+round(remx+remy/2),roundy) or
  	vec2(roundx,roundy+round(remy+remx/2))
-end
-
-function btntonum(b)
-	return tonum(btnp(b))
 end
 
 function hexdir(p1,p2)
@@ -1574,7 +1581,7 @@ function findmove(ent,var,goal,special)
 end
 
 function taketurn(ent,pos,tl,group)
-	if ent==player then		
+	if ent==player then
 		--player
 		poke(0x5f5c,9)--key repeat
 		poke(0x5f5d,6)
@@ -1598,7 +1605,6 @@ function taketurn(ent,pos,tl,group)
 		function turn(btnid,i)
 		 if btnp(btnid) then
 				playerdir=(playerdir+i+5)%6+1
-				--sfx(39)
 				setanim(ent,"turn")
 				updatefacing(ent,adj[playerdir])
 			end
@@ -1610,7 +1616,11 @@ function taketurn(ent,pos,tl,group)
 		
 		playerdst=ent.pos+adj[playerdir]
 		local dsttile=gettile(playerdst)
-		dsttile.hilight=2
+		if dsttile.typ!=tywall or
+		   playerdst.x<=ent.pos.x
+		then
+			dsttile.hilight=2
+		end
 		if btnp(⬆️) then
 		 dsttile.hilight=0
 		 if canmove(ent,playerdst) then
@@ -2366,57 +2376,55 @@ end
 -->8
 --aiming
 
-function aim(item,thrown,range)
-	aimitem,aimthrow,aimrange,aimpos=
-	item,thrown,range,playerdst
-	
+function aim(item,thrown,range,pass)
+	aimitem,aimthrow,aimrange,aimpass,aimpos=
+	item,thrown,range,pass,playerdst
 	setmode"aim"
 end
 
 function updateaim()
- --7450
- local ppos=player.pos
-	local dir,dist=
-	-hexdir(aimpos,ppos),
-	hexdist(aimpos,ppos)
-	local diri=1
-	for i=1,6 do
-		if dir==adj[i] then
-			diri=i
-		end
-	end
-	function finddir(indices)
-	 for i in all(indices) do
-	 	local adjdir=adj[(diri+i)%6+1]
-	  local adjpos=aimpos+adjdir
-		 if hexdist(ppos,adjpos)==dist
-			then
-				return adjdir
-			end
-	 end
-	 return vec2(0,0)
-	end
-	aimpos=aimpos+
-		(btntonum(⬆️)-btntonum(⬇️))*dir+
-	 btntonum(⬅️)*finddir{4,3}+
-	 btntonum(➡️)*finddir{0,1}
-	if aimpos==player.pos then
-		aimpos+=dir
-	end
+ local move=vec2(1.5*(tonum(btn(➡️))
+                -tonum(btn(⬅️))),
+                 tonum(btn(⬇️))
+                -tonum(btn(⬆️)))
+ local aimscrpos=
+  screenpos(aimpos)+1.5*
+  vec2(1.5*(tonum(btn(➡️))
+           -tonum(btn(⬅️))),
+       tonum(btn(⬇️))
+      -tonum(btn(⬆️)))
+       
+	local relscrpos=aimscrpos-campos
+ aimscrpos.x-=min(relscrpos.x-2)+max(relscrpos.x-126)
+	aimscrpos.y-=min(relscrpos.y-2)+max(relscrpos.y-126)
+	aimpos=invscreenpos(aimscrpos) 
+ 
 	local i = 0
-	hexline(player.pos,aimpos,
+	hexline(player.pos,hexnearest(aimpos),
 	function(npos,ntl)
 	 if i>0 and i<=aimrange then
-		 if not (validpos(aimpos)
-		 and onscreenpos(aimpos,62)) then
-				return true	 
-		 end
-		 aimpos=npos
+	  if i==1then
+	  	playerdst=npos
+	  end
+		 if not (validpos(npos)
+		    and navigable(ntl,true))
+	  then
+	   return true
+	  end
 			ntl.hilight=2
+			if not pass and ntl.ent then
+				return true
+			end
 		end
 		i+=1
 	end)
-	updatefacing(player,dir)
+	updatefacing(player,hexdir(player.pos,aimpos))
+	
+	if btnp(🅾️) then
+	 aimpos=nil
+		setmode"play"
+		skipturn=false
+	end
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
