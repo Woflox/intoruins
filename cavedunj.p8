@@ -682,7 +682,7 @@ function drawtl(tl,pos,flp,bg,i)
 	if not i and not bg then
 	 tl.hifade+=mid(-1,tl.hilight-tl.hifade,1)
 	 if tl.hifade>0 then
-	  if (tl.fow==3)pal(2,34,2)
+	  if (tl.fow>(aimpos and 1 or 2))pal(2,34,2)
 	 	local scrp=screenpos(tl.pos)+baseoffset
 	 	spr(tl.hifade*16-8,scrp.x,scrp.y,2,1)
 	 end
@@ -1223,7 +1223,7 @@ function hexline(p1,p2,func)
 	for i=0,dist do
 	 local pos=hexnearest(
 							lerp(p1,p2,i/dist))
-		if func(pos,gettile(pos)) then
+		if func(pos,validpos(pos) and gettile(pos)) then
 			return
 		end
 	end
@@ -2374,6 +2374,7 @@ function aim(item,thrown,range)
 end
 
 function updateaim()
+ --7450
  local ppos=player.pos
 	local dir,dist=
 	-hexdir(aimpos,ppos),
@@ -2402,15 +2403,18 @@ function updateaim()
 	if aimpos==player.pos then
 		aimpos+=dir
 	end
-	while not (validpos(aimpos)
-	 and onscreenpos(aimpos,62)) do
-		aimpos+=hexdir(aimpos,ppos)
-	end
+	local i = 0
 	hexline(player.pos,aimpos,
 	function(npos,ntl)
-	 if npos!= player.pos then
+	 if i>0 and i<=aimrange then
+		 if not (validpos(aimpos)
+		 and onscreenpos(aimpos,62)) then
+				return true	 
+		 end
+		 aimpos=npos
 			ntl.hilight=2
 		end
+		i+=1
 	end)
 	updatefacing(player,dir)
 end
