@@ -54,8 +54,8 @@ fall=wv0v0v0v0cv0v0vor_
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:8
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:t,throw:6
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:2,dmgincrease:2
-129=n:oAKEN STAFF,var:item,unid:t,throw:4
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:3,dmgincrease:2
+129=n:oAKEN STAFF,var:item,unid:t,throw:3
 145=n:dRIFTWOOD STAFF,var:item,throw:4
 161=n:eBONY STAFF,var:item,throw:4
 177=n:pUPLEHEART STAFF,var:item,throw:4
@@ -251,7 +251,7 @@ function _update()
 	statet+=0.033
 	
 	if mode!="ui" then
-		waitforanim=false
+ 	waitforanim=false
 		for i,ent in ipairs(ents) do
 			updateent(ent)
 		end
@@ -322,7 +322,7 @@ function _draw()
 			x=drawbar(v[1]/v[2],k,x,123,v[3],v[4])	
 		end
 	elseif modeis"aim" then
-		?"\fd  ⬆️\n\|d⬅️\|j⬇️\|d➡️:aIM    ❎:"..(aimthrow and "tHROW" or "fIRE"),24,115
+		?"\fd⬅️\|d⬆️\+8m⬇️\|d➡️:aIM    ❎:"..(aimthrow and "tHROW" or "fIRE"),16,118
 	end
 	if modeis"ui" then
 		if btnp(🅾️) then
@@ -759,8 +759,7 @@ function drawents(tl)
 		 	not has
 		 then
 		 	setanim(effect,effect.deathanim)
-		 	effect.light,effect.dead=
-		 	nil,true
+		 	effect.dead,effect.light=true
 		 end
 		elseif has then
 		 create(typ,tl.pos)
@@ -986,13 +985,13 @@ end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
 	pos+=dir1
-	local lastvis=false
-	local notfirst=false
+	local lastvis,notfirst=false
 	for i=ceil(lim1),flr(lim2) do
 	 local tlpos=pos+i*dir2
 	 if validpos(tlpos) then
 			local tl=gettile(tlpos)
-			local vis=passlight(tl)
+			local vis,splitlim=
+			passlight(tl),-1
 			tl.vis=tileflag(tl,5) or
 											(tl.typ==tywall and
 											 player.pos.x<
@@ -1000,7 +999,6 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 			if vistoplayer(tl) then
 			 tl.explored=true
 			end
-			local splitlim=-1
 			if vis then 
 				if notfirst and
 					not lastvis then
@@ -1020,8 +1018,8 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 												expamd*splitlim,
 												d+1)
 			end
-			lastvis=vis
-			notfirst=true
+			lastvis,notfirst=
+			vis,true
 		end
 	end
 end
@@ -1207,11 +1205,6 @@ function screenpos(pos)
 							 				 pos.y*8+pos.x*4) 
 end
 
-function invscreenpos(pos)
-	return vec2(pos.x/12,
-	            pos.y/8-pos.x/24)
-end
-
 function entscreenpos(ent)
 	return screenpos(ent.pos)+
 	        vec2(-2.5,-6.5)
@@ -1228,16 +1221,27 @@ function hexdist(p1,p2)
 	return (abs(delta.x)+abs(delta.y)+abs(p1.x+p1.y-p2.x-p2.y))/2
 end
 
---this too
-function hexline(p1,p2,func)
-	local dist=hexdist(p1,p2)
-	for i=0,dist do
+function hexline(p1,p2,range,pass,block,cont)
+	p2=hexnearest(p2)
+	ln={}
+	local dist,tl=hexdist(p1,p2)
+	for i=1,min(cont and 20 or dist,range) do
 	 local pos=hexnearest(
 							lerp(p1,p2,i/dist))
-		if func(pos,validpos(pos) and gettile(pos)) then
-			return
+		if not validpos(pos) then
+		 break 
+	 end
+	 local tl=gettile(pos)
+	 if not navigable(tl,true) or
+	    (tl.ent and block) then
+	  break
+	 end
+		add(ln,pos)
+		if tl.ent and not pass then
+		 break
 		end
 	end
+	return ln
 end
 
 --adapted from observablehq.com/@jrus/hexround
@@ -1606,13 +1610,13 @@ function taketurn(ent,pos,tl,group)
 		 if btnp(btnid) then
 				playerdir=(playerdir+i+5)%6+1
 				setanim(ent,"turn")
-				updatefacing(ent,adj[playerdir])
 			end
 		end
 		
 		turn(⬅️,-1)
 		turn(➡️,1)
 		turn(⬇️,3)
+		updatefacing(ent,adj[playerdir])	
 		
 		playerdst=ent.pos+adj[playerdir]
 		local dsttile=gettile(playerdst)
@@ -2383,10 +2387,6 @@ function aim(item,thrown,range,pass)
 end
 
 function updateaim()
- local move=vec2(1.5*(tonum(btn(➡️))
-                -tonum(btn(⬅️))),
-                 tonum(btn(⬇️))
-                -tonum(btn(⬆️)))
  local aimscrpos=
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn(➡️))
@@ -2397,33 +2397,18 @@ function updateaim()
 	local relscrpos=aimscrpos-campos
  aimscrpos.x-=min(relscrpos.x-2)+max(relscrpos.x-126)
 	aimscrpos.y-=min(relscrpos.y-2)+max(relscrpos.y-126)
-	aimpos=invscreenpos(aimscrpos) 
+	aimpos=vec2(aimscrpos.x/12,
+	            aimscrpos.y/8-aimscrpos.x/24)
  
-	local i = 0
-	hexline(player.pos,hexnearest(aimpos),
-	function(npos,ntl)
-	 if i>0 and i<=aimrange then
-	  if i==1then
-	  	playerdst=npos
-	  end
-		 if not (validpos(npos)
-		    and navigable(ntl,true))
-	  then
-	   return true
-	  end
-			ntl.hilight=2
-			if not pass and ntl.ent then
-				return true
-			end
-		end
-		i+=1
-	end)
-	updatefacing(player,hexdir(player.pos,aimpos))
+ 
+	for pos in all(hexline(player.pos,aimpos,aimrange,aimpass,false,not aimthrow)) do
+	 gettile(pos).hilight=2
+	end
+	updatefacing(player,aimpos-player.pos)
 	
 	if btnp(🅾️) then
-	 aimpos=nil
-		setmode"play"
-		skipturn=false
+	 skipturn,aimpos,aimitem=false
+	 setmode"play"
 	end
 end
 __gfx__
@@ -2459,7 +2444,7 @@ f011110110001110f011100111111110f011111111111110fffff3fffffbfffff6dddd6dddddd6d6
 f011000010111100f011111110011110f011111111100110fffffbf3fffffffffddddddd6dddddddfffffbf3fbff00fff02202505404fffff051005d10d11100
 ff0011110001100fff0111111111110fff0111111111100ffffffffbffffffffffddddd6dddddddfffff0b0bffffffffff055044ffffffffff001111055d100f
 fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffffddd6dddddddfffffffffbfffffffffff44ffffffffffffff00510111000ff
-fff67ffffffffffffffffffffffffffffff11fffff999fffffffffffffffffffff11f1ffffffffffffffffffff8888fffff7fffffffffcffffffffffffffffff
+fff67ffffffffffffffffffffffffffffff11fffff999fffffffffffffffffffff11f1ffffffffffffffffffff8888fffff7fffffffcfcffffffffffffffffff
 fff62ffffffffffffff22fffffffffffff1001ff333333fffffffffffffffffff100101ffffffffffffcfffff828228fffc77fffffffcfcfffffffffffffffff
 ffcccffffff3f3fffff223fffff3f3ffff1003ffb3333344ffffffffffff4f4f10000001ffffffffffc7cfff2f88fff2fcc777ffffffcdcfffffff8f9989ffff
 ffccdfffffbbb3f6ff22234fff44439ff100038fb3333b42ffffffffffff444f05000550fffeeeffffc7cffff8288228ffdccfffffffdddffffff88988888fff
@@ -2467,7 +2452,7 @@ ffccd6ffffbbbf6fff222f4fff4445f9f100014f4bbbb92ffff4f4ffff44422f11101111ffe227ef
 ffcc2fffffbbb3ffff22234fff222366f100034ffbbbb4ffffff55fff44422fffff1ffffffe222effffcfffff2f28f2ffffcfffffccdddffff899988888f8fff
 ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eeffffffffff288822ffffdfffff22dfdffff2888882086ffff
 ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222efffffffff2828882ffffffffffdfdfffffff262226fffffff
-fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffffffffffff88d8fffff7fffffffffcffffffffffffffffff
+fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffffffffffff88d8fffff7fffffffcfcffffffffffffffffff
 fff22ffffffffffffff22fffffffffffff1001ff333993fffffffffffffffffff100101ffffffffffffcfffff822828fffc77fffffffcfcfffffffffffffffff
 ffcc2ffffff3f3fffff323fffff3f3ffff13031f99333bffffffffffffffffff10500001ffffffffffc7cfff2f88fffefcc777ffffffcfcfffffff8fffffffff
 ffcdefffffb333ffff2333ffff4333fff103331f99b33b44ffffffff4fffffff05580850fffeeeffffc7cffff8288228ffdccfffcfff6c6f889ff888f99fffff
@@ -2477,7 +2462,7 @@ ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eef
 ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222efffffffff2882822ffffffffffffdfdfffffff22226006fff
 ffffffffffffffffffffc4cfffffffffff11ff8fffffff6fffffffffff6fff6f11ffff11ffffffffffcccffffffffffffff7ffffffffffffffff8fff98ffffff
 fff67fffffffffffff2ec4cffffffffff1051878fffffff6fffffffffff64f460011f100ffffffffffffccfff628ff28ffc77efffffffffffff888f9888fffff
-fffccfffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005fffffffffffffccfff6f8868ecc777eeff2ddc77ff85588982ff88ff
+fffccfffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005fffffffffffffccfff6f8868ecc777eeff2c7c7fff85588982ff88ff
 ffccc6fff763f36fff22223cff4443fff1000531ff333336ff4f46fff4f4442615000051fffffffffffcfccfff628286ffdccffffff2c7c7ffff65888888858f
 ffccdffff3bbb3f6ff222ec4f4444f9ff100001ff33333b6ff6556ffff444226f100051ffffffffffffcc77cff688286ffdccfffcf2cddd7ffff6f8988855fff
 fcc22fffffbbbfffff22efc4ff224f9ff10001fff333bb94ff5555fff4244f2fff1011ffffeeeeefffcd7ccff2882f86fffcfffffccdd2dfff89ff89882f6fff
@@ -2485,7 +2470,7 @@ ff2f2fffff444fffff22effcffddd9fff10001fff2222942ff544fffffff4ffffff1fffffe22227e
 fd00dffff4004fffff222fffffd0dffff10001ff200002fffe5fffffff00ffffffffffffe222002efffcffff8888822effffffffffffffffffff88888066ffff
 fffffffffffffffffffffcffffffffffff11ff8fffffffffffffffffffffffff11ffff11ffffffffffffcffffffffffffff7ffffffffffffffff8fff9a8fffff
 fff67fffffffffffff2ec4cffffffffff1051878ffffff6fffffffffffffffff0011f100fffffffffffffcffff28ff28ffc7effffffffffffff888f98888ffff
-fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005fffffffffffffccfffff88d8eeee7eeeff2ddc77ff85588982fff8ff
+fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005fffffffffffffccfffff88d8eeee7eeeff2d7c7fff85588982fff8ff
 ffc22ffffff3f36fffbb3c4cff4333fff1bb3141ff333976ffffffff4f624f4615000051ffffffffffccfccff8682262ffdcefffcff2c7c7ff8ff6588888858f
 ff6defffffb333f6ff222e3cff44499ff1000531f3333336ff64f6fff4464446f158081ffffffffffcdccccffff68226ffdccffffccdc7c7fffff69888556f8f
 fc6226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeffcc7ccfff2862f26fffcffffddd26d6fff896f98882f6fff
@@ -2548,13 +2533,13 @@ fd11001101000101ff1d1000011501ffff10b11bbb9d111ffff3ff3f99ff3ffff01150d9195015d0
 1101fffffffff1015001ffff00011100ff0000155d01100fffff0b0bfbffffffff0011510050500fffffff9ffff3ffffffff042222242fffff0011110001100f
 101fffffffffff005001fffffff00001fff00100001000fffffffffbfffffffffff00150110005fffff3ff3f9ff3f3ffffff050000020ffffff00110111000ff
 ffffff88fffffffffffffff888ffffffffffffff88fffffffffffffff9ffffffffff667777766fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
-fff000110881fffffff01111111110fffff01111111110fffffffffffbfffffffff6ddd979ddddffffff3f3ff3bf3ffffffffff5904202ffffff5055d11000ff
-ff0111000111f10fff0111111111110fff0111118111110ffffffffffff9ffffff6dddd69ddddddfffff3f3ff3b03fffffff05902902202fffff1000050045ff
-f011110180001110f011100111111110f011111111111110fffff9fffffbfffff6dddd6d9dddd6ddffff3ff3f3ffbffff505502402405504fff15500d55455ff
-000000111101000001111118111111110101111111111111fffff3ff9fffffff6dddd6ddd6dd6dddfffff3f3fbffbfff022022022055044ff0005559d0550001
-f011000010111100f011111110011110f011111111100110fffffbf3fffffffffddddddd7dddddddfffffbf3fbff00fff02202505404fffff051005910d11100
-ff0011110001100fff0111118111110fff0111111181100ffffffffbffffffffffddddd6dddddddfffff0b0bffffffffff055044ffffffffff0011110559100f
-fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffffddd6dddddddfffffffffbfffffffffff44ffffffffffffff00510111000ff
+fff000110881fffffff01111111110fffff01111111110fffffffffffbfffffffff6ddd979ddd6ffffff3f3ff3bf3ffffffffff5904202ffffff5055d11000ff
+ff0111000111f10fff0111111111110fff0111118111110ffffffffffff9ffffff6dddd69ddddd6fffff3f3ff3b03fffffff05902902202fffff1000050045ff
+f011110180001110f011100111111110f011111111111110fffff9fffffbfffff6dddd6d9dddd6d6ffff3ff3f3ffbffff505502402405504fff15500d55455ff
+000000111101000001111118111111110101111111111111fffff3ff9ffffffffdddd6ddd6dd6dddfffff3f3fbffbfff022022022055044ff0005559d0550001
+f011000010111100f011111110011110f011111111100110fffffbf3ffffffffffdddddd7ddddddffffffbf3fbff00fff02202505404fffff051005910d11100
+ff0011110001100fff0111118111110fff0111111181100ffffffffbfffffffffffdddd6ddddddffffff0b0bffffffffff055044ffffffffff0011110559100f
+fff00110111000fffff01111111110fffff01111111110ffffffffffffffffffffffdd6ddddddffffffffffbfffffffffff44ffffffffffffff00510111000ff
 __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 88888777777888eeeeee888eeeeee888eeeeee888eeeeee888eeeeee888eeeeee888888888888888888ff8ff8888228822888222822888888822888888228888
@@ -2735,7 +2720,7 @@ c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f
 9002060017a1417a1017a1017a1017a1017a100060009a0009a0009a0009a0009a0009a0000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
 00020a001414015151151611216111141061330613105121051200512102100011000210003100031000210003100081000810000100001000010000100001000010000100001000010000100001000010000000
 900117000062000621056310a64112641186512065110051060310302101621006210262000610006100061000610006000061000600006100000000610000000000000600000000000000000006000000000000
-a8010600322303f2613e2413c231342010b2002e2002f2002320000200002000020000200002002d2001d20000200002000020000200002000020000200002000020000200002000020000200002000020000200
+a8020600322303f2613e2413c231342010b2002e2002f2002320000200002000020000200002002d2001d20000200002000020000200002000020000200002000020000200002000020000200002000020000200
 aa0506003e6143a5213f5213f5113d501005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500
 aa0407003e6143e5213f521355112f511005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500005000050000500
 d402170000120071501a2701665013260122601015009250041500e15000250052000024004200031000023000100001000023000100001000010000100001000010000100001000010000200002000020000200
