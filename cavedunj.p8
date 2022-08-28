@@ -200,7 +200,7 @@ OF THE FABLED wINGS OF yENDOR?
 	items,specitems=
 	mapgroup(14,0),mapgroup(15,0)
 	
-	genmap(vec2(10,15))
+	genmap(vec2(10,15),true)
 
 	local torch=create(130)
 	addtoinventory(torch)
@@ -1909,7 +1909,7 @@ end
 --level generation
 
 function genmap(startpos,manmade)
-	printh("genmap()")
+	genpos=startpos
 	
 	world,ents,inboundposes,validposes,validtiles=
 	{},{},{},{},{}
@@ -1938,7 +1938,7 @@ function genmap(startpos,manmade)
 	else
 		gencave(startpos)
 	end
-	postproc(startpos)
+	postproc()
 	
 	setupdrawcalls()
 end
@@ -1963,61 +1963,65 @@ function genroom(pos)
 																			-yoffset)
 	minpos.x+=(minpos.x)%2
 	minpos.y=flr(minpos.y/4)*4+1
-	local maxpos,
-	offset,openplan,wvec=
-	minpos+vec2(w-flr(h/2),h),
-	minpos-pos,rndp(),vec2(w,0)
-	if not 
-	  (validpos(minpos) and
-				validpos(minpos+wvec) and
-				validpos(maxpos) and
-				validpos(maxpos-wvec) or
-				p==1.5)
-	then
+	
+	--539
+	function doroom(test)
+		local offset,openplan=
+		minpos-pos,rndp()
+		for y=0,h do
+		 local alt=(pos.y+offset.y+y+1)%2
+			offset.x-=alt
+			local xwall=y==0 or y==h
+			for x=0,w do
+				local ywall=x==0 or	x==w
+				local npos=pos+offset+vec2(x,y)
+				if test then
+				 if not validpos(npos) then
+				 	return true
+				 end
+				else
+					if inbounds(npos) then
+						local tl=gettile(npos)
+						if tl.ent then
+						 destroy(tl.ent)
+						end
+						
+						if (xwall or ywall) and
+								 not (tl.typ==tdunjfloor 
+								 					and openplan) 
+						then
+						 if rndp(crumble) and
+						    alt!=1 and not
+						    (xwall and ywall) then				   
+							 tl.typ=tdunjfloor --needs manmade flag
+								gentile(txwall,npos)
+								if not tl.ent then
+									tl.genned=false
+									--still want eg. grass
+									--to spread here
+								end
+							else
+								settile(tl,
+									xwall and txwall or tywall)
+							end
+						else
+							settile(tl,tdunjfloor)
+						end
+						tl.manmade=true
+					end
+				end
+			end
+	 end
+	end
+	
+	if entropy<1.5 and doroom(true) then
 		return genroom(rndpos())
 	end
+		
 	entropy-=0.15+rnd(0.1)
 	local crumble = rnd(0.25)
 	if (entropy<0) return
-	for y=0,h do
-	 local alt=(pos.y+offset.y+y+1)%2
-		offset.x-=alt
-		local xwall=y==0 or y==h
-		for x=0,w do
-			local ywall=x==0 or	x==w
-			local npos=pos+offset+vec2(x,y)
-			if inbounds(npos) then
-				local tl=gettile(npos)
-				if tl.ent then
-				 destroy(tl.ent)
-				end
-				
-				if (xwall or ywall) and
-						 not (tl.typ==tdunjfloor 
-						 					and openplan) 
-				then
-				 if rndp(crumble) and
-				    alt!=1 and not
-				    (xwall and ywall) then				   
-					 tl.typ=tdunjfloor --needs manmade flag
-						gentile(txwall,npos)
-						if not tl.ent then
-							tl.genned=false
-							--still want eg. grass
-							--to spread here
-						end
-					else
-						settile(tl,
-							xwall and txwall or tywall)
-					end
-				else
-					settile(tl,tdunjfloor)
-				end
-				tl.manmade=true
-			end
-		end
-	end
-	
+	doroom()
 	if rndp(0.15) then
 		gencave(rndpos())				 
 	end
@@ -2097,11 +2101,11 @@ function notblocking(pos)
 	return numnavreg<2
 end
 
-function postproc(pos)
+function postproc()
 	function connectareas(permissive)
 		for i=1,20 do
 			--what a mess
-		 calcdist(pos,"pdist")
+		 calcdist(genpos,"pdist")
 		 
 			local unreach={}
 			local numtls=0
@@ -2185,9 +2189,9 @@ function postproc(pos)
 	end)
 	
 	--fill out manmade area tiles
-	postgen(pos, 
-									gettile(pos),
-									gettile(pos))
+	postgen(genpos, 
+									gettile(genpos),
+									gettile(genpos))
 	
 	connectareas()
 	
@@ -2241,6 +2245,16 @@ function postproc(pos)
 		end
 	end)
 	
+	function checkspawn(pos,nolight)
+		local tl=gettile(pos)
+		return navigable(tl) and
+		 tl.pdist < -4 and
+			tl.pdist > -1000 and
+			notblocking(pos) and
+			not tl.ent and
+			(not nolight or tl.light<=0)
+	end
+	
 	--create exit hole if needed
 	if numholes==0 then
 		local bestdist=0
@@ -2249,10 +2263,7 @@ function postproc(pos)
 		 testpos=rndpos()
 		 tl=gettile(testpos)
 		 pdist=tl.pdist
-		 if navigable(tl) and
-		    pdist<0 and
-		    pdist>-1000 and
-		    notblocking(testpos) then
+		 if checkspawn(testpos) then
 		 	if pdist<bestdist then
 		 	 bestdist=pdist
 		 	 besttl=tl
@@ -2264,9 +2275,9 @@ function postproc(pos)
 	end
 	
 	if not player then
-		player=create(64,pos)
+		player=create(64,genpos)
 	else
-	 player.tl=gettile(pos)
+	 player.tl=gettile(genpos)
   player.tl.ent,player.animheight,player.animclip,fadetoblack
   =player,1
   add(ents,player)
@@ -2278,25 +2289,15 @@ function postproc(pos)
 	--spawn entities										
 	wanderdsts={}
 	
-	function checkspawn(pos,nolight)
-		local tl=gettile(pos)
-		return navigable(tl) and
-		 tl.pdist < -4 and
-			tl.pdist > -1000 and
-			notblocking(pos) and
-			not tl.ent and
-			(not nolight or tl.light<=0)
-	end
-	
 	for n=1,6 do
 		local spawnpos=rndpos()
 		local spawndepth=depth
-		while rndp(0.45) and spawndepth <= 19 do
+		while rndp(0.45) do
 		 spawndepth+=1
 		end
-		local spawn=rnd(spawns[ceil(spawndepth/2)])
-		behav=rnd{"sleep","wander"}
-		local spawnedany=false
+		local spawn,behav,spawnedany
+		=rnd(spawns[min(ceil(spawndepth/2),10)]),
+		rnd{"sleep","wander"}
 		for i,typ in ipairs(spawn) do
 			local found=false
 			visitadjrnd(spawnpos,
