@@ -200,7 +200,7 @@ OF THE FABLED wINGS OF yENDOR?
 	items,specitems=
 	mapgroup(14,0),mapgroup(15,0)
 	
-	genmap(vec2(10,15),true)
+	genmap(vec2(10,15))
 
 	local torch=create(130)
 	addtoinventory(torch)
@@ -650,7 +650,7 @@ function drawtl(tl,pos,flp,bg,i)
 			tileinfo[2][i],
 			tileinfo[3][i]
 		if typ==tywall and
-					pos.y%2==1 then
+					(pos.y+genpos.y)%2==0 then
 			baseoffset+=vec2(-6,-2)
 		end
 		if typ==thole then
@@ -815,9 +815,7 @@ function setupdrawcalls()
 		end
 		
 		if not infront and
-					fget(typ,5) or
-					(typ==tywall and
-					 pos.y%2==0) then
+					fget(typ,5) then
 			draw(tl,pos)
 		end
 		
@@ -843,7 +841,7 @@ function setupdrawcalls()
 				 wallpos=pos+adj[i]
 					if adjtyp==tywall and
 							 i==1 and
-							 wallpos.y%2==1 
+							 (wallpos.y+genpos.y)%2==0 
 					then
 					 draw(adjtl,wallpos)
 					end
@@ -1109,7 +1107,21 @@ function updateenv()
  local anyfire=false
 	alltiles(
 	function(pos,tl)
-	 if tl.spores>0 then
+	 if tl.fire>=2 then
+			entfire(tl)
+			visitadj(pos,trysetfire)
+			if tileflag(tl,9) then
+			 if rndp(0.2) then
+			 	tl.fire=0
+			 	tl.typ=34
+			 end
+			else
+				tl.fire=0
+				if tileflag(tl,10) then
+					tl.typ=thole
+				end
+			end
+		elseif tl.spores>0 then
 			tl.spores=max(tl.spores-rnd(0.25))
 			if tl.spores>1 then
 				adjtls={}
@@ -1123,20 +1135,6 @@ function updateenv()
 				tl.newspores-=tl.spores-portion
 				for ntl in all(adjtls) do
 					ntl.newspores+=portion
-				end
-			end
-		elseif tl.fire>=2 then
-			entfire(tl)
-			visitadj(pos,trysetfire)
-			if tileflag(tl,9) then
-			 if rndp(0.2) then
-			 	tl.fire=0
-			 	tl.typ=34
-			 end
-			else
-				tl.fire=0
-				if tileflag(tl,10) then
-					tl.typ=thole
 				end
 			end
 		end
@@ -1910,6 +1908,7 @@ end
 
 function genmap(startpos,manmade)
 	genpos=startpos
+	cave=not manmade
 	
 	world,ents,inboundposes,validposes,validtiles=
 	{},{},{},{},{}
@@ -1956,59 +1955,58 @@ function genroom(pos)
 		 
 	h=flr(h/4+1)*4
 	w+=w%2
-	local yoffset=ceil(rnd(h-1))
+	local yoffset=ceil(rnd(h-1))-2
 	local minpos=pos+
-														vec2(-ceil(rnd(w-2)+1)
+														vec2(-ceil(rnd(w-3)+1)
 																			+ceil(yoffset/2),
 																			-yoffset)
-	minpos.x+=(minpos.x)%2
-	minpos.y=flr(minpos.y/4)*4+1
+	minpos.x+=(minpos.x-genpos.x)%2
+	minpos.y-=(minpos.y+2-genpos.y)%4
 	
-	--539
 	function doroom(test)
 		local offset,openplan=
 		minpos-pos,rndp()
 		for y=0,h do
-		 local alt=(pos.y+offset.y+y+1)%2
+		 local alt=(pos.y+offset.y+genpos.y+y)%2
 			offset.x-=alt
 			local xwall=y==0 or y==h
 			for x=0,w do
 				local ywall=x==0 or	x==w
 				local npos=pos+offset+vec2(x,y)
 				if test then
-				 if not validpos(npos) then
+				 if not validpos(npos) or
+				   (cave and npos==genpos)
+				 then
 				 	return true
 				 end
-				else
-					if inbounds(npos) then
-						local tl=gettile(npos)
-						if tl.ent then
-						 destroy(tl.ent)
-						end
-						
-						if (xwall or ywall) and
-								 not (tl.typ==tdunjfloor 
-								 					and openplan) 
-						then
-						 if rndp(crumble) and
-						    alt!=1 and not
-						    (xwall and ywall) then				   
-							 tl.typ=tdunjfloor --needs manmade flag
-								gentile(txwall,npos)
-								if not tl.ent then
-									tl.genned=false
-									--still want eg. grass
-									--to spread here
-								end
-							else
-								settile(tl,
-									xwall and txwall or tywall)
+				elseif inbounds(npos) then
+					local tl=gettile(npos)
+					if tl.ent then
+					 destroy(tl.ent)
+					end
+					
+					if (xwall or ywall) and
+							 not (tl.typ==tdunjfloor 
+							 					and openplan) 
+					then
+					 if rndp(crumble) and
+					    alt!=1 and not
+					    (xwall and ywall) then				   
+						 tl.typ=tdunjfloor --needs manmade flag
+							gentile(txwall,npos)
+							if not tl.ent then
+								tl.genned=false
+								--still want eg. grass
+								--to spread here
 							end
 						else
-							settile(tl,tdunjfloor)
+							settile(tl,
+								xwall and txwall or tywall)
 						end
-						tl.manmade=true
+					else
+						settile(tl,tdunjfloor)
 					end
+					tl.manmade=true
 				end
 			end
 	 end
@@ -2025,7 +2023,7 @@ function genroom(pos)
 	if rndp(0.15) then
 		gencave(rndpos())				 
 	end
-	genroom(rndpos())			
+	genroom(rndpos())	
 end
 
 function gencave(pos)
@@ -2245,10 +2243,10 @@ function postproc()
 		end
 	end)
 	
-	function checkspawn(pos,nolight)
+	function checkspawn(pos,mindist,nolight)
 		local tl=gettile(pos)
 		return navigable(tl) and
-		 tl.pdist < -4 and
+		 tl.pdist < mindist and
 			tl.pdist > -1000 and
 			notblocking(pos) and
 			not tl.ent and
@@ -2256,14 +2254,20 @@ function postproc()
 	end
 	
 	--create exit hole if needed
+	attempts=0
 	if numholes==0 then
 		local bestdist=0
 		local tilesfound=0
 		while tilesfound<10 do
+		 attempts+=1
+		 if attempts>20000 then
+		  sfx(28)
+		  goto abort
+		 end
 		 testpos=rndpos()
 		 tl=gettile(testpos)
 		 pdist=tl.pdist
-		 if checkspawn(testpos) then
+		 if checkspawn(testpos,0) then
 		 	if pdist<bestdist then
 		 	 bestdist=pdist
 		 	 besttl=tl
@@ -2273,7 +2277,7 @@ function postproc()
 		end
 	 settile(besttl,thole)
 	end
-	
+	::abort::
 	if not player then
 		player=create(64,genpos)
 	else
@@ -2303,7 +2307,7 @@ function postproc()
 			visitadjrnd(spawnpos,
 			function(npos)
 				if not found and
-			 	checkspawn(npos,typ==72)
+			 	checkspawn(npos,-4,typ==72)
 			 then
 					found=true
 					create(typ,npos,behav,i)
@@ -2312,7 +2316,7 @@ function postproc()
 			end)
 		end
 		local itempos=rndpos()
-		if checkspawn(itempos) then
+		if checkspawn(itempos,-3) then
 			create(rnd(items),itempos)
 		end
 	end
