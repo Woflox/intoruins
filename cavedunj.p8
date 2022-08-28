@@ -51,10 +51,10 @@ brazierdeath=w33r_
 propdeath=w11r_
 fall=ws0v50v50v60cv70v80v8or_
 pfall=ws0v50v50v60cv70v80v8oe000r_
-fallin=wsv90v90v94v94sv5h46666666sv54v3440r
-slofall=wv94v84v74v64v54v54v54v54v544v5444v5400r
+fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
+slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,id:t
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:8
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:6
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:t,throw:6
 135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:3,dmgincrease:2
@@ -70,14 +70,14 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v5400r
 157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2
 158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2
 159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2
-172=n:cYAN ORB,var:item,light:2,throw:8
-173=n:yELLOW ORB,var:item,light:2,throw:8
-174=n:rED ORB,var:item,light:2,throw:8
-175=n:bLACK ORB,var:item,light:2,throw:8
-188=n:gREEN ORB,var:item,light:2,throw:8
-189=n:oRANGE ORB,var:item,light:2,throw:8
-190=n:pURPLE ORB,var:item,light:2,throw:8
-191=n:pINK ORB,var:item,light:2,throw:8
+172=n:cYAN ORB,var:item,light:2,throw:6
+173=n:yELLOW ORB,var:item,light:2,throw:6
+174=n:rED ORB,var:item,light:2,throw:6
+175=n:bLACK ORB,var:item,light:2,throw:6
+188=n:gREEN ORB,var:item,light:2,throw:6
+189=n:oRANGE ORB,var:item,light:2,throw:6
+190=n:pURPLE ORB,var:item,light:2,throw:6
+191=n:pINK ORB,var:item,light:2,throw:6
 ]],nil,"\n","=")
 
 	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
@@ -249,6 +249,10 @@ function _update()
 		updateturn()
 	elseif modeis"aim" then
 		updateaim()
+	elseif modeis"reset" and
+	 statet>0.5 
+	then
+		run"reset"
 	end
 	
 	statet+=0.033
@@ -338,28 +342,29 @@ function _draw()
 		 d()
 	 end
 	elseif modeis"gameover" and
-	 statet>1 then
+	 statet>1.2 then
 	 if not musicplayed then
 	 	music(16,300)
 	 	musicplayed=true
 	 end
 	 if btnp(❎) then
-	 	run()
+	 	fadetoblack=true
+	 	music(-1,300)
+	 	setmode"reset"
 	 end
-	print(sub([[
-  game over                        
-
-
-
-
-
-
-
-
-
-
-
-❎:tRY AGAIN]],0,statet*30-16),39,29,statet>1.1and 13 or 1)
+	print(sub(
+"game over                                        \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\-idEPTH: "..depth.. 
+"            \n\n\-a❎:tRY AGAIN",0,statet*30),47,29,statet>1.3and 13 or 1)
 	end
 	inputblocked=false
 end
@@ -542,9 +547,8 @@ function dialog(func)
 end
 
 function setmode(m)
-	mode=m
-	statet=0
-	inputblocked=true
+	mode,statet,inputblocked=
+	m,0,true
 end
 -->8
 --[[tiles, rendering
@@ -815,7 +819,9 @@ function setupdrawcalls()
 		end
 		
 		if not infront and
-					fget(typ,5) then
+					fget(typ,5) or
+					(typ==tywall and
+					(pos.y+genpos.y)%2==1) then
 			draw(tl,pos)
 		end
 		
@@ -1477,6 +1483,8 @@ function updateent(ent)
 					depth+=1
 					genmap(player.pos,player.tl.manmade)
 				end
+		 elseif case"m" then
+				log("dEPTH "..depth)
 			elseif case"v" then
 			 ent.animt+=1
 			 ent.animoffset.y+=anim[index+1]-4
