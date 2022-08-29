@@ -14,7 +14,7 @@ assigntable(
 ,minroomw:3,minroomh:2,roomsizevar:8]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:efall,acol:13,ccol:8
+[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alert:20,hurt:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alert:30,hurt:11
@@ -49,10 +49,10 @@ pdeath=w444l6
 mushdeath=w01r_
 brazierdeath=w33r_
 propdeath=w11r_
-fall=ws0v50v50v60cv70v80v8or_
-pfall=ws0v50v50v60cv70v80v8oe000r_
+fall=w0v50v50v60cv70v80v8or_
+pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
-slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
+slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,id:t
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:6
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
@@ -93,7 +93,7 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 	
 	specialtiles={
 [tcavewall]={
-	vec2(-9,-4),
+	vec2s"-9,-4",
 	vec2list--xy
 [[0 ,-8
 	 5 ,-8
@@ -109,7 +109,7 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 	 11,4
 	 3, 4]]},
 [thole]={
-	vec2(-8,-4),
+	vec2s"-8,-4",
 	vec2list--xy
 [[0, 0
 	 4, 0
@@ -125,7 +125,7 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 		7,7
 		4,8]]},
 [txwall]={
-	vec2(-9,-2),
+	vec2s"-9,-2",
 	vec2list--xy
 [[12,-8
 		 0,-8]],
@@ -133,7 +133,7 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 [[4 ,15
 	 12,17]]},
 [tywall]={
-	vec2(-5,-2),
+	vec2s"-5,-2",
 	vec2list--xy
 [[9,-8
 	 2,-8]],
@@ -158,8 +158,8 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
  split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",
  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 
-	textanims,textlog,spawns,diags,inventory=
-	{},{},{},{},{}
+	textanims,textlog,spawns,diags=
+	{},{},{},{}
  
  function mapgroup(x,y)
   group={}
@@ -187,13 +187,14 @@ slofall=wv94v84v74v64v54v54v54v54v544v5444v54m00r
 	items,specitems=
 	mapgroup(14,0),mapgroup(15,0)
 	
-	genmap(vec2(10,12))
-
-	local torch=create(130)
-	addtoinventory(torch)
-	torch.eQUIP(true)
-	calclight()
+	local rseed=rnd(0xffff.ffff)
+	srand(0x5b04.17cb)
+	genmap(vec2s"10,13")
+	srand(rseed)
+	
+	initinventory()
 end
+
 
 function updateturn()
  if (waitforanim) return
@@ -239,7 +240,13 @@ function _update()
 	elseif modeis"reset" and
 	 statet>0.5 
 	then
-		run"reset"
+	 setmode"play"
+	 depth,playerdir,player,fadetoblack,musicplayed,smooth,smoothb=
+	 1,2
+		poke(0x5f40)
+	 sfx(24)
+	 genmap(vec2s"10,12")
+	 initinventory()
 	end
 	
 	statet+=0.033
@@ -254,7 +261,7 @@ function _update()
 	local camtarget= 
  	screenpos(
  		lerp(player.pos,
- 							vec2(10,9.5),
+ 							vec2s"10,9.5",
  							mode=="gameover" and
  							max(0.36-statet*2) or
  							0.36))
@@ -332,7 +339,7 @@ function _draw()
 		 d()
 	 end
 	elseif textcrawl(
-"\^x5iNTO rUINS\^x4\
+"\^x5\-hiNTO rUINS\^x4\
 			                        \
 \
 \
@@ -362,20 +369,22 @@ OF THE FABLED wINGS OF yENDOR?    \
 \
 \
 \
+\
    \-itHERE'S NO TURNING BACK\-f.\-e.\-e.    \
 \
          ❎:jump down",
-  usplit"2,24,0,6,intro")
+  usplit"2,18,0,6,intro")
  then
   if statet > 5.75 then
 	  setmode"play"
 	  music(-1,300)
 	  musicplayed=false
+	  move(player,vec2s"10,12")
 	 else
 	 	statet=5.75
 	 end
 	elseif textcrawl(
-"game over                                        \
+"\^x5\-dgAME oVER\^x4                                        \
 \
 \
 \
@@ -387,12 +396,13 @@ OF THE FABLED wINGS OF yENDOR?    \
 \
 \-idEPTH: "..depth.. 
 "            \n\n\-a❎:tRY AGAIN",
- usplit"47,29,1.3,6,gameover,16")
+ usplit"47,29,1.3,13,gameover,16")
  then
  	fadetoblack=true
  	music(-1,300)
  	setmode"reset"
 	end
+	--?rseed,0,0,7
 	inputblocked=false
 end
 
@@ -422,7 +432,7 @@ end
 function textcrawl(str,x,y,fadet,col,m,mus)
  if modeis(m) and statet>fadet then
 	 if mus and not musicplayed then
-		 music(mus)
+		 music(mus,2)
 		 musicplayed=true
 		end
  	print(sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1)	
@@ -564,14 +574,11 @@ end
 function confirmjump()
 	frame(32,gettrans(33,38.5),96,gettrans(33,82.5),rect)
 	menuindex=getindex(menuindex,2)
-	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU..\n"
+	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
 	
 	if listitem" jUMP DOWN" then
 	 popdiag()
 	 move(player,playerdst)
-	 setanim(player,"pfall")
-	 calclight()
-	 sfx(24)
 	elseif listitem" dON'T JUMP" then
 	 popdiag()
 	end
@@ -680,7 +687,7 @@ function drawtl(tl,pos,flp,bg,i)
 	
 	local xtraheight,baseoffset=
 	fget(typ,2)and 8 or 0,
-	vec2(-8,-4)
+	vec2s"-8,-4"
 	local offset,size,litsprite=
 	vec2(1,-xtraheight),
 	vec2(15,8+xtraheight),typ+192
@@ -695,14 +702,14 @@ function drawtl(tl,pos,flp,bg,i)
 			tileinfo[3][i]
 		if typ==tywall and
 					(pos.y+genpos.y)%2==0 then
-			baseoffset+=vec2(-6,-2)
+			baseoffset+=vec2s"-6,-2"
 		end
 		if typ==thole then
 		 typ=litsprite
 			if i>3 then
 			 typ += 2--brick hole
 			 flp=false
-			 baseoffset+=vec2(0,1)
+			 baseoffset+=vec2s"0,1"
 			end
 		end
 		if (i-2)%3 !=0 then
@@ -1165,6 +1172,7 @@ function updateenv()
 				tl.fire=0
 				if tileflag(tl,10) then
 					tl.typ=thole
+					checkfall(tl.ent)
 				end
 			end
 		elseif tl.spores>0 then
@@ -1309,11 +1317,14 @@ function hexdir(p1,p2)
 	        lerp(p1,p2,1/dist))-p1
 end
 
+function vec2s(str)
+	return vec2(usplit(str))
+end
+
 function vec2list(str)
 	local ret={}
 	for vec in all(split(str,"\n")) do
-		local vals=split(vec)
-		add(ret,vec2(vals[1],vals[2]))
+		add(ret,vec2s(vec))
 	end
 	return ret
 end
@@ -1395,7 +1406,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,death:41",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41",ent)
 	assigntable(entdata[typ],ent)						
 	
 	if ent.pos then
@@ -1446,6 +1457,17 @@ function create(typ,pos,behav,group)
 	return ent
 end
 
+function checkfall(ent)
+	if ent and ent.var=="ent" and
+	   not ent.flying and
+				ent.tl.typ==thole
+	then
+		sfx(24)
+		setanim(ent,ent.fallanim)
+		if (ent==player) calclight()
+	end
+end
+
 function setpos(ent,pos,setrender)
 	ent.pos=pos
 	ent.tl=gettile(pos)
@@ -1453,6 +1475,7 @@ function setpos(ent,pos,setrender)
 	if setrender then
 		ent.renderpos=entscreenpos(ent)
 	end
+	checkfall(ent)
 end
 
 function setstatus(ent,name,str)
@@ -1503,7 +1526,7 @@ function updateent(ent)
 			 	ent.animt=ent.animloop
 			 else
 			 	checkidle(ent)
-					ent.animoffset=vec2(0,0)
+					ent.animoffset=vec2s"0,0"
 			 end
 			end
 		else
@@ -1922,11 +1945,10 @@ function move(ent,dst,playsfx)
 		         ent.wpn or ent)
 	else
 		ent.tl.ent=nil
-		setpos(ent,dst)
-		
 		if ent.moveanim then
 			setanim(ent,ent.moveanim)
 		end
+		setpos(ent,dst)
 		
 		if playsfx then
 		 local snd=tlsfx[dsttile.typ]
@@ -2185,7 +2207,7 @@ function postproc()
 		   manmade(gettile(p1)) and
 		   not permissive and 
 		   rnd(split"1,2,4,5") or
-		   ceil(rnd(6)) 
+		   rndint(6)+1
 				local dir=adj[diri]
 				local p2=p1+rndint(18)*dir
 				if validpos(p2) then
@@ -2307,16 +2329,16 @@ function postproc()
 	end
 	
 	--create exit hole if needed
-	attempts=0
+	--attempts=0
 	if numholes==0 then
 		local bestdist=0
 		local tilesfound=0
 		while tilesfound<10 do
-		 attempts+=1
+		 --[[attempts+=1
 		 if attempts>20000 then
 		  sfx(28)
 		  goto abort
-		 end
+		 end]]
 		 testpos=rndpos()
 		 tl=gettile(testpos)
 		 pdist=tl.pdist
@@ -2330,7 +2352,7 @@ function postproc()
 		end
 	 settile(besttl,thole)
 	end
-	::abort::
+	--::abort::
 	if not player then
 		player=create(64,genpos)
 	else
@@ -2338,12 +2360,13 @@ function postproc()
   player.tl.ent,player.animheight,player.animclip,fadetoblack
   =player,1
   add(ents,player)
-		player.animoffset.y=-21
-	 setanim(player,"fallin")
 	end
 	updatemap()
 	
 	if depth>0 then
+		player.animoffset.y=-21
+	 setanim(player,"fallin")
+	 
 		--spawn entities										
 		wanderdsts={}
 		
@@ -2396,6 +2419,12 @@ wisdom,pacifism
 staffs[oaken,driftwood,ebony,purpleheart]:
 fire,lightning,ice,blinking
 ]]
+
+function initinventory()
+	inventory={}
+	addtoinventory(create(130)).eQUIP(true)
+	calclight()
+end
 
 function inititem(item)
 setanim(item,"flash")
@@ -2452,7 +2481,7 @@ function pickup(item)
 end
 
 function addtoinventory(item)
-	add(inventory,item)
+	return add(inventory,item)
 end
 -->8
 --aiming
@@ -2753,13 +2782,13 @@ __gff__
 __map__
 464647474141424b4b4b00000000acac1011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0046474741434900000000000000adad3200000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-460047474244494e4c4c00000000aeae3200000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000010001000100000000000000000000000000000000000000000000000
-46470047004200004d4d00000000afaf3400000000000000000000003200000020000000320000003200000000003200320032003200363200003a3200000000000000000000000000000000000000000000000000000000000000000000000000001000203436323a3400000000000000000000000000000000000000000000
-0047410041004d454d4d00000000bc003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000001000363236343a32000000000000000000000000000000000000000000000000
-4700414143414d454d4d00000000bd003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000003a333a3426323a32000000000000000000000000000000000000000000000000
-0041004100414d42000000000000be001600000000000000000000003200000020000000320000003200000000003200320032003200363200003a3200000000000000000000000000000000000000000000000000000000000000000000000000003a3226323a34000000000000000000000000000000000000000000000000
-00004141494200444e4e00000000bf001600000000000000000000003200000020000000320000003200000000003200320032003200363400003a3400000000000000000000000000000000000000000000000000000000000000000000000000003a3226343a32000000000000000000000000000000000000000000000000
-0000000049424c44000000000000bc001600000000000000000000003200000020000000320000003200000000003200320032003400363400003a3400000000000000000000000000000000000000000000000000000000000000000000000000003a3226320000000000000000000000000000000000000000000000000000
+460047474244494e4c4c00000000aeae3200000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+46470047004200004d4d00000000afaf3400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0047410041004d454d4d00000000bc003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+4700414143414d454d4d00000000bd003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0041004100414d42000000000000be001600000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00004141494200444e4e00000000bf001600000000000000000000003200000020000000320000003200000000003200320032003200363400003a340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000049424c44000000000000bc001600000000000000000000003200000020000000320000003200000000003200320032003400363400003a340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000414100000000000000000000bd001600000000000000000000003200000020000000320000003200000000003200320032003400363400003a340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000042424841454c000000000000be0016000000000000000000000032000000200000003200000032000000000032003200340034003a3200003a340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000004841454d000000000000bf0016000000000000000000000032000000200000003200000032000000000032003200340034003a32000036320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
