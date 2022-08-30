@@ -674,14 +674,14 @@ function onscreenpos(pos,pad)
 end
 --7715
 --7713
-function drawtl(tl,typ,pos,baseoffset,offset,size,flp,dolight,hilight)
-	typ=typ or tl.typ
+function drawtl(tl,typ,pos,baseoffset,offset,size,flp,bg,hilight)
+	typ=typ or (bg and tl.bg) or tl.typ
 	local xtraheight,litsprite=
 	fget(typ,2)and 5 or 0,typ+192
 	
 	--lighting
 	for i=0,6 do
-		if dolight and fow==4 and 
+		if not bg and fow==4 and 
 		   fget(litsprite,i) then
 			local adjtile=
 				getadjtl(pos,i)
@@ -813,11 +813,9 @@ function setupdrawcalls()
 				drawcall(initpal,{tl,true})
 				palready=true
 			end
-			local typ=tltodraw.typ
-			if not i and typ==tywall then
+			local typ
+			if not i and tltodraw.typ==tywall then
 				typ=tdunjfloor
-			elseif bg then
-				typ=tltodraw.bg
 			end
 			
 			local baseoffset,offset,size,flp=
@@ -825,6 +823,7 @@ function setupdrawcalls()
 		 
 		 --special tiles
 			if i then
+			 typ=bg and tltodraw.bg or tltodraw.typ
 				local tileinfo= 
 											specialtiles[typ]
 				baseoffset,offset,size=
@@ -851,9 +850,9 @@ function setupdrawcalls()
 			drawcall(drawtl,
 							 {tltodraw,typ,pos,
 							  baseoffset,offset,size,
-							 	tl.flip and 
-							 		tileflag(tltodraw,6),
-							 	not bg,not i and not bg})
+							 	flp and 
+							 		tileflag(tltodraw,6), bg, 
+							 	not i and not bg})
 		end
 		
 		infront=fget(typ,3)
