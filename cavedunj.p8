@@ -672,54 +672,16 @@ function onscreenpos(pos,pad)
 	 return scrpos
 	end
 end
-
-function drawtl(tl,pos,flp,bg,i)
-	local scrpos=onscreenpos(pos,72)
- if (not scrpos) return
-	
-	local typ=tl.typ
-	if not i and typ==tywall then
-		typ=tdunjfloor
-	end
-	if bg and tl.bg then
-		typ=tl.bg
-	end
-	
-	local xtraheight,baseoffset=
-	fget(typ,2)and 5 or 0,
-	vec2(-8,-4)
-	local offset,size,litsprite=
-	vec2(1,-xtraheight),
-	vec2(15,8+xtraheight),typ+192
- 
-	--special tiles
-	if i then
-		local tileinfo= 
-									specialtiles[typ]
-		baseoffset,offset,size=
-			tileinfo[1],
-			tileinfo[2][i],
-			tileinfo[3][i]
-		if typ==tywall and
-					(pos.y+genpos.y)%2==0 then
-			baseoffset+=vec2s"-6,-2"
-		end
-		if typ==thole then
-		 typ=litsprite
-			if i>3 then
-			 typ += 2--brick hole
-			 flp=false
-			 baseoffset+=vec2s"0,1"
-			end
-		end
-		if (i-2)%3 !=0 then
-		 flp=false
-		end
-	end
+--7715
+--7713
+function drawtl(tl,typ,pos,baseoffset,offset,size,flp,dolight,hilight)
+	typ=typ or tl.typ
+	local xtraheight,litsprite=
+	fget(typ,2)and 5 or 0,typ+192
 	
 	--lighting
 	for i=0,6 do
-		if not bg and fow==4 and 
+		if dolight and fow==4 and 
 		   fget(litsprite,i) then
 			local adjtile=
 				getadjtl(pos,i)
@@ -731,21 +693,20 @@ function drawtl(tl,pos,flp,bg,i)
 			end
 		end
 	end
-	scrpos+=offset+baseoffset
 	
+	local scrpos=screenpos(pos)+
+	             offset+baseoffset
 	sspr(typ%16*8+offset.x,
 							flr(typ/16)*8+
-								offset.y,
-							size.x,size.y,
-							scrpos.x,scrpos.y,
-										size.x,size.y,
-										flp)
-	if not i and not bg then
+								offset.y-xtraheight,
+							size.x,size.y+xtraheight,
+							scrpos.x,scrpos.y-xtraheight,
+							size.x,size.y+xtraheight,flp)
+	if hilight then
 	 tl.hifade+=mid(-1,tl.hilight-tl.hifade,1)
 	 if tl.hifade>0 then
 	  if (tl.explored)pal(2,34,2)
-	 	local scrp=screenpos(tl.pos)+baseoffset
-	 	spr(tl.hifade*16-8,scrp.x,scrp.y,2,1)
+	 	spr(tl.hifade*16-8,scrpos.x,scrpos.y,2,1)
 	 end
  	tl.hilight=0
 	end
@@ -852,11 +813,47 @@ function setupdrawcalls()
 				drawcall(initpal,{tl,true})
 				palready=true
 			end
+			local typ=tltodraw.typ
+			if not i and typ==tywall then
+				typ=tdunjfloor
+			elseif bg then
+				typ=tltodraw.bg
+			end
+			
+			local baseoffset,offset,size,flp=
+			vec2s"-8,-4",vec2s"1,0",vec2s"15,8",tl.flip
+		 
+		 --special tiles
+			if i then
+				local tileinfo= 
+											specialtiles[typ]
+				baseoffset,offset,size=
+					tileinfo[1],
+					tileinfo[2][i],
+					tileinfo[3][i]
+				if typ==tywall and
+							(pos.y+genpos.y)%2==0 then
+					baseoffset+=vec2s"-6,-2"
+				end
+				if typ==thole then
+				 typ+=192
+					if i>3 then
+					 typ += 2--brick hole
+					 flp=false
+					 baseoffset+=vec2s"0,1"
+					end
+				end
+				if (i-2)%3 !=0 then
+				 flp=false
+				end
+			end
+			
 			drawcall(drawtl,
-							 {tltodraw,pos,
+							 {tltodraw,typ,pos,
+							  baseoffset,offset,size,
 							 	tl.flip and 
 							 		tileflag(tltodraw,6),
-							 	bg,i})
+							 	not bg,not i and not bg})
 		end
 		
 		infront=fget(typ,3)
@@ -2519,21 +2516,21 @@ function updateaim()
 end
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-ffffff0100000fffffffff0000000ffffff0000000ffffffffffffffffffffffffff155111551fffffffffffffffffffffffffffffffffffffffffffffffffff
-000ff00100011fff00fff0000000000fff00000000000ffffffffffffffffffffff5fffffffff5ffffffffffffffffffffffffffffffffffffffffffffffffff
-0010110150015f0000ff0000000000dff000000000000000ffffffff0fffffffff1fffffffffff1fffffffffffffffffffffffffffffffffffffffffffffffff
-001105015010500000f0000000000ddf000000000000000dfffffff00ffffffff5fffffffffffff5fffff055d5fffffffffffffffffffffffffff0055dffffff
-001d0501101000100000000000001d1f555000000000001dfffffff0d0ffffffff1fffffffffff1fffff0511515ffffffffff000ffffffffffff055511dfffff
-011d01011010101000550000000d11df1550550000000d11fffffff0d00ffffffff5fffffffff5fffff01055000dffffffff0555000fffffffff05115510ffff
-0d010100000010000055505000dd11df000055505000dd11ffffff005d0f0fffffff155111551fffffff0511511dfffffff051515550ffffffff01501115d0ff
+ffffff0100000fffffffff0000000ffffff0000000fffffffffffffffffffffffff155111551ffffffffffffffffffffffffffffffffffffffffffffffffffff
+000ff00100011fff00fff0000000000fff00000000000fffffffffffffffffffff5fffffffff5fffffffffffffffffffffffffffffffffffffffffffffffffff
+0010110150015f0000ff0000000000dff000000000000000ffffffff0ffffffff1fffffffffff1ffffffffffffffffffffffffffffffffffffffffffffffffff
+001105015010500000f0000000000ddf000000000000000dfffffff00fffffff5fffffffffffff5ffffff055d5fffffffffffffffffffffffffff0055dffffff
+001d0501101000100000000000001d1f555000000000001dfffffff0d0fffffff1fffffffffff1ffffff0511515ffffffffff000ffffffffffff055511dfffff
+011d01011010101000550000000d11df1550550000000d11fffffff0d00fffffff5fffffffff5ffffff01055000dffffffff0555000fffffffff05115510ffff
+0d010100000010000055505000dd11df000055505000dd11ffffff005d0f0ffffff155111551ffffffff0511511dfffffff051515550ffffffff01501115d0ff
 0d0100000f0000000000505551d1d11f505000505550d1d1ffff00011d00d0ffffffffffffffffffffff050151d1ffffff05050151d5ffffffff01550101d0ff
-0d10ffff0ffff00100500005511dd1df5055500005501dd1fff000011501d0ffffff2dd222dd2fffffff01011010ffffff5552050d510ffffffff0155d150fff
-0110050fffffff0000505550011d1ddf0005505550001d1dff0500001101d00ffffdfffffffffdffffff01115d10f1ffff505555d151010ffffff0015500f1ff
-010ffffffffff0f0000015505d111d0f555000155055111dff01100115001d00ff2fffffffffff2fffff01511550111ff050512151511110ffff00100100111f
-0001fffffffffff1005500005d1d100f1550550000551d100111010111001150fdfffffffffffffdfff05000000dffff0020505051550000fff05000000dffff
-00001ffff00f50100055505001dd00fffff055505000dd00f011010110d01010ff2fffffffffff2ffff105505550110ff051505050511100fff105505550110f
-ff0000110000110000f0505551d00fffffff00505550d00fff0011010050100ffffdfffffffffdffff0011000001100fff555151d501100fff0011000001100f
-fff0000000000000ffff00055100fffffffffff0055000fffff01111101110ffffff2dd222dd2ffffff00110111000fffff00555511000fffff00110111000ff
+0d10ffff0ffff00100500005511dd1df5055500005501dd1fff000011501d0fffff2dd222dd2ffffffff01011010ffffff5552050d510ffffffff0155d150fff
+0110050fffffff0000505550011d1ddf0005505550001d1dff0500001101d00fffdfffffffffdfffffff01115d10f1ffff505555d151010ffffff0015500f1ff
+010ffffffffff0f0000015505d111d0f555000155055111dff01100115001d00f2fffffffffff2ffffff01511550111ff050512151511110ffff00100100111f
+0001fffffffffff1005500005d1d100f1550550000551d100111010111001150dfffffffffffffdffff05000000dffff0020505051550000fff05000000dffff
+00001ffff00f50100055505001dd00fffff055505000dd00f011010110d01010f2fffffffffff2fffff105505550110ff051505050511100fff105505550110f
+ff0000110000110000f0505551d00fffffff00505550d00fff0011010050100fffdfffffffffdfffff0011000001100fff555151d501100fff0011000001100f
+fff0000000000000ffff00055100fffffffffff0055000fffff01111101110fffff2dd222dd2fffffff00110111000fffff00555511000fffff00110111000ff
 ffffffffffffffffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042222242fffffffffffffffffff
 fffffffffffffffffffffffffffffffffffff0bbb00fffffffff3ffffffb3f33fff000110111ffffffffffffffffffffffff150000050ffffff000550111ffff
 fffffffffffffffffffffffffffffffffff10bbbbbbbf1fff33ff3fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
@@ -2777,7 +2774,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000840884082c000000ee00be00ee007a016300ba016b03f30109096b15b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000800880082c000000ee00be00ee007a016300ba016b03f30109096b15b301b30173017301730323017d036b05ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
 464647474141424b4b4b00000000acac1011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
