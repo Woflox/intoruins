@@ -920,28 +920,19 @@ end
 -->8
 --map stuff
 
-function within(pos,mina,maxa,minb,maxb)
-	local x,y=pos.x,pos.y
-	return min(x,y)>=mina and
-							 max(x,y)<=maxa and
-								x+y>=minb and
-								x+y<=maxb
+function gettile(pos)
+	return world[pos.y] and
+	       world[pos.y][pos.x]
 end
 
 function inbounds(pos)
- return within(pos,1,19,11,29)
+	return tileinbounds[pos.y] and
+	       tileinbounds[pos.y][pos.x]
 end
 
-function validpos(pos)
- return within(pos,0,20,10,30)
-end
-			
 function getadjtl(pos,i)
-	if (i==0) return gettile(pos)
-	local dst=pos+adj[i]
-	if validpos(dst) then
-		return gettile(dst)
-	end
+	return gettile(i==0 and pos or
+	               pos+adj[i])
 end
 
 function visitadj(pos,func)
@@ -966,9 +957,8 @@ function rndpos()
 end
 
 function alltiles(func)
-	for i,pos in ipairs(validposes) do
-		func(pos,
-							validtiles[i])
+	for i,tl in ipairs(validtiles) do
+		func(tl.pos,tl)
 	end
 end
 
@@ -1028,17 +1018,13 @@ function calcdist(pos,var,ignblock)
 	end)
 end
 
-function gettile(pos)
-	return world[pos.x][pos.y]
-end
-
 function viscone(pos,dir1,dir2,lim1,lim2,d)
 	pos+=dir1
 	local lastvis,notfirst=false
 	for i=ceil(lim1),flr(lim2) do
 	 local tlpos=pos+i*dir2
-	 if validpos(tlpos) then
-			local tl=gettile(tlpos)
+		local tl=gettile(tlpos)
+	 if tl then
 			local vis,splitlim=
 			passlight(tl),-1
 			tl.vis=tileflag(tl,5) or
@@ -1981,23 +1967,23 @@ function genmap(startpos,manmade)
 	genpos=startpos
 	cave=not manmade
 	
-	world,ents,inboundposes,validposes,validtiles=
-	{},{},{},{},{}
-	for x=0,20 do
-	 world[x] = {}
-		for y=0,20 do
-		 world[x][y] = tile(tempty,vec2(x,y))
-		end
-	end
+	world,ents,validtiles,inboundposes,tileinbounds=
+	{},{},{},{},{},{}
+
 	for y=0,20 do
-	 for x=0,20 do
-	 	local pos=vec2(x,y)
-			if validpos(pos) then
-				add(validposes,pos)
-				add(validtiles,gettile(pos))
-				if inbounds(pos) then
-					add(inboundposes,pos)
-				end
+	 world[y],tileinbounds[y]=
+	 {},{}
+	 local startx,endx=
+	 max(10-y),min(30-y,20)
+	 for x=startx,endx do
+	  local pos=vec2(x,y)
+	  local tl = tile(tempty,pos)
+	  world[y][x]=tl
+	  add(validtiles,tl)
+	  if y>0 and y<20 and 
+	     x>startx and x<endx then
+				add(inboundposes,pos)
+				tileinbounds[y][x]=tl
 			end
 	 end
 	end
@@ -2044,14 +2030,14 @@ function genroom(pos)
 			for x=0,w do
 				local ywall=x==0 or	x==w
 				local npos=pos+offset+vec2(x,y)
+				local tl=inbounds(npos)
 				if test then
-				 if not validpos(npos) or
+				 if not tl or
 				   (cave and npos==genpos)
 				 then
 				 	return true
 				 end
-				elseif inbounds(npos) then
-					local tl=gettile(npos)
+				elseif tl then
 					if tl.ent then
 					 destroy(tl.ent)
 					end
@@ -2139,7 +2125,7 @@ function gentile(typ,pos)
  end									
 end
 
-function postgen(pos, tl, prevtl)
+function postgen(pos,tl,prevtl)
 	tl.postgenned=true
 	visitadjrnd(pos,
 	function(npos,ntl)
@@ -2206,8 +2192,8 @@ function postproc()
 		   rndint(6)+1
 				local dir=adj[diri]
 				local p2=p1+rndint(18)*dir
-				if validpos(p2) then
-					local tl2=gettile(p2)
+				local tl2=gettile(p2)
+				if tl2 then
 					if navigable(tl2) and
 								genable(tl2) and
 								tl2.pdist>-1000 then
