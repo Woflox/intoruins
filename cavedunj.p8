@@ -666,14 +666,11 @@ end
 function onscreenpos(pos,pad)
  local scrpos=screenpos(pos)
  local scrposrel=scrpos-smooth
-	if max(abs(scrposrel.x),
-        abs(scrposrel.y))<=pad
- then
-	 return scrpos
-	end
+	return max(abs(scrposrel.x),
+        abs(scrposrel.y))<=pad and
+        scrpos
 end
---7715
---7713
+
 function drawtl(tl,typ,pos,baseoffset,offset,size,flp,bg,hilight)
 	typ=typ or (bg and tl.bg) or tl.typ
 	local xtraheight,litsprite=
@@ -764,7 +761,12 @@ function drawents(tl)
 
 	drawent"item"
  drawent"ent"
-  
+ checkeffects(tl)
+ drawent"effect"
+end
+
+function checkeffects(tl)
+
  function checkeffect(typ,has)
  	local effect=tl.effect
  	if effect then
@@ -787,8 +789,6 @@ function drawents(tl)
 
  checkeffect(138,hasfire)
  checkeffect(139,hasspores)
-
- drawent"effect"
 end
 
 function drawmap()
@@ -921,13 +921,13 @@ end
 --map stuff
 
 function gettile(pos)
-	return world[pos.y] and
-	       world[pos.y][pos.x]
+ local y=world[pos.y]
+	return y and y[pos.x]
 end
 
 function inbounds(pos)
-	return tileinbounds[pos.y] and
-	       tileinbounds[pos.y][pos.x]
+ local y=tileinbounds[pos.y]
+	return y and y[pos.x]
 end
 
 function getadjtl(pos,i)
@@ -989,18 +989,17 @@ end
 
 function dijkstra(var,tovisit,check)
 	while #tovisit>0 do
-		local pos=deli(tovisit,1)
-		local d=gettile(pos)[var]-1
-		visitadj(pos,
-		function(npos,ntl)
-				if ntl[var]<d
-			then  
+		local tl=deli(tovisit,1)
+		local pos,d=tl.pos,tl[var]-1
+		for i=1,6 do
+		 local ntl=gettile(pos+adj[i])
+			if ntl[var]<d then
 				ntl[var]=d
 				if check(ntl) then
-					add(tovisit,npos) 
+					add(tovisit,ntl) 
 				end
 			end
-		end)
+		end
 	end
 end
 
@@ -1010,7 +1009,7 @@ function calcdist(pos,var,ignblock)
 		ntl[var]=pos==npos and 0
 		         or -1000
 	end)
-	dijkstra(var,{pos},
+	dijkstra(var,{gettile(pos)},
 	function(tl)
 		return tileflag(tl,0) and 
 		(ignblock or not
@@ -1093,7 +1092,7 @@ function calclight()
 		checklight"effect"
 		checklight"ent"
   if tl.light>0 then
-			add(tovisit,pos)
+			add(tovisit,tl)
 		end
 	end)
 	dijkstra("light",tovisit,passlight)
@@ -1189,6 +1188,7 @@ function updateenv()
 		end
 		tl.spores+=tl.newspores
 		tl.newspores=0
+ 	checkeffects(tl)
 	end)
 	if anyfire != fireplaying then
 		fireplaying=anyfire
@@ -1196,7 +1196,7 @@ function updateenv()
 	end
 	calclight()
 	
-	for k,ent in ipairs(ents) do
+	for ent in all(ents) do
 		if ent.burnlight and 
 		   ent.tl.light>=2 and
 		   not ent.statuses.BURN
@@ -1268,11 +1268,9 @@ function hexline(p1,p2,range,pass,block,cont)
 	for i=1,min(cont and 20 or dist,range) do
 	 local pos=hexnearest(
 							lerp(p1,p2,i/dist))
-		if not validpos(pos) then
-		 break 
-	 end
 	 local tl=gettile(pos)
-	 if not navigable(tl,true) or
+	 if not tl or
+	    not navigable(tl,true) or
 	    (tl.ent and block) then
 	  break
 	 end
@@ -2481,18 +2479,27 @@ function updateaim()
            -tonum(btn(⬅️))),
        tonum(btn(⬇️))
       -tonum(btn(⬆️)))
-       
+	
+ 
 	local relscrpos=aimscrpos-campos
- aimscrpos.x-=min(relscrpos.x-2)+max(relscrpos.x-126)
-	aimscrpos.y-=min(relscrpos.y-2)+max(relscrpos.y-126)
+ aimscrpos.x-=min(relscrpos.x-1.5)+max(relscrpos.x-126.5)
+	aimscrpos.y-=min(relscrpos.y-1.5)+max(relscrpos.y-126.5)
 	aimpos=vec2(aimscrpos.x/12,
 	            aimscrpos.y/8-aimscrpos.x/24)
  
- 
-	for pos in all(hexline(player.pos,aimpos,aimrange,aimpass,false,not aimthrow)) do
-	 gettile(pos).hilight=2
+ aimline=hexline(player.pos,aimpos,aimrange,aimpass,false,not aimthrow)
+	if #aimline>0 then
+		for pos in all(aimline) do
+		 gettile(pos).hilight=2
+		end
+		local dir = hexdir(player.pos,aimpos)
+		for i=1,6 do
+			if adj[i]==dir then
+				playerdir=i
+			end
+		end
+		updatefacing(player,dir)
 	end
-	updatefacing(player,aimpos-player.pos)
 	
 	if btnp(🅾️) then
 	 skipturn,aimpos,aimitem=false
