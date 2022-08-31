@@ -158,8 +158,8 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
  split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",
  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 
-	textanims,textlog,spawns,diags=
-	{},{},{},{}
+	textanims,textlog,spawns,diags,inventory=
+	{},{},{},{},{}
  
  function mapgroup(x,y)
   group={}
@@ -184,15 +184,15 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 		end
 	end
 	
-	items,specitems=
-	mapgroup(14,0),mapgroup(15,0)
+	items=mapgroup(14,0)
 	
 	local rseed=rnd(0xffff.ffff)
 	srand(0x5b04.17cb)
 	genmap(vec2s"10,13")
 	srand(rseed)
 	
-	initinventory()
+	addtoinventory(create(130)).eQUIP(true)
+	calclight()
 end
 
 
@@ -240,13 +240,7 @@ function _update()
 	elseif modeis"reset" and
 	 statet>0.5 
 	then
-	 setmode"play"
-	 depth,playerdir,player,fadetoblack,musicplayed,smooth,smoothb=
-	 1,2
-		poke(0x5f40)
-	 sfx(24)
-	 genmap(vec2s"10,12")
-	 initinventory()
+	 run()
 	end
 	
 	statet+=0.033
@@ -329,7 +323,7 @@ function _draw()
 		?"\fd⬅️\|d⬆️\+8m⬇️\|d➡️:aIM    ❎:"..(aimthrow and "tHROW" or "fIRE"),16,118
 	end
 	if modeis"ui" then
-		if btnp(🅾️) then
+		if btnp"4" then
 			if (popdiag())	return
 		end
 		uitrans*=0.33
@@ -340,7 +334,7 @@ function _draw()
 	 end
 	elseif textcrawl(
 "\^x5\-hiNTO rUINS\^x4\
-			                        \
+			                \
 \
 \
 \
@@ -353,7 +347,7 @@ function _draw()
 \
 \
   press ❎",
-  usplit"41,24,0.75,6,title,0")
+  usplit"41,24,0.45,6,title,0")
 	then
 	 setmode"intro"
 	elseif	textcrawl(
@@ -436,7 +430,7 @@ function textcrawl(str,x,y,fadet,col,m,mus)
 		 musicplayed=true
 		end
  	print(sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1)	
-	 if btnp(❎) then
+	 if btnp"5" then
 	  return true
 	 end
 	end
@@ -467,13 +461,13 @@ function listitem(str,sel)
  end
  ?(sel and "\#0\f7\|h❎ "or"\fd\|h  ")..str
 	return sel and focus and 
-	 not inputblocked and btnp(❎) 
+	 not inputblocked and btnp"5" 
 end
 
 function getindex(cur,maxind)
 	return focus and not inputblocked and
-												(cur+tonum(btnp(⬇️))-
-													tonum(btnp(⬆️))+
+												(cur+tonum(btnp"3")-
+													tonum(btnp"2")+
 												maxind-1)%maxind+1
 												or cur
 end
@@ -566,7 +560,7 @@ function info()
  	 skipturn,waitforanim=
  	 true,true
  		selitem[action]()
- 		sfx(25)
+ 		sfx"25"
  	end
  end
 end
@@ -590,7 +584,7 @@ function dialog(func)
  setmode"ui"
 	menuindex=1
  add(diags,func)
- sfx(39)
+ sfx"39"
 end
 
 function setmode(m)
@@ -1115,7 +1109,7 @@ end
 
 function sporeburst(tl,val)
 	tl.spores+=val
-	sfx(17)
+	sfx"17"
 end
 
 function trysetfire(pos,tl,nop)
@@ -1202,7 +1196,7 @@ function updateenv()
 		   not ent.statuses.BURN
 		then
 			burn(ent)
-			sfx(36)
+			sfx"36"
 		end
 	end
 end
@@ -1442,7 +1436,7 @@ function checkfall(ent)
 	   not ent.flying and
 				ent.tl.typ==thole
 	then
-		sfx(24)
+		sfx"24"
 		setanim(ent,ent.fallanim)
 		if (ent==player) calclight()
 	end
@@ -1551,7 +1545,7 @@ function updateent(ent)
 					screenpos(
 						atkinfo[2]-
 						ent.pos)
-				sfx(33)
+				sfx"33"
 			elseif case"d" then
 				local b = atkinfo[1]
 			 if atkinfo[3] then--hits
@@ -1662,12 +1656,12 @@ function taketurn(ent,pos,tl,group)
 		 return true
 		end
 		
-		if btnp(❎) then
+		if btnp"5" then
 		 dialog(inv)
 		 return
 		end
 		
-		if btnp(🅾️) then
+		if btnp"4" then
 			tock=not tock
 			sfx(40,-1,not tock and 16 or 0, 8)
 			return true --wait 1 turn
@@ -1692,7 +1686,7 @@ function taketurn(ent,pos,tl,group)
 		then
 			dsttile.hilight=2
 		end
-		if btnp(⬆️) then
+		if btnp"2" then
 		 dsttile.hilight=0
 		 if canmove(ent,playerdst) then
 				move(ent,playerdst,true)
@@ -1853,7 +1847,7 @@ function hurt(ent,dmg,atkr)
 			sporeburst(ent.tl,ent.sporeburst)
 		end
 	else
-		sfx(34)
+		sfx"34"
 		if ent.hurtsplit and atkr then
 			local splitpos=nil
 			visitadjrnd(ent.pos,
@@ -1888,7 +1882,7 @@ function hurt(ent,dmg,atkr)
 				firepos=dirpos
 			end
 		end
-		sfx(36)
+		sfx"36"
 		ent.light=nil
 		setfire(gettile(firepos))
 	end
@@ -2083,11 +2077,11 @@ end
 
 function gencave(pos)
 	 
-	local tl = gettile(pos)
+	local tl = inbounds(pos)
 	if(tl.typ==tempty)tl.typ=tcavefloor
 	
 	entropy -= 0.013
-	if inbounds(pos) then
+	if tl then
 		visitadjrnd(pos,
 		function(npos,ntl)
 			if not genable(ntl) then
@@ -2400,12 +2394,6 @@ staffs[oaken,driftwood,ebony,purpleheart]:
 fire,lightning,ice,blinking
 ]]
 
-function initinventory()
-	inventory={}
-	addtoinventory(create(130)).eQUIP(true)
-	calclight()
-end
-
 function inititem(item)
 setanim(item,"flash")
 item.eQUIP=function(nosnd)
@@ -2457,7 +2445,7 @@ function pickup(item)
 	addtoinventory(item)
 	item.tl.item=nil
 	log("+"..item.n)
-	sfx(25)
+	sfx"25"
 end
 
 function addtoinventory(item)
@@ -2475,10 +2463,10 @@ end
 function updateaim()
  local aimscrpos=
   screenpos(aimpos)+1.5*
-  vec2(1.5*(tonum(btn(➡️))
-           -tonum(btn(⬅️))),
-       tonum(btn(⬇️))
-      -tonum(btn(⬆️)))
+  vec2(1.5*(tonum(btn"1")
+           -tonum(btn"0")),
+       tonum(btn"3")
+      -tonum(btn"2"))
 	
  
 	local relscrpos=aimscrpos-campos
@@ -2501,7 +2489,7 @@ function updateaim()
 		updatefacing(player,dir)
 	end
 	
-	if btnp(🅾️) then
+	if btnp"4" then
 	 skipturn,aimpos,aimitem=false
 	 setmode"play"
 	end
