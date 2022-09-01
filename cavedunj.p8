@@ -6,7 +6,7 @@ __lua__
 
 function _init()
 assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,fireplaying:false,btnheld:0,shake:0,playerdir:2
+[[mode:title,statet:0,depth:0,turnorder:0,playing:false,btnheld:0,shake:0,playerdir:2
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass:54,tflatgrass:38,tlonggrass:58
@@ -24,7 +24,7 @@ entdata=assigntable(
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,knockback:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
 72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,hurt:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,hurtsplit:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
-137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,death:42
+137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,flammable:t,death:42
 136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:t,blocking:t,hitpush:t,dmg:2,stun:1,flippable:t,deathanim:propdeath,animspeed:0.3,death:23
 200=n:bARREL,hp:2,blocking:t,hitpush:t,dmg:2,stun:1,flammable:t,deathanim:propdeath,animspeed:0.3,death:23
@@ -53,11 +53,11 @@ fall=w0v50v50v60cv70v80v8or_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,id:t
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:6
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,throwcol:9,id:t
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:6,throwcol:6
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4,throwcol:6
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:t,throw:6
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:3,dmgincrease:2
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:2
 129=n:oAKEN STAFF,var:item,unid:t,throw:3
 145=n:dRIFTWOOD STAFF,var:item,throw:4
 161=n:eBONY STAFF,var:item,throw:4
@@ -81,7 +81,6 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 ]],nil,"\n","=")
 
 	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
-
  
 	adj=vec2list
 [[-1, 0
@@ -158,8 +157,8 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
  split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",
  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 
-	textanims,textlog,spawns,diags,inventory=
-	{},{},{},{},{}
+	textanims,textlog,spawns,diags,inventory,rangedatks=
+	{},{},{},{},{},{}
  
  function mapgroup(x,y)
   group={}
@@ -208,7 +207,7 @@ function updateturn()
 	 tickstatuses(player)
 	 updatemap()
 	elseif turnorder==1 then
-		for i,ent in ipairs(ents) do
+		for i,ent in next,ents do
 			if ent.ai then
 			 taketurn(ent,ent.pos,ent.tl,ent.group)
 			end
@@ -236,9 +235,9 @@ function _update()
 	if modeis"play" then
 		updateturn()
 	elseif modeis"aim" then
-		updateaim()
+		updateaim(unpack(aimparams))
 	elseif modeis"reset" and
-	 statet>0.5 
+	 statet>0.3 
 	then
 	 run()
 	end
@@ -246,7 +245,7 @@ function _update()
 	statet+=0.033
 	
 	if mode!="ui" then
- 	waitforanim=false
+ 	waitforanim=#rangedatks>0
 		for i,ent in ipairs(ents) do
 			updateent(ent)
 		end
@@ -278,11 +277,24 @@ function _draw()
 	lfillp=localfillp(0xbfd6.4,
 								-campos.x,
 								-campos.y)
-	drawmap(world)
+
+	for i,drawcall in 
+					ipairs(drawcalls) do
+		drawcall[1](
+			unpack(drawcall[2]))
+	end
+	
 	basepal()
 	pal(usplit"15,129,1")
 	pal(usplit"11,131,1")
 	fillp()
+	
+	for atk in all(rangedatks) do
+	 atk[1]+=1 --counter
+		if rangedatk(unpack(atk)) then
+		 del(rangedatks,atk)
+		end
+	end
 	
 	if fadetoblack then
   textanims={}
@@ -293,7 +305,7 @@ function _draw()
 		          (time()-anim[7])
 		 local col=anim[4] or 7
 		 if t>0.5 then
-				del(textanims, anim)
+				del(textanims,anim)
 			else
 				anim[2].y-=0.5-t
 				local text,x=anim[1],anim[2].x
@@ -305,8 +317,7 @@ function _draw()
 			end
 		end
 	elseif modeis"aim" then
-	 local scrpos=screenpos(aimpos)
-		?"\19",scrpos.x-1,scrpos.y-2,7
+		?"\+fe\19",aimscrpos.x,aimscrpos.y,7
 	end
 	camera()
  
@@ -320,7 +331,7 @@ function _draw()
 			x=drawbar(v[1]/v[2],k,x,123,v[3],v[4])	
 		end
 	elseif modeis"aim" then
-		?"\fd⬅️\|d⬆️\+8m⬇️\|d➡️:aIM    ❎:"..(aimthrow and "tHROW" or "fIRE"),16,118
+		?"\fd⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
 	end
 	if modeis"ui" then
 		if btnp"4" then
@@ -347,7 +358,7 @@ function _draw()
 \
 \
   press ❎",
-  usplit"41,24,0.45,6,title,0")
+  usplit"41,24,0.1,6,title,0,9")
 	then
 	 setmode"intro"
 	elseif	textcrawl(
@@ -423,13 +434,13 @@ function drawbar(ratio,label,x,y,col1,col2)
  return x+w+4
 end
 
-function textcrawl(str,x,y,fadet,col,m,mus)
+function textcrawl(str,x,y,fadet,col,m,mus,xtra)
  if modeis(m) and statet>fadet then
 	 if mus and not musicplayed then
 		 music(mus,2)
 		 musicplayed=true
 		end
- 	print(sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1)	
+ 	print(sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1)	
 	 if btnp"5" then
 	  return true
 	 end
@@ -764,14 +775,17 @@ function checkeffects(tl)
  function checkeffect(typ,has)
  	local effect=tl.effect
  	if effect then
-		 if	effect.typ==typ and
-		 	not effect.dead and
-		 	not has
-		 then
-		 	setanim(effect,effect.deathanim)
-		 	effect.dead,effect.light=true
+		 if	effect.typ==typ then
+		  if not effect.dead and
+		 	not has then
+			 	setanim(effect,effect.deathanim)
+			 	effect.dead,effect.light=true
+		 	end
+		 elseif has then
+		 	destroy(effect)
 		 end
-		elseif has then
+		end
+		if not tl.effect and has then
 		 create(typ,tl.pos)
 		end
 	end
@@ -784,15 +798,6 @@ function checkeffects(tl)
  checkeffect(138,hasfire)
  checkeffect(139,hasspores)
 end
-
-function drawmap()
-	for i,drawcall in 
-					ipairs(drawcalls) do
-		drawcall[1](
-			unpack(drawcall[2]))
-	end
-end
-
 
 function setupdrawcalls()
 	drawcalls={}
@@ -1102,8 +1107,8 @@ function effect(var,pos,typ,val)
 end
 
 function setfire(tl)
- tl.fire=max(tl.fire,1)
- tl.spores=0
+ tl.fire,tl.spores,tl.newspores=
+ max(tl.fire,1),0,0
  entfire(tl)
 end
 
@@ -1135,9 +1140,27 @@ function updateenv()
  local anyfire=false
 	alltiles(
 	function(pos,tl)
-	 if tl.fire>=2 then
-			entfire(tl)
-			visitadj(pos,trysetfire)
+	 if tl.spores>0 then
+			tl.spores=max(tl.spores-rnd(0.25))
+			if tl.spores>1 then
+				adjtls={}
+				visitadj(pos,
+				function(npos,ntl)
+					if navigable(ntl,true) and
+					   ntl.fire==0
+				 then
+						add(adjtls,ntl)
+					end
+				end)
+				local portion=tl.spores/(#adjtls+1)
+				tl.newspores-=tl.spores-portion
+				for ntl in all(adjtls) do
+					ntl.newspores+=portion
+				end
+			end
+		end
+		if tl.fire>=2 then
+		 visitadj(pos,trysetfire)
 			if tileflag(tl,9) then
 			 if rndp(0.2) then
 			 	tl.fire=0
@@ -1150,25 +1173,9 @@ function updateenv()
 					checkfall(tl.ent)
 				end
 			end
-		elseif tl.spores>0 then
-			tl.spores=max(tl.spores-rnd(0.25))
-			if tl.spores>1 then
-				adjtls={}
-				visitadj(pos,
-				function(npos,ntl)
-					if navigable(ntl,true) then
-						add(adjtls,ntl)
-					end
-				end)
-				local portion=tl.spores/(#adjtls+1)
-				tl.newspores-=tl.spores-portion
-				for ntl in all(adjtls) do
-					ntl.newspores+=portion
-				end
-			end
 		end
-		if tl.ent and 
-		tl.ent.statuses.BURN then
+		if tl.ent and
+		 tl.ent.statuses.BURN then
 		 trysetfire(nil,tl,true)
 		 anyfire=true
 		end
@@ -1177,12 +1184,12 @@ function updateenv()
 	function(pos,tl)
 		if tl.fire>=1 then
 			tl.fire+=1
-		 entfire(tl)
-		 anyfire=true
+		 setfire(tl)
+			anyfire=true
 		end
 		tl.spores+=tl.newspores
 		tl.newspores=0
- 	checkeffects(tl)
+		checkeffects(tl)
 	end)
 	if anyfire != fireplaying then
 		fireplaying=anyfire
@@ -1229,7 +1236,19 @@ function updatemap()
 end
 -->8
 --utility
+--[[
+function checkinput()
+	input=bufferedinput
+	bufferedbtns=nil
+end
 
+function getbtnp(b)
+	if bufferedbtns & (1<<b) != 0 then
+		bufferedbtns=nil--eat the input
+		return true
+	end
+end
+]]
 function screenpos(pos)
 	return vec2(pos.x*12,
 							 				 pos.y*8+pos.x*4) 
@@ -1468,7 +1487,7 @@ function tickstatuses(ent)
  		sfx(17,-1,6)
  	end
  end
-	for k,v in pairs(ent.statuses) do
+	for k,v in next,ent.statuses do
 		v[1]-=1
 		if v[1]<=0 then
 			ent.statuses[k]=nil
@@ -1651,6 +1670,8 @@ function taketurn(ent,pos,tl,group)
 		poke(0x5f5c,9)--key repeat
 		poke(0x5f5d,6)
 		
+		playerdst,aimitem=
+		ent.pos+adj[playerdir]
 		if skipturn then
 		 skipturn=false
 		 return true
@@ -1679,7 +1700,6 @@ function taketurn(ent,pos,tl,group)
 		turn(⬇️,3)
 		updatefacing(ent,adj[playerdir])	
 		
-		playerdst=ent.pos+adj[playerdir]
 		local dsttile=gettile(playerdst)
 		if dsttile.typ!=tywall or
 		   playerdst.x<=ent.pos.x
@@ -1860,7 +1880,7 @@ function hurt(ent,dmg,atkr)
 			if splitpos then
 				ent.hp/=2
 				local newent=create(ent.typ,splitpos,ent.behav,ent.group)
-			 for k,v in pairs(ent.statuses) do
+			 for k,v in next,ent.statuses do
 			 	newent.statuses[k]={unpack(v)}
 			 end
 			 newent.renderpos,newent.hp,newent.xfacing=
@@ -1987,7 +2007,6 @@ function genmap(startpos,manmade)
 		gencave(startpos)
 	end
 	postproc()
-	
 	setupdrawcalls()
 end
 
@@ -2002,7 +2021,7 @@ function genroom(pos)
 											+roomextrasize
 											-roomextraw
 		 
-	h=flr(h/4+1)*4
+	h=h\4+4
 	w+=w%2
 	local yoffset=ceil(rnd(h-1))-2
 	local minpos=pos+
@@ -2379,7 +2398,7 @@ end
 --[[
 
 orbs[green,orange,purple,pink,cyan,yellow,red,silver:
-ench,life,info,air,
+power,life,data,gravity,
 light,fire,ice,teleport
 
 cloaks[navy,cyan,gold,red]:
@@ -2410,16 +2429,19 @@ end
 item.sTOW=function(staylit)
 	if item.equipped then
 		item.equipped=nil
-		if item.lit and not staylit
-		then
-		 item.eXTINGUISH()
+		if item.lit then
+		 if staylit then
+				player.statuses.TORCH=nil
+		 else
+		 	item.eXTINGUISH()
+			end
 		end
 		player[item.slot]=nil
 	end
 end
 
 item.tHROW=function()
- aim(item,true,item.throw)
+ aim{item,{item.throw},"throw",12}
 end
 
 --[[item.dROP=function()
@@ -2435,7 +2457,7 @@ end
 end]]
 
 item.eXTINGUISH=function()
-	item.lit,item.light,
+	item.lit,item.light,item.throwcol,
 	player.statuses.TORCH=nil
 	item.typ+=1
 end
@@ -2452,44 +2474,105 @@ function addtoinventory(item)
 	return add(inventory,item)
 end
 -->8
---aiming
+--ranged attacks
 
-function aim(item,thrown,range,pass)
-	aimitem,aimthrow,aimrange,aimpass,aimpos=
-	item,thrown,range,pass,playerdst
+function aim(params)
+	aimparams,aimpos=params,playerdst
 	setmode"aim"
 end
 
-function updateaim()
- local aimscrpos=
+function updateaim(item,lineparams,atktype,fx)
+ aimitem=item
+ local ppos=player.pos
+ aimscrpos=
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn"1")
            -tonum(btn"0")),
        tonum(btn"3")
       -tonum(btn"2"))
 	
- 
-	local relscrpos=aimscrpos-campos
- aimscrpos.x-=min(relscrpos.x-1.5)+max(relscrpos.x-126.5)
-	aimscrpos.y-=min(relscrpos.y-1.5)+max(relscrpos.y-126.5)
+ aimscrpos.x=mid(campos.x,aimscrpos.x,campos.x+127)
+	aimscrpos.y=mid(campos.y,aimscrpos.y,campos.y+127)
 	aimpos=vec2(aimscrpos.x/12,
 	            aimscrpos.y/8-aimscrpos.x/24)
  
- aimline=hexline(player.pos,aimpos,aimrange,aimpass,false,not aimthrow)
+ local aimline=hexline(ppos,aimpos,unpack(lineparams))
 	for pos in all(aimline) do
 	 gettile(pos).hilight=2
 	end
-	local dir = hexdir(player.pos,aimpos)
+	local dir = hexdir(ppos,aimpos)
 	for i=1,6 do
 		if adj[i]==dir then
 			playerdir=i
 		end
 	end
-	updatefacing(player,dir)
+	updatefacing(player,aimpos-ppos)
 	
-	if btnp"4" then
-	 skipturn,aimpos,aimitem=false
+	if #aimline>0 and btn"5" and
+	   statet>0.2 then
+		setmode"play"
+		sfx(fx)
+		if atktype=="throw" then
+			item.sTOW(true)
+			del(inventory,item)
+			aimitem=nil
+		end
+		add(rangedatks,{0,player.pos,aimline,item,atktype})
+	elseif btnp"4" then
+	 skipturn=false
 	 setmode"play"
+	end
+end
+
+function rangedatk(i,origin,ln,item,atktype)
+	function atkis(str)
+	 return atktype==str
+	end
+	
+	local dst=ln[#ln]
+	local dsttl=gettile(dst)
+	local spd=atkis"throw" and item.throw/12 or 1
+	
+ if (i*spd>=#ln) then
+  if atkis"throw" then
+		 if dsttl.typ==thole then
+		 	sfx"24"
+		 elseif item.lit then
+		 	setfire(dsttl)
+		 	sfx"36"
+		 else
+		  --todo:orb effects
+		  --todo:damage
+		  --todo:deposit on ground
+		 end
+		end
+		return true
+	end
+	
+	local tl = gettile(ln[flr(i*spd)+1])
+ 
+	if atkis"throw" then
+		if tl.typ==tlonggrass then
+  	tl.typ=tflatgrass
+  end
+		
+		function getpos(i,offs)
+			local t,airtime=
+			spd*i/#ln, #ln/spd
+			local arcy,pos=
+			(t*t-t)*airtime*airtime/4,
+			lerp(origin,ln[#ln],t)
+			local scrpos=screenpos(pos)+offs
+			return scrpos.x,scrpos.y+arcy
+		end
+		
+		if item.throwcol then
+			local x1,y1=getpos(i-1,vec2s"0,-2")
+		 local x2,y2=getpos(i,vec2s"0,-2")
+		 line(x1,y1,x2,y2,item.throwcol)
+		else
+			spr(item.typ,getpos(i,vec2s"-3,-6"))
+		end
 	end
 end
 __gfx__
@@ -2554,8 +2637,8 @@ fff67fffffffffffff2ec4cffffffffff1051878ffffff6fffffffffffffffff0011f100ffffffff
 fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005fffffffffffffccfffff88d8eeee7eeeff2d7c7fff85588982fff8ff
 ff822ffffff3f36fffbb3c4cff4333fff1bb3141ff333976ffffffff4f624f4615000051ffffffffffccfccff8682262ffdcefffcff2c7c7ff8ff6588888858f
 ff6d9fffffb333f6ff222e3cff44499ff1000531f3333336ff64f6fff4464446f158081ffffffffffcdccccffff68226ffdccffffccdc7c7fffff69888556f8f
-f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeffcc7ccfff2862f26fffcffffddd26d6fff896f98882f6fff
-ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227efffc7cff28862226fffdfffffffd2dfffff8998888f6ffff
+f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeffcc7ccfff2862f26fffcffffddd26c6fff896f98882f6fff
+ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227efffc7cff28862226fffdfffffffd2cfffff8998888f6ffff
 fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002effffcfff888e822effffffffffdfdfffffff8868286fffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -2814,7 +2897,7 @@ c4020b00326103503437061242311d21310231000000000000000000000000000000000000000000
 900409000f65500301000010065006011006013600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900b04003f00438011320212900100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 480606000062507071000000062400620006250000001605006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-940310000163500000206250001106041090110b531095110a5210b5010a5110b5010c5010b5010a5110b50100000000000000000000000000000000000000000000000000000000000000000000000000000000
+940310000165500000206650002106051090210b541095210a5310b5010a5210b5010c5010b5010a5110b50100000000000000000000000000000000000000000000000000000000000000000000000000000000
 c40406003a62532525136003f52500605026010160100505006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 04020c0006553000030955300003000031153300003000031a5330000300003355230000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000603003e00013031000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -2833,8 +2916,8 @@ a8030400260242a01100100001000010000100001000010000100001000010000100001000010000
 000b02000f05300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 90010d0007615006110061524500316000060000600006003162500610006110060100601006011e60500601006010060100601006051d600006050560004600000000060500000000000a600086050000002600
 610a00001a6051c5311a5211952119512195011950100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-360200000c050006500145033650366603666036660366503665036650366503665036650366501764017630176301333000000123501760025600206001133000000296002a600003000c310000000000000000
-360200000c0500065001450386503a6602766020660163502d65014350366003660015350366001760017600176000040000000000001760025600206000030000000296002a6000030000000000000000000000
+7f0200000c050006500145033650366603666036660366503665036650366503665036650366501764017630176301333000000123501760025600206001133000000296002a600003000c310000000000000000
+7f0200000c0500065001450386503a6602766020660163502d65014350366003660015350366001760017600176000040000000000001760025600206000030000000296002a6000030000000000000000000000
 00070000161011e1001c1011c1011c1011a1010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
