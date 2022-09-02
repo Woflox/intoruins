@@ -11,7 +11,8 @@ assigntable(
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
-,minroomw:3,minroomh:2,roomsizevar:8]],
+,minroomw:3,minroomh:2,roomsizevar:8
+,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{}]],
 _ENV)
 entdata=assigntable(
 [[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8
@@ -92,8 +93,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
   end
  end
  
-	tlsfx,adj,wpnpos,fowpals,whitepal,redpal,items,
-	 specialtiles,textanims,spawns,diags,inventory,rangedatks=
+	tlsfx,adj,wpnpos,fowpals,whitepal,redpal,items=
 	assigntable"58:37,38:10,54:10,44:38,60:38,40:43",--tlsfx
 	vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
  vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0",--wpnpos
@@ -103,8 +103,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 },
 	split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",--whitepal
  split"8,8,8,8,8,8,8,8,8,8,8,8,8,8",--redpal
-	mapgroup(14,0),--items
-	{},{},{},{},{},{}
+	mapgroup(14,0)--items
 	
  for s in all(
 split([[tcavewall
@@ -1276,8 +1275,8 @@ function assigntable(str,table,delim1,delim2)
  for var in 
 		all(split(str,delim1 or ","))
 	do
-		local pair=split(var,delim2 or ":")
-		table[pair[1]]=pair[2]
+		local k,v=unpack(split(var,delim2 or ":"))
+		table[k]=v=="{}"and {} or v
 	end
 	return table
 end
@@ -1348,7 +1347,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -1362,7 +1361,6 @@ function create(typ,pos,behav,group)
 		rnd(split"y,o,us,ox,erbee,elia")
 	add(ents,ent)
 	ent.maxhp=ent.hp
-	ent.statuses={}
 	if (ent.flippable or ent.ai)
 	   and rndp() then
 		ent.xface*=-1
