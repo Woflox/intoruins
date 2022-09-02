@@ -1162,11 +1162,12 @@ function findfree(pos,var)
  local bestd,bestpos=-100
  alltiles(
  function(npos,ntl)
+  local d=ntl.free+rnd()
  	if navigable(ntl) and
  	   not ntl[var] and
- 	   ntl.free+rnd()>bestd then
+ 	   d>bestd then
  		bestd,bestpos=
- 		ntl.free,npos
+ 		d,npos
  	end
  end)
  return bestpos
