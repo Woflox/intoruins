@@ -1354,6 +1354,22 @@ function create(typ,pos,behav,group)
 		end
 	end
 
+ ent.setbehav=function(behav)
+		if ent.behav!=behav then
+			if ent.behav=="sleep" then
+			 checkidle(ent)
+			end
+			
+			ent.behav=behav
+			if behav=="hunt" then
+				animtext("!",ent)
+				sfx(ent.alert)
+			elseif behav=="search"	then
+				animtext("?",ent)
+			end
+			ent.canact=false 
+		end
+	end
 	
 	if ent.pos then
 		setpos(ent,ent.pos,true)	
@@ -1731,7 +1747,7 @@ function taketurn(ent,pos,tl,group)
 				if not checkaggro(1.0) and
 					  ent.tl.search == goal
 			 then
-					setbehav(ent,"wander")
+					ent.setbehav"wander"
 				end
 			end
 		end
@@ -1743,27 +1759,10 @@ function postturn(ent)
  if ent.ai then
 		if ent.behav=="hunt" and not
 		   pseen then
-			setbehav(ent,"search")
+			ent.setbehav"search"
 			setsearchpos(lastpseenpos)
 		end
   ent.canact=true
-	end
-end
-
-function setbehav(ent,behav)
-	if ent.behav!=behav then
-		if ent.behav=="sleep" then
-		 checkidle(ent)
-		end
-		
-		ent.behav=behav
-		if behav=="hunt" then
-			animtext("!",ent)
-			sfx(ent.alert)
-		elseif behav=="search"	then
-			animtext("?",ent)
-		end
-		ent.canact=false 
 	end
 end
 
@@ -1783,11 +1782,11 @@ function aggro(pos)
 					ent.tl.aggro>=-3
 		then
 			if seesplayer(ent) then
-				setbehav(ent,"hunt")
+				ent.setbehav"hunt"
 				pseen=true
 			elseif ent.behav!="hunt"
 			then
-				setbehav(ent,"search")
+				ent.setbehav"search"
 			end
 		end
 	end
@@ -1806,7 +1805,7 @@ function hurt(ent,dmg,atkr)
 	end
 	if ent.hp<=0 then
 	 sfx(ent.death or 41)
-		setbehav(ent,"dead")
+		ent.setbehav"dead"
 		ent.setanim(ent.deathanim)
 		waitforanim=true
 		if ent==player then
