@@ -1160,6 +1160,7 @@ function updateenv()
 			end
 		end
 		if tl.fire>=2 then
+		 entfire(tl)
 		 visitadj(pos,trysetfire)
 			if tileflag(tl,9) then
 			 if rndp(0.2) then
@@ -1208,26 +1209,20 @@ function updateenv()
 	end
 end
 
---[[
 function findfree(pos,var,recurse)
- if not gettile(pos)[var] then
- 	return pos
- end
- for i=1,recurse do
-  local res=nil
-		visitadjrnd(pos,
-		function(npos,ntl)
-			if navigable(ntl) and not
-			   (ntl.ent and ntl.ent.blocking)
-			then
-			 if not ntl[var] then
-			 	return npos
-			 end
-			 pos=npos
-			end
-		end)
-	end
-end]]
+ calcdist(pos,"free")
+ local bestd,bestpos=-100
+ alltiles(
+ function(npos,ntl)
+ 	if navigable(ntl) and
+ 	   not ntl.item and
+ 	   ntl.free>bestd then
+ 		bestd,bestpos=
+ 		ntl.free,npos
+ 	end
+ end)
+ return bestpos
+end
 
 function updatemap()
 	calclight()
@@ -1401,12 +1396,12 @@ function create(typ,pos,behav,group)
 							behav=behav,group=group}
 	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41",ent)
 	assigntable(entdata[typ],ent)						
+
+	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
 	
 	if ent.pos then
 		setpos(ent,ent.pos,true)	
 	end
-
-	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
 	
 	ent.truname=ent.ai and 
 		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
@@ -1466,7 +1461,7 @@ function setpos(ent,pos,setrender)
 	ent.tl=gettile(pos)
 	ent.tl[ent.var]=ent
 	if setrender then
-		ent.renderpos=entscreenpos(ent)
+		ent.renderpos=entscreenpos(ent)+ent.animoffset
 	end
 	checkfall(ent)
 end
@@ -2086,16 +2081,16 @@ function genroom(pos)
 		
 	entropy-=0.15+rnd(0.1)
 	local crumble = rnd(0.25)
-	if (entropy<0) return
-	doroom()
-	if rndp(0.15) then
-		gencave(rndpos())				 
+	if entropy>=0 then
+		doroom()
+		if rndp(0.15) then
+			gencave(rndpos())				 
+		end
+		genroom(rndpos())	
 	end
-	genroom(rndpos())	
 end
 
 function gencave(pos)
-	 
 	local tl = inbounds(pos)
 	if(tl.typ==tempty)tl.typ=tcavefloor
 	
@@ -2125,8 +2120,8 @@ function gentile(typ,pos)
 	if (manmade(tl)) y+=16
 	settile(tl,mget(typ,y))
 	local typ2=mget(typ+1,y)
-	tl.flip=rndp()
-	tl.genned=true
+	tl.flip,tl.genned=
+	rndp(),true
  if typ2!=0 then
   if typ2<64 then
  		tl.bg=typ2
@@ -2145,7 +2140,7 @@ function postgen(pos,tl,prevtl)
 			if not ntl.genned then
 				gentile(tl.typ,npos)
 			end
-			postgen(npos, ntl, genable(tl) and tl or prevtl)
+			postgen(npos,ntl,genable(tl) and tl or prevtl)
 		end
 	end)
 end
@@ -2154,8 +2149,8 @@ function notblocking(pos)
 	function navat(i)
 		return navigable(getadjtl(pos,i))
 	end
-	local lastnav=navat(6)
-	local numnavreg=0
+	local lastnav,numnavreg=
+	navat(6),0
 	for i=1,6 do
 		local nav = navat(i)
 		if nav and not lastnav then
@@ -2173,8 +2168,8 @@ function postproc()
 			--what a mess
 		 calcdist(genpos,"pdist")
 		 
-			local unreach={}
-			local numtls=0
+			local unreach,numtls=
+			{},0
 			alltiles(
 			function(pos,tl)
 				if navigable(tl) and
@@ -2222,7 +2217,7 @@ function postproc()
 				repeat
 					bestp1+=bestdir
 					local tl=gettile(bestp1)
-					local nav = navigable(tl)
+					local nav=navigable(tl)
 					if not nav then
 					 if manmade(tl) then
 					 	tl.typ=tdunjfloor
@@ -2332,12 +2327,10 @@ function postproc()
 		  sfx(28)
 		  goto abort
 		 end]]
-		 testpos=rndpos()
-		 tl=gettile(testpos)
-		 pdist=tl.pdist
-		 if checkspawn(testpos,0) then
-		 	if pdist<bestdist then
-		 	 bestdist=pdist
+		 local tl=gettile(rndpos())
+		 if checkspawn(tl.pos,0) then
+		 	if tl.pdist<bestdist then
+		 	 bestdist=tl.pdist
 		 	 besttl=tl
 		 	end
 		 	tilesfound+=1
@@ -2471,7 +2464,7 @@ function pickup(item)
 end
 
 function addtoinventory(item)
-	return add(inventory,item)
+ return add(inventory,item)
 end
 -->8
 --ranged attacks
@@ -2544,6 +2537,10 @@ function rangedatk(i,origin,ln,item,atktype)
 		  --todo:orb effects
 		  --todo:damage
 		  --todo:deposit on ground
+		 	local free=findfree(dst)
+		 	if free then
+		 		setpos(item,free,true)
+		 	end
 		 end
 		end
 		return true
