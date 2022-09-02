@@ -82,72 +82,45 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 
 	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
  
-	adj=vec2list
-[[-1, 0
-	 0 ,-1
-		1 ,-1
-		1 , 0
-		0 , 1
-		-1, 1]]
+	adj,specialtiles=vec2list
+"-1,0|0,-1|1,-1|1,0|0,1|-1,1",{}
+	--7965
 	
-	specialtiles={
-[tcavewall]={
-	vec2s"-9,-4",
-	vec2list--xy
-[[0 ,-8
-	 5 ,-8
-	 13,-8
-	 13, 4
-	 4 , 4
-	 2 , 4]],
-	vec2list--wh
-[[5,13
-	 8,13
-	 5,13
-	 5, 4
-	 11,4
-	 3, 4]]},
-[thole]={
-	vec2s"-8,-4",
-	vec2list--xy
-[[0, 0
-	 4, 0
-	 13,0
-	 0, 0
-	 4, 1
-	 13,0]],--last 3 are brick
-	vec2list--wh
-[[4,8
-	 8,8
-		3,8
-		4,8
-		7,7
-		4,8]]},
-[txwall]={
-	vec2s"-9,-2",
-	vec2list--xy
-[[12,-6
-		 0,-8]],
-	vec2list--wh
-[[4 ,13
-	 12,17]]},
-[tywall]={
-	vec2s"-5,-2",
-	vec2list--xy
-[[9,-8
-	 2,-8]],
-	vec2list--wh
-[[6 ,17
-	 7,17]]}
-}
+ for s in all(
+split([[tcavewall
+16
+-9,-4
+0,-8|5,-8|13,-8|13,4|4,4|2,4
+5,13|8,13|5,13|5,4|11,4|3,4
+_thole
+32
+-8,-4
+0,0|4,0|13,0|0,0|4,1|13,0
+4,8|8,8|3,8|4,8|7,7|4,8
+_txwall
+20
+-9,-2
+12,-6|0,-8
+4,13|12,17
+_tywall
+18
+-5,-2
+9,-8|2,-8
+6,17|7,17
+_default
+0
+-8,-4
+1,0
+15,8]],"_")) do
+		local sb=split(s,"\n")
+		specialtiles[sb[2]]=
+		{vec2s(sb[3]),
+		 vec2list(sb[4]),
+		 vec2list(sb[5])}
+ end
  
  wpnpos=vec2list
-[[3,-2
- 	2,-1
- 	1,-2
- 	1,3
- 	3,-3
- 	1,0]]
+"3,-2|2,-1|1,-2|1,3|3,-3|1,0"
  	
  fowpals={
  split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -812,24 +785,18 @@ function setupdrawcalls()
 				drawcall(initpal,{tl,true})
 				palready=true
 			end
-			local typ
+			local typ=bg and tltodraw.bg or tltodraw.typ
 			if not i and tltodraw.typ==tywall then
 				typ=tdunjfloor
 			end
-			
-			local baseoffset,offset,size,flp=
-			vec2s"-8,-4",vec2s"1,0",vec2s"15,8",tl.flip
-		 
+
+		 local baseoffset,offsets,sizes=unpack(specialtiles[i and typ or 0])
+		 local offset,size=
+		 offsets[i or 1],
+		 sizes[i or 1]
 		 --special tiles
 			if i then
-			 typ=bg and tltodraw.bg or tltodraw.typ
-				local tileinfo= 
-											specialtiles[typ]
-				baseoffset,offset,size=
-					tileinfo[1],
-					tileinfo[2][i],
-					tileinfo[3][i]
-				if typ==tywall and
+			 if typ==tywall and
 							(pos.y+genpos.y)%2==0 then
 					baseoffset+=vec2s"-6,-2"
 				end
@@ -1311,7 +1278,7 @@ end
 
 function vec2list(str)
 	local ret={}
-	for vec in all(split(str,"\n")) do
+	for vec in all(split(str,"|")) do
 		add(ret,vec2s(vec))
 	end
 	return ret
