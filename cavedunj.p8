@@ -6,30 +6,30 @@ __lua__
 
 function _init()
 assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,playing:false,btnheld:0,shake:0,playerdir:2
+[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,playerdir:2,invindex:1
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
-,tshortgrass:54,tflatgrass:38,tlonggrass:58
+,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8]],
 _ENV)
 entdata=assigntable(
 [[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8
-70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:t,pdist:-15,runaway:t,alert:14,hurt:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:t,pdist:0,pack:t,movandatk:t,alert:20,hurt:21
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:0,alert:30,hurt:11
-66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-2,alert:30,hurt:11
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
-68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:t,pdist:-3,alert:30,hurt:11
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:t,knockback:t,stun:2,ai:t,pdist:0,alert:31,hurt:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:t,behav:wander,darksight:t,burnlight:t,pdist:0,flying:t,idleanim:batidle,alert:32,hurt:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:t,hurtsplit:t,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
-137=n:mUSHROOM,hp:1,blocking:t,sporeburst:12,light:4,lcool:t,deathanim:mushdeath,flippable:t,flammable:t,death:42
-136=n:bRAZIER,hp:1,nofire:t,blocking:t,hitfire:t,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
-169=n:cHAIR,hp:2,nofire:t,blocking:t,hitpush:t,dmg:2,stun:1,flippable:t,deathanim:propdeath,animspeed:0.3,death:23
-200=n:bARREL,hp:2,blocking:t,hitpush:t,dmg:2,stun:1,flammable:t,deathanim:propdeath,animspeed:0.3,death:23
+70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,runaway:,alert:14,hurt:15,fallanim:fall
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pdist:0,pack:,movandatk:,alert:20,hurt:21
+65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:0,alert:30,hurt:11
+66=n:gOBLIN MYSTIC,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-2,alert:30,hurt:11
+67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11
+68=n:gOBLIN WARLOCK,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11
+69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,pdist:0,alert:31,hurt:16
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,pdist:0,flying:,idleanim:batidle,alert:32,hurt:13
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,pdist:0,moveanim:emove,movratio:0.33,alert:19,hurt:19
+137=n:mUSHROOM,hp:1,blocking:,sporeburst:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
+136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
+169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
+200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,stun:1,flammable:,deathanim:propdeath,animspeed:0.3,death:23
 138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
-139=n:sPORES,var:effect,light:4,lcool:t,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:t
+139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
 firedeath=0_
@@ -53,12 +53,12 @@ fall=w0v50v50v60cv70v80v8or_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:t,throw:4,light:4,throwcol:9,id:t
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:t,throwatk:2,throw:6,throwcol:6
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:t,throw:4,throwcol:6
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:t,throw:6
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:t,slow:t,throw:2
-129=n:oAKEN STAFF,var:item,unid:t,throw:3
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwcol:9,id:
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:2,throw:6,throwcol:6
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:,throw:4,throwcol:6
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:6
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2
+129=n:oAKEN STAFF,var:item,unid:,throw:3
 145=n:dRIFTWOOD STAFF,var:item,throw:4
 161=n:eBONY STAFF,var:item,throw:4
 177=n:pUPLEHEART STAFF,var:item,throw:4
@@ -79,12 +79,32 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 190=n:pURPLE ORB,var:item,light:2,throw:6
 191=n:pINK ORB,var:item,light:2,throw:6
 ]],nil,"\n","=")
-
-	tlsfx=assigntable("58:37,38:10,54:10,44:38,60:38,40:43")
  
-	adj,specialtiles=vec2list
-"-1,0|0,-1|1,-1|1,0|0,1|-1,1",{}
-	--7965
+ function mapgroup(x,y)
+  group={}
+  for i=y,31 do
+			local typ=mget(x,i)
+			if typ == tempty then
+				return group,i+1
+			else
+				add(group,typ)
+			end
+  end
+ end
+ 
+	tlsfx,adj,wpnpos,fowpals,whitepal,redpal,items,
+	 specialtiles,textanims,spawns,diags,inventory,rangedatks=
+	assigntable"58:37,38:10,54:10,44:38,60:38,40:43",--tlsfx
+	vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
+ vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0",--wpnpos
+{split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+	split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
+	split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
+},
+	split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",--whitepal
+ split"8,8,8,8,8,8,8,8,8,8,8,8,8,8",--redpal
+	mapgroup(14,0),--items
+	{},{},{},{},{},{}
 	
  for s in all(
 split([[tcavewall
@@ -119,35 +139,8 @@ _default
 		 vec2list(sb[5])}
  end
  
- wpnpos=vec2list
-"3,-2|2,-1|1,-2|1,3|3,-3|1,0"
- 	
- fowpals={
- split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
-	split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
-	split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"}
-	whitepal,redpal=
- split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",
- split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-
-	textanims,textlog,spawns,diags,inventory,rangedatks=
-	{},{},{},{},{},{}
- 
- function mapgroup(x,y)
-  group={}
-  for i=y,31 do
-			local typ=mget(x,i)
-			if typ == tempty then
-				return group,i+1
-			else
-				add(group,typ)
-			end
-  end
- end
- 
 	for i=0,9 do
-		local curspawns={}
-		add(spawns,curspawns)
+		curspawns=add(spawns,{})
 		local y=0
 		while true do
 			group,y=mapgroup(i,y)
@@ -155,8 +148,6 @@ _default
 			add(curspawns,group)
 		end
 	end
-	
-	items=mapgroup(14,0)
 	
 	local rseed=rnd(0xffff.ffff)
 	srand(0x5b04.17cb)
@@ -173,7 +164,6 @@ function updateturn()
 	
 	if turnorder==0 then
 		pseen=false
-		playerwaited=false
 	 if not taketurn(player,player.pos,player.tl) then
 	 	return
 	 end
@@ -380,7 +370,6 @@ OF THE FABLED wINGS OF yENDOR?    \
  	music(-1,300)
  	setmode"reset"
 	end
-	--?rseed,0,0,7
 	inputblocked=false
 end
 
@@ -414,9 +403,7 @@ function textcrawl(str,x,y,fadet,col,m,mus,xtra)
 		 musicplayed=true
 		end
  	print(sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1)	
-	 if btnp"5" then
-	  return true
-	 end
+	 return btnp"5"
 	end
 end
 
@@ -436,8 +423,6 @@ function frame(x,y,x2,y2,func)
 	clip(x-3,y,x2-x+2,y2-y)
 end
 
-invindex=1
-
 function listitem(str,sel)
  if sel==nil then
   curindex+=1
@@ -448,7 +433,8 @@ function listitem(str,sel)
 	 not inputblocked and btnp"5" 
 end
 
-function getindex(cur,maxind)
+function getindex(maxind,cur)
+ cur=cur or menuindex
 	return focus and not inputblocked and
 												(cur+tonum(btnp"3")-
 													tonum(btnp"2")+
@@ -466,7 +452,7 @@ function inv()
  local sely=0
 	?"\fd  iNVENTORY\n\f1 …………… EQUIPPED"
 	
-	invindex=getindex(invindex,#inventory)
+	invindex=getindex(#inventory,invindex)
 	
 	function listitems(eqpd)
 		for item in all(inventory) do
@@ -489,7 +475,7 @@ function info()
  local eqpd = selitem.equipped
  local x=gettrans(42,5)
  frame(x,6,gettrans(42,90.5),111,rectfill)
- menuindex=getindex(menuindex,2)
+ menuindex=getindex(2)
 
  spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
  ?"\fd    "..selitem.n
@@ -497,30 +483,30 @@ function info()
  if selitem.id then
  	for str in all(split([[
  
-  nAME: =name|
+  nAME: ,name|
   cASTS LIGHT
-=lit|
+,lit|
   pIERCING ATTACK
-=pierce|
+,pierce|
   aRC ATTACK
-=arc|
+,arc|
   lUNGE ATTACK
-=lunge|
+,lunge|
   kNOCKBACK=knockback|
-  hEALTH:      =hp|/=maxhp|
-  aCCURACY:   +=atk|
-  dAMAGE:      =dmg|
-  aRMOR:       =armor|
-  tHROW RANGE: =throw|
-  tHROW ACC:   =throwatk|
-  sTUN:        =stun|
-  cHARGES:     =charge|/=maxcharges]]
+  hEALTH:      ,hp|/=maxhp|
+  aCCURACY:   +,atk|
+  dAMAGE:      ,dmg|
+  aRMOR:       ,armor|
+  tHROW RANGE: ,throw|
+  tHROW ACC:   ,throwatk|
+  sTUN:        ,stun|
+  cHARGES:     ,charge|/,maxcharges]]
   ,"|"))
   do
-  	k,v=unpack(split(str,"="))
+  	k,v=usplit(str)
 	  local val=selitem[v]
 	  if val then
-	   statstr..=k..(val=="t" and "" or val)
+	   statstr..=k..val
 	  end
 	 end
 	else
@@ -529,8 +515,7 @@ function info()
  ?statstr
  
  --menu
- cursor(x-3,86)
- ?"\f1 ……………………………"
+ ?"\f1 ……………………………",x-3,86
  
  for action in all(
  {selitem.slot and
@@ -551,7 +536,7 @@ end
 
 function confirmjump()
 	frame(32,gettrans(33,38.5),96,gettrans(33,82.5),rect)
-	menuindex=getindex(menuindex,2)
+	menuindex=getindex(2)
 	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
 	
 	if listitem" jUMP DOWN" then
@@ -611,8 +596,7 @@ end
 
 function basepal()
  pal()	
-	palt(0, false)
-	palt(15, true)
+	palt(1)
 end
 
 function initpal(tl, fadefow)
@@ -2831,7 +2815,7 @@ __map__
 00000000000000000000000000000000000000002ec800000000000030000000200000002ea900002e000000000036302e002e002e003000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000308800000000000030000000300000002ea900002e0000000000362e2e002e002e002e0000002e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-39500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
+38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900200000062403630036000062000610006000060000600056000060005600016000060000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
 c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
@@ -2871,13 +2855,13 @@ a8011700322103e2313f2313f2312f200232002e2002f20023200002000020000200002003020038
 480210000261000620036100161000600006100061000610006000061000600006000050000500006150060000500005000050000500005000050000500005000000000000000000000000000000000000000000
 78020b000e91006010040110301500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 a8030400260242a011001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000000000000000000000000000000000
-930100003b3153461034615270000000000000000000000000000000002b6002e600000000000000000000003931530610306151a6052900029000290053b6000000000000000003b600000003b600000003b600
+920100003b3153461034615270000000000000000000000000000000002b6002e600000000000000000000003931530610306151a6052900029000290053b6000000000000000003b600000003b600000003b600
 90070b001967316333073130060315333073131530315303153130010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000
 000b02000f05300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 90010d0007615006110061524500316000060000600006003162500610006110060100601006011e60500601006010060100601006051d600006050560004600000000060500000000000a600086050000002600
-610a00001a6051c5311a5211952119512195011950100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-7f0200000c050006500145033650366603666036660366503665036650366503665036650366501764017630176301333000000123501760025600206001133000000296002a600003000c310000000000000000
-7f0200000c0500065001450386503a6602766020660163502d65014350366003660015350366001760017600176000040000000000001760025600206000030000000296002a6000030000000000000000000000
+600a09001a6051c5311a5211952119512195011950100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+7e0200000c050006500145033650366603666036660366503665036650366503665036650366501764017630176301333000000123501760025600206001133000000296002a600003000c310000000000000000
+7e0219000c0500065001450386503a6602766020660163502d65014350366003660015350366001760017600176000040000000000001760025600206000030000000296002a6000030000000000000000000000
 00070000161011e1001c1011c1011c1011a1010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
