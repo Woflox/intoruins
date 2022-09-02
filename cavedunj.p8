@@ -288,7 +288,7 @@ function _draw()
 			x=drawbar(v[1]/v[2],k,x,123,v[3],v[4])	
 		end
 	elseif modeis"aim" then
-		?"\fd⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
+		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
 	end
 	if modeis"ui" then
 		if btnp"4" then
