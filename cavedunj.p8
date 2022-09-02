@@ -235,10 +235,15 @@ function _draw()
 								-campos.x,
 								-campos.y)
 
+ anyfire=false
 	for i,drawcall in 
 					ipairs(drawcalls) do
 		drawcall[1](
 			unpack(drawcall[2]))
+	end
+	if anyfire != fireplaying then
+		fireplaying=anyfire
+		music(anyfire and 32 or -1, 500, 3)
 	end
 	
 	basepal()
@@ -393,7 +398,7 @@ end
 function textcrawl(str,x,y,fadet,col,m,mus,xtra)
  if modeis(m) and statet>fadet then
 	 if mus and not musicplayed then
-		 music(mus,2)
+		 music(mus)
 		 musicplayed=true
 		end
  	print(sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1)	
@@ -746,6 +751,8 @@ function checkeffects(tl)
  						tl.ent.statuses.BURN
  local hasspores=tl.spores>0
 
+	anyfire=anyfire or hasfire and mode!="ui"
+
  checkeffect(138,hasfire)
  checkeffect(139,hasspores)
 end
@@ -1085,7 +1092,6 @@ function entfire(tl)
 end
 		
 function updateenv()
- local anyfire=false
 	alltiles(
 	function(pos,tl)
 	 if tl.spores>0 then
@@ -1126,7 +1132,6 @@ function updateenv()
 		if tl.ent and
 		 tl.ent.statuses.BURN then
 		 trysetfire(nil,tl,true)
-		 anyfire=true
 		end
 	end)
 	alltiles(
@@ -1134,16 +1139,11 @@ function updateenv()
 		if tl.fire>=1 then
 			tl.fire+=1
 		 setfire(tl)
-			anyfire=true
 		end
 		tl.spores+=tl.newspores
 		tl.newspores=0
 		checkeffects(tl)
 	end)
-	if anyfire != fireplaying then
-		fireplaying=anyfire
-		music(anyfire and 32 or -1, 500, 3)
-	end
 	calclight()
 	
 	for ent in all(ents) do
@@ -1823,7 +1823,7 @@ function hurt(ent,dmg,atkr)
 			 end
 			 newent.renderpos,newent.hp=
 			 ent.renderpos,ent.hp
-				ent.setanim"esplit"
+				newent.setanim"esplit"
 			end
 		end
 	end
