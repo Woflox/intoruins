@@ -734,7 +734,7 @@ function checkeffects(tl)
 		 if	effect.typ==typ then
 		  if not effect.dead and
 		 	not has then
-			 	setanim(effect,effect.deathanim)
+			 	effect.setanim(effect.deathanim)
 			 	effect.dead,effect.light=true
 		 	end
 		 elseif has then
@@ -1325,19 +1325,9 @@ end
 -->8
 --entities
 
-function setanim(ent,anim)
-	ent.anim,ent.animt,ent.animloop=
-	split(entdata[anim],""),0,false
-		
-	if ent.anim[1]=="w" then
-		waitforanim=true
-		ent.animwait=true
-	end
-end
-
 function checkidle(ent)
 	if ent.idleanim then
-	 setanim(ent,ent.idleanim)
+	 ent.setanim(ent.idleanim)
 	else
 		ent.animframe,ent.animheight,ent.anim,ent.animclip=
 		0,1
@@ -1351,6 +1341,19 @@ function create(typ,pos,behav,group)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
+	
+	
+ ent.setanim=
+ function (anim)
+		ent.anim,ent.animt,ent.animloop=
+		split(entdata[anim],""),0,false
+			
+		if ent.anim[1]=="w" then
+			waitforanim=true
+			ent.animwait=true
+		end
+	end
+
 	
 	if ent.pos then
 		setpos(ent,ent.pos,true)	
@@ -1370,7 +1373,7 @@ function create(typ,pos,behav,group)
 	end
 	checkidle(ent)
 	if ent.behav=="sleep" then
-		setanim(ent,"sleep")
+		ent.setanim"sleep"
 	end
 	
 	if ent.var=="item" then
@@ -1403,7 +1406,7 @@ function checkfall(ent)
 				ent.tl.typ==thole
 	then
 		sfx"24"
-		setanim(ent,ent.fallanim)
+		ent.setanim(ent.fallanim)
 		if (ent==player) calclight()
 	end
 end
@@ -1638,7 +1641,7 @@ function taketurn(ent,pos,tl,group)
 		function turn(btnid,i)
 		 if btnp(btnid) then
 				playerdir=(playerdir+i+5)%6+1
-				setanim(ent,"turn")
+				ent.setanim"turn"
 			end
 		end
 		
@@ -1804,7 +1807,7 @@ function hurt(ent,dmg,atkr)
 	if ent.hp<=0 then
 	 sfx(ent.death or 41)
 		setbehav(ent,"dead")
-		setanim(ent,ent.deathanim)
+		ent.setanim(ent.deathanim)
 		waitforanim=true
 		if ent==player then
 			setmode"gameover"
@@ -1825,7 +1828,7 @@ function hurt(ent,dmg,atkr)
 			 end
 			 newent.renderpos,newent.hp,newent.xfacing=
 			 ent.renderpos,ent.hp,ent.xfacing
-				setanim(newent,"esplit")
+				ent.setanim"esplit"
 			end
 		end
 	end
@@ -1864,7 +1867,7 @@ end
 
 function interact(a,b)
  local hit = rndp(hitp(a,b))
- setanim(a,a.atkanim)
+ a.setanim(a.atkanim)
  waitforanim=true
  a.atkinfo={b,b.pos,hit,a.stat"dmg"}
 end
@@ -1880,7 +1883,7 @@ function move(ent,dst,playsfx)
 	else
 		ent.tl.ent=nil
 		if ent.moveanim then
-			setanim(ent,ent.moveanim)
+			ent.setanim(ent.moveanim)
 		end
 		setpos(ent,dst)
 		
@@ -2296,7 +2299,7 @@ function postproc()
 	
 	if depth>0 then
 		player.animoffset.y=-21
-	 setanim(player,"fallin")
+	 player.setanim"fallin"
 	 
 		--spawn entities										
 		wanderdsts={}
@@ -2352,7 +2355,7 @@ fire,lightning,ice,blinking
 ]]
 
 function inititem(item)
-setanim(item,"flash")
+item.setanim"flash"
 item.eQUIP=function(nosnd)
 	if player[item.slot] then
 		player[item.slot].sTOW()
