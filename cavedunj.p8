@@ -785,7 +785,10 @@ function setupdrawcalls()
 				drawcall(initpal,{tl,true})
 				palready=true
 			end
-			local typ=bg and tltodraw.bg or tltodraw.typ
+			local typ,flp=
+			i and (bg and tltodraw.bg or
+			              tltodraw.typ),
+			tl.flip
 			if not i and tltodraw.typ==tywall then
 				typ=tdunjfloor
 			end
