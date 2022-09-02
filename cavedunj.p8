@@ -2016,7 +2016,7 @@ function genroom(pos)
 											+roomextrasize
 											-roomextraw
 		 
-	h=h\4+4
+	h=(h\4+1)*4
 	w+=w%2
 	local yoffset=ceil(rnd(h-1))-2
 	local minpos=pos+
