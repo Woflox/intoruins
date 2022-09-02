@@ -106,36 +106,31 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 	mapgroup(14,0)--items
 	
  for s in all(
-split([[tcavewall
-16
+split([[16
 -9,-4
 0,-8|5,-8|13,-8|13,4|4,4|2,4
 5,13|8,13|5,13|5,4|11,4|3,4
-_thole
-32
+◆32
 -8,-4
 0,0|4,0|13,0|0,0|4,1|13,0
 4,8|8,8|3,8|4,8|7,7|4,8
-_txwall
-20
+◆20
 -9,-2
 12,-6|0,-8
 4,13|12,17
-_tywall
-18
+◆18
 -5,-2
 9,-8|2,-8
 6,17|7,17
-_default
-0
+◆default
 -8,-4
 1,0
-15,8]],"_")) do
-		local sb=split(s,"\n")
-		specialtiles[sb[2]]=
-		{vec2s(sb[3]),
-		 vec2list(sb[4]),
-		 vec2list(sb[5])}
+15,8]],"◆")) do
+		local typ,baseoffset,offset,size=unpack(split(s,"\n"))
+		specialtiles[typ]=
+		{vec2s(baseoffset),
+		 vec2list(offset),
+		 vec2list(size)}
  end
  
 	for i=0,9 do
@@ -776,7 +771,7 @@ function setupdrawcalls()
 				typ=tdunjfloor
 			end
 
-		 local baseoffset,offsets,sizes=unpack(specialtiles[i and typ or 0])
+		 local baseoffset,offsets,sizes=unpack(specialtiles[i and typ or "default"])
 		 local offset,size=
 		 offsets[i or 1],
 		 sizes[i or 1]
