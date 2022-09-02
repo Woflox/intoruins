@@ -1176,14 +1176,14 @@ function updateenv()
 	end
 end
 
-function findfree(pos,var,recurse)
+function findfree(pos,var)
  calcdist(pos,"free")
  local bestd,bestpos=-100
  alltiles(
  function(npos,ntl)
  	if navigable(ntl) and
- 	   not ntl.item and
- 	   ntl.free>bestd then
+ 	   not ntl[var] and
+ 	   ntl.free+rnd()>bestd then
  		bestd,bestpos=
  		ntl.free,npos
  	end
@@ -1831,14 +1831,7 @@ function hurt(ent,dmg,atkr)
 	else
 		sfx"34"
 		if ent.hurtsplit and atkr then
-			local splitpos=nil
-			visitadjrnd(ent.pos,
-			function(npos,ntl)
-				if navigable(ntl) and not
-				   ntl.ent then
-				  splitpos=npos
-				end
-			end)
+			local splitpos=findfree(ent.pos,"ent")
 			if splitpos then
 				ent.hp/=2
 				local newent=create(ent.typ,splitpos,ent.behav,ent.group)
@@ -2504,7 +2497,7 @@ function rangedatk(i,origin,ln,item,atktype)
 		  --todo:orb effects
 		  --todo:damage
 		  --todo:deposit on ground
-		 	local free=findfree(dst)
+		 	local free=findfree(dst,"item")
 		 	if free then
 		 		setpos(item,free,true)
 		 	end
