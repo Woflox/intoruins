@@ -1821,8 +1821,8 @@ function hurt(ent,dmg,atkr)
 			 for k,v in next,ent.statuses do
 			 	newent.statuses[k]={unpack(v)}
 			 end
-			 newent.renderpos,newent.hp,newent.xfacing=
-			 ent.renderpos,ent.hp,ent.xfacing
+			 newent.renderpos,newent.hp=
+			 ent.renderpos,ent.hp
 				ent.setanim"esplit"
 			end
 		end
