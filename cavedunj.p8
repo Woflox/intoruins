@@ -149,7 +149,7 @@ split([[16
 	genmap(vec2s"10,13")
 	srand(rseed)
 	
-	addtoinventory(create(134)).eQUIP(true)
+	addtoinventory(create(130)).eQUIP(true)
 	calclight()
 end
 
@@ -1133,19 +1133,19 @@ function updateenv()
 				end
 			end
 		end
+	end)
+	alltiles(
+	function(pos,tl)
+		tl.spores+=tl.newspores
+		tl.newspores=0
 		if tl.ent and
 		 tl.ent.statuses.BURN then
 		 trysetfire(nil,tl,true)
 		end
-	end)
-	alltiles(
-	function(pos,tl)
 		if tl.fire>=1 then
 			tl.fire+=1
 		 setfire(tl)
 		end
-		tl.spores+=tl.newspores
-		tl.newspores=0
 		checkeffects(tl)
 	end)
 	calclight()
