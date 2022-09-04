@@ -58,7 +58,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,id:
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arsc:,throw:5,wpnfrms:16
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arsc:,throw:5,wpnfrms:16,throwflp:-1
 135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16
 129=n:oAKEN STAFF,var:item,unid:,throw:4
 145=n:dRIFTWOOD STAFF,var:item,throw:4
@@ -149,7 +149,7 @@ split([[16
 	genmap(vec2s"10,13")
 	srand(rseed)
 	
-	addtoinventory(create(130)).eQUIP(true)
+	addtoinventory(create(134)).eQUIP(true)
 	calclight()
 end
 
@@ -1337,7 +1337,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,statuses:{}",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -2514,6 +2514,7 @@ function rangedatk(i,origin,ln,item,atktype)
 		 local x2,y2=getpos(i,vec2s"0,-2")
 		 tline(x2,y2,x1,y1,18,item.throwln)
 		else
+		 item.xface*=item.throwflp		 
 			spr(item.typ,getpos(i,vec2s"-3,-6"))
 		end
 	end
