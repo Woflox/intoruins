@@ -30,7 +30,7 @@ entdata=assigntable(
 169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
 200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,stun:1,flammable:,deathanim:propdeath,animspeed:0.3,death:23
 138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
-139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:
+139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
 firedeath=0_
@@ -38,6 +38,7 @@ sporeidle=0l112233
 batidle=l0022
 move=044
 turn=44
+throw=444
 emove=022
 esplit=02022
 sleep=lz000000000000000000000
@@ -54,12 +55,12 @@ fall=w0v50v50v60cv70v80v8or_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,id:
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:2,throw:6,throwln:0.25
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:2,lunge:,throw:4,throwln:1
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:6
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2
-129=n:oAKEN STAFF,var:item,unid:,throw:3
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,id:
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arsc:,throw:5,wpnfrms:16
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16
+129=n:oAKEN STAFF,var:item,unid:,throw:4
 145=n:dRIFTWOOD STAFF,var:item,throw:4
 161=n:eBONY STAFF,var:item,throw:4
 177=n:pUPLEHEART STAFF,var:item,throw:4
@@ -246,17 +247,18 @@ function _draw()
 		music(anyfire and 32 or -1, 500, 3)
 	end
 	
-	basepal()
-	pal(usplit"15,129,1")
-	pal(usplit"11,131,1")
-	fillp()
-	
 	for atk in all(rangedatks) do
 	 atk[1]+=1 --counter
 		if rangedatk(unpack(atk)) then
 		 del(rangedatks,atk)
 		end
 	end
+	
+	pal()
+	palt(1)
+	pal(usplit"15,129,1")
+	pal(usplit"11,131,1")
+	fillp()
 	
 	if fadetoblack then
   textanims={}
@@ -593,13 +595,9 @@ function drawcall(func,args)
 	add(drawcalls, {func,args})
 end
 
-function basepal()
+function initpal(tl, fadefow)
  pal()	
 	palt(1)
-end
-
-function initpal(tl, fadefow)
-	basepal()
 	fow=1
 	if fadefow then
 	 if not fadetoblack then
@@ -700,16 +698,16 @@ function drawents(tl)
 							scrpos.x,scrpos.y,
 							1,ent.animheight,
 							flp)
+			local held=aimitem or ent.wpn
 			if ent==player and
-			   (ent.wpn or aimitem) and
+			   held and
 			   frame<=5 then
-				local wpnpos,wpnframe=
-				wpnpos[frame+1],frame%4
+			 local wpnpos=wpnpos[frame+1]
 				pal(8,8)
 				pal(9,9)
-				       
-				spr(aimitem and aimitem.typ
-				    or ent.wpn.typ+wpnframe*16,
+				
+				spr(held.typ +
+				    frame%4*held.wpnfrms,
 								scrpos.x+
 								wpnpos.x*ent.xface,
 								scrpos.y+wpnpos.y,
@@ -1052,6 +1050,12 @@ function calclight()
 	dijkstra("light",tovisit,passlight)
 end
 
+function flatten(tl)
+ if tl.typ==tlonggrass then
+ 	tl.typ=tflatgrass
+ end
+end
+
 function effect(var,pos,typ,val)
 	local tl=gettile(pos)
 	tl[var]=max(tl[var],val)
@@ -1333,7 +1337,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,statuses:{}",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -1431,6 +1435,9 @@ function setpos(ent,pos,setrender)
 		ent.renderpos=entscreenpos(ent)+ent.animoffset
 	end
 	checkfall(ent)
+	if not ent.flying then
+		flatten(ent.tl)
+	end
 end
 
 function setstatus(ent,name,str)
@@ -1880,7 +1887,6 @@ function move(ent,dst,playsfx)
 		if ent.moveanim then
 			ent.setanim(ent.moveanim)
 		end
-		setpos(ent,dst)
 		
 		if playsfx then
 		 local snd=tlsfx[dsttile.typ]
@@ -1890,14 +1896,11 @@ function move(ent,dst,playsfx)
 				aggro(playerdst)	
 		 end
 		end
-					
+	 
+	 setpos(ent,dst)
 	end
 
 	updatefacing(ent,dir)
-	
-	if dsttile.typ==tlonggrass then
-		dsttile.typ=tflatgrass
-	end
 end
 
 function updatefacing(ent,dir)
@@ -2443,7 +2446,7 @@ function updateaim(item,lineparams,atktype,fx)
 		end
 	end
 	updatefacing(player,aimpos-ppos)
-	
+	item.xface=player.xface
 	if #aimline>0 and btn"5" and
 	   statet>0.2 then
 		setmode"play"
@@ -2453,6 +2456,7 @@ function updateaim(item,lineparams,atktype,fx)
 			del(inventory,item)
 			aimitem=nil
 		end
+		player.setanim"throw"
 		add(rangedatks,{0,player.pos,aimline,item,atktype})
 	elseif btnp"4" then
 	 skipturn=false
@@ -2492,9 +2496,8 @@ function rangedatk(i,origin,ln,item,atktype)
 	local tl = gettile(ln[flr(i*spd)+1])
  
 	if atkis"throw" then
-		if tl.typ==tlonggrass then
-  	tl.typ=tflatgrass
-  end
+		flatten(tl)
+		initpal(tl)
 		
 		function getpos(i,offs)
 			local t,airtime=
@@ -2503,13 +2506,13 @@ function rangedatk(i,origin,ln,item,atktype)
 			(t*t-t)*airtime*airtime/4,
 			lerp(origin,ln[#ln],t)
 			local scrpos=screenpos(pos)+offs
-			return scrpos.x,scrpos.y+arcy
+			return scrpos.x,scrpos.y+arcy,1,1,item.xface<0
 		end
 		
 		if item.throwln then
 			local x1,y1=getpos(i-1,vec2s"0,-2")
 		 local x2,y2=getpos(i,vec2s"0,-2")
-		 tline(x2,y2,x1,y1,60,item.throwln)
+		 tline(x2,y2,x1,y1,18,item.throwln)
 		else
 			spr(item.typ,getpos(i,vec2s"-3,-6"))
 		end
@@ -2599,9 +2602,9 @@ ff0dffffffffffffffffffffffffffffffffd7fffffffffffffff6ffffffffffff505fffffcfcfff
 fffffffffffffffff988fffffffffffffffffffffffffffffffffffffffffffffff9fffffffffffff88fffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffa9998fffffff5ffffffffff7fffffff7f66676fffffff6ffff998fffffffffff8988ffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffff8f9fff98fffffffdffffffff6fffffff7f656ff67fffffff6fff999ffffffdfffff88ff8ff7fffffffffffffffffffffffffffffffffffffff
-fffffffffffff55ff4fff98ffffff5fffffff46fffff566f64ffff67ffffff6fff899fffffd5fffff898fffffffffcffff3c3fffff4a4fffff282fffff0d0fff
-fffffffffff5500ffffffffffffffd5fffff4fffffffff6fffffff66fffff66fff554fffff51bbff899988fffffffff7ffc37fffff947fffff827fffff507fff
-fffdd8fff5500fffffffffffffff445ffff4ffffffffff6ffffffffffffff66ffff5ffffff5bb5ff8999998fffffffffff3c3fffff494fffff282fffff050fff
+fffffffffffff55ff4fff98ffffff5fffffff46fffff566f64ffff67ffffff6fff899fffffd5fffff898fffffffffcffff3c3fffff4a4fffff282fffff5d5fff
+fffffffffff5500ffffffffffffffd5fffff4fffffffff6fffffff66fffff66fff554fffff51bbff899988fffffffff7ffc37fffff947fffff827fffffd07fff
+fffdd8fff5500fffffffffffffff445ffff4ffffffffff6ffffffffffffff66ffff5ffffff5bb5ff8999998fffffffffff3c3fffff494fffff282fffff5d5fff
 f2288887f00ffffffffffffffffffffffffffffffffff6ffffffff66fff5557fff554fffff5155ff8999998fffcfffffffffffffffffffffffffffffffffffff
 d8888886fffffffffffffffffffffffffffffffffffffffffffffffffffff99fff505ffff0505ffff88888ffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffffffffff66ffff6ffffffffffffffffffff8fff8ffffffffffffffffffffffffffffffffffffffffff
@@ -2613,8 +2616,8 @@ ff8888fff2200fffff4998fffff4dffffffff46fffff7fff6f4ff6fffff577ffff54f4ffff5550ff
 f826d226f00fffffffa98fffffff5fffffffff67fffff7ff656667ffffff99fffff555fffb51110ff88988ffffffffffffffffffffffffffffffffffffffffff
 d66d9227fffffffffffffffffffffffffffffffffffffffff667ffffffffffffff5505ff555550fff88888ffff7fffffffffffffffffffffffffffffffffffff
 fffffffffffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffa999888876555555ffffffffffffffffffffffffffffffff
-ffffff0100000fffffffff0000000ffffff0000fffffffffffffffffffffffffffffffffffefefff544fffffffffffffffffffffffffffffffffffffffffffff
-000ff00100011fff00fff0000000000fff00000000ffffffffffffffffffffffff222ffffe757eff66d44444ffffffffffffffffffffffffffffffffffffffff
+ffffff0100000fffffffff0000000ffffff0000fffffffffffffffffffffffffffffffffffefefff544fffff7665ffffffffffffffffffffffffffffffffffff
+000ff00100011fff00fff0000000000fff00000000ffffffffffffffffffffffff222ffffe757eff76d44444ffffffffffffffffffffffffffffffffffffffff
 0010110180018f0000ff0000000000dff000000000000fffffffffff0ffffffff22222fffe656effffffffffffffffffffffffffffffffffffffffffffffffff
 001108018010800000f0000000000d9f000000000000000dfffffff00fffffff022224fffe6564effffff055d5fffffffffffffffffffffffffff0055dffffff
 0019080110100010000000000000191f555000000000001dfffffff0d0fffffff12444fffe5e5effffff0511515ffffffffff000ffffffffffff055511dfffff
@@ -2778,8 +2781,8 @@ __gff__
 000000000000000000000000000000004000800880082c000000ee00be00ee007a016301ba016b03f30109096b15b301b30173017301730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040000090401040004000407040004070487040904003000
 __map__
-464647474141424b4b4b00000000acac1011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3bca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0046474741434900000000000000adad3200000000000000000000003200000020000000320000003200000000003200320032003200363200003a32cb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+464647474141424b4b4b00000000acac1011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0046474741434900000000000000adad3200cb0000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 460047474244494e4c4c00000000aeae3200000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 46470047004200004d4d00000000afaf3400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0047410041004d454d4d00000000bc003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
