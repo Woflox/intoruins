@@ -1541,7 +1541,7 @@ function updateent(ent)
 			elseif case"s" then
 				ent.renderpos=nil
 			elseif case"h" then
-			 hurt(ent,(ent.hp>ent.maxhp/20) and 
+			 hurt(ent,(ent.hp>ent.maxhp/19.9) and 
 			    min(ent.maxhp/3,ent.hp-1) or
 			    1000)
 			end
@@ -1801,8 +1801,10 @@ function aggro(pos)
 end
 
 function destroy(ent)
-	del(ents,ent)
-	ent.tl[ent.var]=nil
+ if ent then
+		del(ents,ent)
+		ent.tl[ent.var]=nil
+	end
 end
 
 function hurt(ent,dmg,atkdir)
@@ -1865,6 +1867,14 @@ end
 function atk(ent,tl,pat)
  local b=tl.ent
  local dir,diri=hexdir(ent.pos,tl.pos)
+ 
+ for p in all(split(pat,"|")) do
+ 	local tl=getadjtl(tl.pos,(diri+p)%6+1)
+ 	if vistoplayer(tl) then
+ 		atk(ent,tl)
+ 	end
+ end
+ 
  if b then
  	local hitp=1
 		if b.stat"armor" then
@@ -1877,12 +1887,6 @@ function atk(ent,tl,pat)
 		else
 			aggro(tl.pos)
 		end
- end
- for p in all(split(pat,"|")) do
- 	local tl=getadjtl(tl.pos,(diri+p)%6+1)
- 	if vistoplayer(tl) then
- 		atk(ent,tl)
- 	end
  end
 end
 
@@ -2009,9 +2013,7 @@ function genroom(pos)
 				 	return true
 				 end
 				elseif tl then
-					if tl.ent then
-					 destroy(tl.ent)
-					end
+					destroy(tl.ent)
 					
 					if (xwall or ywall) and
 							 not (tl.typ==tdunjfloor 
@@ -2108,23 +2110,6 @@ function postgen(pos,tl,prevtl)
 			postgen(npos,ntl,genable(tl) and tl or prevtl)
 		end
 	end)
-end
-
-function notblocking(pos)
-	function navat(i)
-		return navigable(getadjtl(pos,i))
-	end
-	local lastnav,numnavreg=
-	navat(6),0
-	for i=1,6 do
-		local nav = navat(i)
-		if nav and not lastnav then
-			numnavreg+=1
-		end
-		lastnav=nav
-	end
-	
-	return numnavreg<2
 end
 
 function postproc()
@@ -2236,7 +2221,7 @@ function postproc()
 	end)
 	
 	connectareas(true)
-	local numholes=0
+	local numholes,furthestd=0,0
 	
 	alltiles(
 	function(pos,tl)
@@ -2265,9 +2250,14 @@ function postproc()
 		  righttl.typ==txwall
 		then
 			tl.typ=txwall
-		elseif tl.typ==thole and
-									tl.pdist>-1000 then
+		elseif tl.pdist>-1000 and
+		 tl.typ==thole 
+		then
 			numholes+=1
+		end
+		if navigable(tl) and
+		 tl.pdist>-1000 then
+			furthestd=min(furthestd,tl.pdist)
 		end
 	end)
 	
@@ -2276,34 +2266,26 @@ function postproc()
 		return navigable(tl) and
 		 tl.pdist < mindist and
 			tl.pdist > -1000 and
-			notblocking(pos) and
 			not tl.ent and
 			(not nolight or tl.light<=0)
 	end
 	
-	--create exit hole if needed
-	--attempts=0
-	if numholes==0 then
-		local bestdist=0
-		local tilesfound=0
-		while tilesfound<10 do
-		 --[[attempts+=1
-		 if attempts>20000 then
-		  sfx(28)
-		  goto abort
-		 end]]
-		 local tl=gettile(rndpos())
-		 if checkspawn(tl.pos,0) then
-		 	if tl.pdist<bestdist then
-		 	 bestdist=tl.pdist
-		 	 besttl=tl
-		 	end
-		 	tilesfound+=1
-		 end
-		end
-	 settile(besttl,thole)
+	--create exit holes if needed
+	if numholes<3 then
+		alltiles(
+		function (npos,ntl)
+			if navigable(ntl) and
+			   ntl.pdist>-1000 and
+			   ntl.pdist<furthestd+2.5+rnd()
+			then
+			 settile(ntl,thole)
+				destroy(ntl.ent)
+			end
+		end)
 	end
-	--::abort::
+	
+	calcdist(genpos,"pdist")
+		 
 	if not player then
 		player=create(64,genpos)
 	else
@@ -2652,7 +2634,7 @@ fff11015010105ffffff001500fffffffffff0bbb00fffffffff9ffffffb9f33fff000110111ffff
 ffd110111101011ffff10011015ffffffff10bbbbbb8f1fff33ff9fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
 fd11001101000101ff1d1000011001ffff10b11bbb9d111ffff3ff3f99ff3ffff01150d9195015d0ffffffffffff9fffffff050000050ffff011110180001110
 5151000000000100f155000100000155fff05551195dffffffff3f3fff3fbfff00005550050d0000fffffffffff9ffffffff042922240fff0000001111080000
-11500011010000011150f00001000011f01155155d501100fffffbfbffb00ffff011000050050100fffff9fffff3ffffffff021000100ffff011000010111100
+11500011010000011150f00011000011f01155155d501100fffffbfbffb00ffff011000050050100fffff9fffff3ffffffff021000100ffff011000010111100
 1101fffffffff1015001ffff00000100ff0000155d01100fffff0b0bfbffffffff0011510050500fffffff9ffff3ffffffff042222242fffff0011110001100f
 101fffffffffff005001fffffff00001fff00100001000fffffffffbfffffffffff00150110005fffff3ff3f9ff3f3ffffff050000020ffffff00110111000ff
 ffffff88fffffffffffffff888ffffffffffffff88fffffffffffffff9ffffffffff667777766fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
