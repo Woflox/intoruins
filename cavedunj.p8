@@ -144,7 +144,7 @@ split([[16
 		end
 	end
 	
-	local rseed=rnd(0x7fff.ffff)
+	local rseed=rnd(0xffff.ffff)
 	srand(0x5b04.17cb)
 	genmap(vec2s"10,13")
 	srand(rseed)
@@ -2223,6 +2223,15 @@ function postproc()
 	connectareas(true)
 	local numholes,furthestd=0,0
 	
+		
+	function checkspawn(tl,mindist,nolight,allowent)
+		return navigable(tl) and
+		 tl.pdist < mindist and
+			tl.pdist > -1000 and
+			(allowent or not tl.ent) and
+			(not nolight or tl.light<=0)
+	end
+	
 	alltiles(
 	function(pos,tl)
 		local uptl,uprighttl,righttl=
@@ -2255,28 +2264,16 @@ function postproc()
 		then
 			numholes+=1
 		end
-		if navigable(tl) and
-		 tl.pdist>-1000 then
+		if checkspawn(tl,0,false,true) then
 			furthestd=min(furthestd,tl.pdist)
 		end
 	end)
-	
-	function checkspawn(pos,mindist,nolight)
-		local tl=gettile(pos)
-		return navigable(tl) and
-		 tl.pdist < mindist and
-			tl.pdist > -1000 and
-			not tl.ent and
-			(not nolight or tl.light<=0)
-	end
 	
 	--create exit holes if needed
 	if numholes<3 then
 		alltiles(
 		function (npos,ntl)
-			if navigable(ntl) and
-			   ntl.pdist>-1000 and
-			   ntl.pdist<furthestd+2.5+rnd()
+			if checkspawn(ntl,furthestd+2.5+rnd(),false,true)
 			then
 			 settile(ntl,thole)
 				destroy(ntl.ent)
@@ -2284,8 +2281,6 @@ function postproc()
 		end)
 	end
 	
-	calcdist(genpos,"pdist")
-		 
 	if not player then
 		player=create(64,genpos)
 	else
@@ -2315,9 +2310,9 @@ function postproc()
 			for i,typ in ipairs(spawn) do
 				local found=false
 				visitadjrnd(spawnpos,
-				function(npos)
+				function(npos,ntl)
 					if not found and
-				 	checkspawn(npos,-4,typ==72)
+				 	checkspawn(ntl,-4,typ==72)
 				 then
 						found=true
 						create(typ,npos,behav,i)
@@ -2326,7 +2321,7 @@ function postproc()
 				end)
 			end
 			local itempos=rndpos()
-			if checkspawn(itempos,-3) then
+			if checkspawn(gettile(itempos),-3) then
 				create(rnd(items),itempos)
 			end
 		end
