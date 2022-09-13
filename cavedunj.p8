@@ -12,10 +12,10 @@ assigntable(
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
-,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{}]],
+,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8
+[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,runaway:,alert:14,hurt:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pack:,movandatk:,alert:20,hurt:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurt:11
@@ -85,26 +85,26 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 189=n:oRANGE ORB,var:item,light:2,throw:6
 190=n:pURPLE ORB,var:item,light:2,throw:6
 191=n:pINK ORB,var:item,light:2,throw:6
-300=nid=oRB OF lIGHT,orb:light
-301=nid=oRB OF gRAVITY,orb:slofall
-302=nid=oRB OF pOWER,orb:ench
-303=nid=oRB OF dATA,orb:id
-304=nid=oRB OF lIFE,orb:life
-305=nid=oRB OF fIRE,orb:fire
-306=nid=oRB OF iCE,orb:ice
-307=nid=oRB OF tELEPORT,orb:tele
-308=nid=aMULET O'dEFENSE,armor:1
-309=nid=dARKSIGHT aMULET,darksight:1
-310=nid=aMULET OF wISDOM,recharge:1
-311=nid=pACIFIST aMULET,pac:,cursed:
-312=nid=cLOAK OF dEFENSE,armor:1
-313=nid=dARKSIGHT cLOAK,darksight:1
-314=nid=cLOAK OF wISDOM,recharge:1
-315=nid=vAMPIRE cLOAK,vamp:,cursed:
-316=nid=sTAFF OF fIRE,dmg:4,range:3,rangedatk:fire
-317=nid=sTAFF OF sTORMS,dmg:4,range:3,rangedatk:lightning
-318=nid=sTAFF OF iCE,range:3,rangedatk:ice
-319=nid=sTAFF OF bLINK,range:3,rangedatk:blink
+300=,nid:oRB OF lIGHT,orb:light
+301=,nid:oRB OF gRAVITY,orb:slofall
+302=,nid:oRB OF pOWER,orb:ench
+303=,nid:oRB OF dATA,orb:id
+304=,nid:oRB OF lIFE,orb:life
+305=,nid:oRB OF fIRE,orb:fire
+306=,nid:oRB OF iCE,orb:ice
+307=,nid:oRB OF tELEPORT,orb:tele
+308=,nid:aMULET ょdEFENSE,armor:1
+309=,nid:dARKSIGHT aMULET,darksight:1
+310=,nid:aMULET OF wISDOM,recharge:1
+311=,nid:pACIFIST aMULET,pac:,hpdmg:-1,falldamp:,cursed:
+312=,nid:cLOAK OF dEFENSE,armor:1
+313=,nid:dARKSIGHT cLOAK,darksight:1
+314=,nid:cLOAK OF wISDOM,recharge:1
+315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
+316=,nid:sTAFF OF fIRE,dmg:4,range:3,rangedatk:fire
+317=,nid:sTAFF OF sTORMS,dmg:4,range:3,rangedatk:lightning
+318=,nid:sTAFF OF iCE,range:3,rangedatk:ice
+319=,nid:sTAFF OF bLINK,range:3,rangedatk:blink
 ]],nil,"\n","=")
  
  function mapgroup(x,y)
@@ -166,6 +166,21 @@ split([[16
 			group,y=mapgroup(i,y)
 			if (#group==0) break
 			add(curspawns,group)
+		end
+	end
+	
+	for str in all(split([[
+172,173,174,175,188,189,190,191|300,301,302,303,304,305,306,307
+140,141,142,143|308,309,310,311
+156,157,158,159|312,313,314,315
+129,145,161,177|316,317,318,319]]
+,"\n")) do
+	 local grps=split(str,"|")
+		local items=split(grps[1])
+		for s in all(split(grps[2])) do
+			local i=del(items,rnd(items))
+			entdata[i]..=entdata[s]
+			mapping[s]=i
 		end
 	end
 	
@@ -521,7 +536,8 @@ function info()
   hEALTH:      ,hp|/=maxhp|\
   aCCURACY:   +,atk|\
   dAMAGE:      ,dmg|\
-  aRMOR:       ,armor|\
+  aRMOR:      +,armor|\
+  dARKSIGHT:  +,darksight|\
   tHROW RANGE: ,throw|\
   tHROW ACC:  +,throwatk|\
   sTUN:        ,stun|\
@@ -911,25 +927,18 @@ function getadjtl(pos,i)
 	               pos+adj[i])
 end
 
-function visitadj(pos,func)
-	for i=1,6 do
-		local npos=pos+adj[i]
-		func(npos,gettile(npos))
-	end
-end
-
 function visitadjrnd(pos,func)
 	local indices=split"1,2,3,4,5,6"
 	for i=1,6 do
 		local n=i+rndint(7-i)
-		local npos=pos+adj[indices[n]]
+		local tl=getadjtl(pos,indices[n])
 		indices[n]=indices[i]
-		func(npos,gettile(npos))
+		func(tl.pos,tl)
 	end
 end
 
 function rndpos()
-	return inboundposes[rndint(#inboundposes)+1]
+	return rnd(inboundposes)
 end
 
 function alltiles(func)
@@ -960,7 +969,8 @@ function manmade(tl)
 end
 
 function vistoplayer(tl)
-	return tl.vis and (tl.light>0 or tl.pdist>-2)
+	return tl.vis and (tl.light>-player.stat"darksight" 
+	    or tl.pdist>-2-player.stat"darksight")
 end
 
 function dijkstra(var,tovisit,check)
@@ -1126,7 +1136,7 @@ function updateenv()
 			tl.spores=max(tl.spores-rnd(0.25))
 			if tl.spores>1 then
 				adjtls={}
-				visitadj(pos,
+				visitadjrnd(pos,
 				function(npos,ntl)
 					if navigable(ntl,true) and
 					   ntl.fire==0
@@ -1143,7 +1153,7 @@ function updateenv()
 		end
 		if tl.fire>=2 then
 		 entfire(tl)
-		 visitadj(pos,trysetfire)
+		 visitadjrnd(pos,trysetfire)
 			if tileflag(tl,9) then
 			 if rndp(0.2) then
 			 	tl.fire=0
@@ -1369,7 +1379,7 @@ function create(typ,pos,behav,group)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
-	
+	counts[typ]=(counts[typ]or 0)+1
 	
  ent.setanim=
  function (anim)
@@ -2249,12 +2259,15 @@ function postproc()
 	local numholes,furthestd=0,0
 	
 		
-	function checkspawn(tl,mindist,nolight,allowent)
-		return navigable(tl) and
+	function checkspawn(tl,typ,mindist,nolight,allowent)
+		if navigable(tl) and
 		 tl.pdist < mindist and
 			tl.pdist > -1000 and
 			(allowent or not tl.ent) and
-			(not nolight or tl.light<=0)
+			(not nolight or tl.light<=0) 
+		then	
+			return typ and create(typ,tl.pos) or true
+		end
 	end
 	
 	alltiles(
@@ -2289,7 +2302,7 @@ function postproc()
 		then
 			numholes+=1
 		end
-		if checkspawn(tl,0,false,true) then
+		if checkspawn(tl,nil,0,false,true) then
 			furthestd=min(furthestd,tl.pdist)
 		end
 	end)
@@ -2298,7 +2311,7 @@ function postproc()
 	if numholes<3 then
 		alltiles(
 		function (npos,ntl)
-			if checkspawn(ntl,furthestd+2.5+rnd(),false,true)
+			if checkspawn(ntl,nil,furthestd+2.5+rnd(),false,true)
 			then
 			 settile(ntl,thole)
 				destroy(ntl.ent)
@@ -2322,7 +2335,6 @@ function postproc()
 	 
 		--spawn entities										
 		wanderdsts={}
-		
 		for n=1,6 do
 			local spawnpos=rndpos()
 			local spawndepth=depth
@@ -2337,17 +2349,19 @@ function postproc()
 				visitadjrnd(spawnpos,
 				function(npos,ntl)
 					if not found and
-				 	checkspawn(ntl,-4,typ==72)
+				 	checkspawn(ntl,typ,-4,typ==72)
 				 then
 						found=true
-						create(typ,npos,behav,i)
 						spawnpos=npos
 					end
 				end)
 			end
-			local itempos=rndpos()
-			if checkspawn(gettile(itempos),-3) then
-				create(rnd(items),itempos)
+			checkspawn(gettile(rndpos()),rnd(items),-3)
+		end
+		--rubberbanding important orbs
+		for orb=300,304 do
+			for i=counts[mapping[orb]]or 0,depth/2.001 do
+				checkspawn(gettile(rndpos()),mapping[orb],-3)
 			end
 		end
 	end
