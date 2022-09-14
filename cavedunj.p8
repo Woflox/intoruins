@@ -93,7 +93,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 305=,nid:oRB OF fIRE,orb:fire
 306=,nid:oRB OF iCE,orb:ice
 307=,nid:oRB OF tELEPORT,orb:tele
-308=,nid:aMULET ょdEFENSE,armor:1
+308=,nid:aMULET X dEFENSE,armor:1
 309=,nid:dARKSIGHT aMULET,darksight:1
 310=,nid:aMULET OF wISDOM,recharge:1
 311=,nid:pACIFIST aMULET,pac:,hpdmg:-1,falldamp:,cursed:
@@ -1312,7 +1312,7 @@ end
 function assigntable(str,table,delim1,delim2)
  table = table or {}
  for var in 
-		all(split(str,delim1 or ","))
+		all(split(str,delim1))
 	do
 		local k,v=unpack(split(var,delim2 or ":"))
 		table[k]=v=="{}"and {} or v
@@ -1414,7 +1414,7 @@ function create(typ,pos,behav,group)
 		setpos(ent,ent.pos,true)	
 	end
 	
-	ent.truname=ent.ai and 
+	ent.name=ent.ai and 
 		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
 		rnd(split"y,o,us,ox,erbee,elia")
 	add(ents,ent)
@@ -1503,7 +1503,6 @@ function tickstatuses(ent)
 			ent.statuses[k]=nil
 			if k=="TORCH" then
 				ent.wpn.eXTINGUISH()
-				log"tORCH BURNT OUT"
 			elseif k=="LIGHT" then
 				ent.light=nil
 			end
@@ -2420,7 +2419,6 @@ item.uSE=function()
 		elseif orbis"life" then
 		 player.maxhp+=5
 		 player.hp=player.maxhp
-		 log"MAX HP+5 / CHARGE STAFFS"
 		elseif orbis"fire" then
 			burn(player)
 		elseif orbis"ice" then
