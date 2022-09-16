@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 36
+version 38
 __lua__
 --iNTO rUINS
 --BY ERIC BILLINGSLEY
@@ -500,8 +500,8 @@ function drawents(tl)
 			if ent.flash then
 				pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
 				ent.flash=false
-			elseif ent.pal then
-				pal(ent.pal)
+			elseif ent.animpal then
+				pal(ent.animpal)
 				if ent.fillp then
 				 fillp(lfillp)
 				end
@@ -1153,8 +1153,8 @@ function checkidle(ent)
 end
 
 function create(typ,pos,behav,group)
-	local ent={typ=typ,pos=pos,
-							behav=behav,group=group}
+	local ent=setmetatable({typ=typ,pos=pos,
+							behav=behav,group=group},{__index=_ENV})
 	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
@@ -1344,7 +1344,7 @@ function updateent(ent)
 			elseif case"!" then
 				ent.flash=true
 			elseif case"b" then
-				ent.pal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
+				ent.animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 				ent.fillp=true
 				animtext(".",ent,false,8,3,6)
 			elseif case"a" then
@@ -1659,10 +1659,10 @@ function hurt(ent,dmg,atkdir)
 			setmode"gameover"
 			poke(0x5f40,31)
 			calclight()
-		elseif ent.sporeburst then
-			sporeburst(ent.tl,ent.sporeburst)
+		elseif ent.sporedeath then
+			sporeburst(ent.tl,ent.sporedeath)
 		end
-	else
+	else 
 		sfx"34"
 		if ent.hurtsplit and atkdir then
 			local splitpos=findfree(ent.pos,"ent")
@@ -1678,8 +1678,8 @@ function hurt(ent,dmg,atkdir)
 			end
 		end
 	end
-	if ent.hurt then
-		sfx(ent.hurt)	
+	if ent.hurtfx then
+		sfx(ent.hurtfx)	
 	end
 	if ent.hitfire then
 		local firepos=ent.pos
@@ -2435,21 +2435,21 @@ assigntable(
 _ENV)
 entdata=assigntable(
 [[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0
-70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurt:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pack:,movandatk:,alert:20,hurt:21
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurt:11
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurt:11,rangedatk:summon|heal
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11,rangedatk:throw,atksfx:26
-68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurt:11,rangedatk:fire
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurt:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurt:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurt:19
+70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pack:,movandatk:,alert:20,hurtfx:21
+65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangedatk:summon|heal
+67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangedatk:throw,atksfx:26
+68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangedatk:fire
+69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alert:47,hurt:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporeburst:12,armor:0,ai:,pack:,light:3,alert:49,hurt:50
-78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alert:51,hurt:52
-137=n:mUSHROOM,hp:1,blocking:,sporeburst:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
+76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alert:47,hurtfx:48
+77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,pack:,light:3,alert:49,hurtfx:50
+78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alert:51,hurtfx:52
+137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
 200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,stun:1,flammable:,deathanim:propdeath,animspeed:0.3,death:23
