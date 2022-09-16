@@ -499,7 +499,7 @@ function drawents(tl)
 				pal(9,ent.stat"acol") 
 			end
 			if ent.flash then
-				pal(whitepal)
+				pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
 				ent.flash=false
 			elseif ent.pal then
 				pal(ent.pal)
@@ -507,7 +507,7 @@ function drawents(tl)
 				 fillp(lfillp)
 				end
 			end
-			local flp=ent.xface<0 or ent.animflip
+			local flp=ent.xface*ent.animflip<0
 			local scrpos=ent.renderpos+
 						vec2(flp and -1 or 0,0)
 			local frame=
@@ -521,7 +521,7 @@ function drawents(tl)
 			if ent==player and
 			   held and
 			   frame<=5 then
-			 local wpnpos=wpnpos[frame+1]
+			 local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
 				pal(8,8)
 				pal(9,9)
 				
@@ -970,6 +970,7 @@ function updateenv()
 		   not ent.statuses.BURN
 		then
 			burn(ent)
+		 trysetfire(nil,ent.tl,true)
 			sfx"36"
 		end
 	end
@@ -1155,7 +1156,7 @@ end
 function create(typ,pos,behav,group)
 	local ent={typ=typ,pos=pos,
 							behav=behav,group=group}
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
 	assigntable(entdata[typ],ent)						
 
 	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
@@ -1315,7 +1316,7 @@ function updateent(ent)
 		 function case(c)
 		 	return char==c
 		 end
-			ent.animflip=case"f"
+			ent.animflip=case"f"and -1or 1
 			if case"l"then
 			 ent.animloop=index+1
 			 ent.animt+=rnd(#anim-index-1)
@@ -1344,14 +1345,13 @@ function updateent(ent)
 			elseif case"!" then
 				ent.flash=true
 			elseif case"b" then
-				ent.pal=redpal
+				ent.pal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
 				ent.fillp=true
 				animtext(".",ent,false,8,3,6)
 			elseif case"a" then
 				ent.animoffset=
 				 ent.movratio*
 					screenpos(ent.dir)
-				sfx"33"
 			elseif case"d" then
 			 atk(ent,ent.atktl,ent.stat"atkpat")
 			elseif case"s" then
@@ -1645,6 +1645,7 @@ function destroy(ent)
 end
 
 function hurt(ent,dmg,atkdir)
+ printh("hurt "..ent.n)
 	ent.hp-=dmg
  ent.flash=true
 	if ent==player then
@@ -1729,6 +1730,7 @@ end
 
 function interact(a,b)
  a.setanim(a.atkanim)
+	sfx"33"
  waitforanim=true
  a.atktl=b.tl
 end
@@ -1747,7 +1749,7 @@ function move(ent,dst,playsfx)
 		end
 		
 		if playsfx then
-		 local snd=tlsfx[dsttile.typ]
+		 local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
 	  sfx(snd or 35)
 	  if snd==43 then
 				--bonez
@@ -2138,13 +2140,13 @@ function postproc()
 		for n=1,6 do
 			local spawnpos=rndpos()
 			local spawndepth=depth
-			while rndp(0.45) do
+		 while rndp(0.45) do
 			 spawndepth+=1
 			end
 			local spawn,behav,spawnedany
 			=rnd(spawns[min(spawndepth,20)]),
 			rnd{"sleep","wander"}
-			for i,typ in ipairs(spawn) do
+			for i,typ in next,spawn do
 				local found=false
 				visitadjrnd(spawnpos,
 				function(npos,ntl)
@@ -2157,7 +2159,7 @@ function postproc()
 					end
 				end)
 			end
-			checkspawn(gettile(rndpos()),mget(64+rndint(32),24),-3)
+			checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
 		end
 		--rubberbanding important orbs
 		for orb=300,304 do
@@ -2199,7 +2201,7 @@ item.sTOW=function(staylit)
 end
 
 item.tHROW=function()
- aim{item,{item.throw},"throw",12}
+ aim{item,{item.throw},"throw"}
 end
 
 function orbis(str)
@@ -2231,6 +2233,7 @@ item.uSE=function()
 		destroy(item)
 	else
 		--staffs
+		aim{item,{item.range,item.pass,item.block,true},item.rangedatk}
 	end
 end
 
@@ -2312,7 +2315,7 @@ function aim(params)
 	setmode"aim"
 end
 
-function updateaim(item,lineparams,atktype,fx)
+function updateaim(item,lineparams,atktype)
  aimitem,aimscrpos=item,
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn"1")
@@ -2335,8 +2338,8 @@ function updateaim(item,lineparams,atktype,fx)
 	if #aimline>0 and btn"5" and
 	   statet>0.2 then
 		setmode"play"
-		sfx(fx)
 		if atktype=="throw" then
+			sfx"12"
 			item.sTOW(true)
 			del(inventory,item)
 			item.pos,aimitem=player.pos
@@ -2356,7 +2359,7 @@ function rangedatk(i,origin,ln,item,atktype)
 	
 	local dst=ln[#ln]
 	local dsttl=gettile(dst)
-	local spd=atkis"throw" and item.throw/12 or 1
+	local spd=atkis"throw" and item.throw/12 or 0.999
 	
  if (i*spd>=#ln) then
   orb=item.orb
@@ -2406,6 +2409,16 @@ function rangedatk(i,origin,ln,item,atktype)
 		 item.xface*=item.throwflp		 
 			spr(item.typ,getpos(i,vec2s"-3,-6"))
 		end
+	elseif atkis"fire" then
+		trysetfire(nil,tl,true)
+		if tl.fire==0 then
+			create(138,tl.pos)
+		end
+		calclight()
+		if tl.ent then
+		 setfire(tl)
+		 hurt(tl.ent,item.dmg)
+		end
 	end
 end
 -->8
@@ -2434,18 +2447,18 @@ entdata=assigntable(
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurt:19
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alertsfx:47,hurtsfx:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporeburst:12,armor:0,ai:,pack:,light:3,alertsfx:49,hurtsfx:50
-78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alertsfx:51,hurtsfx:52
+76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alert:47,hurt:48
+77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporeburst:12,armor:0,ai:,pack:,light:3,alert:49,hurt:50
+78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alert:51,hurt:52
 137=n:mUSHROOM,hp:1,blocking:,sporeburst:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
 200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,stun:1,flammable:,deathanim:propdeath,animspeed:0.3,death:23
-138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33
+138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33,flippable:
 139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
 idle3=l012
 fire=01f0l.1.2.3f1f2f3
-firedeath=0_
+firedeath=20_
 sporeidle=0l112233
 batidle=l0022
 move=044
@@ -2492,11 +2505,11 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 189=n:oRANGE ORB,var:item,light:2,throw:6
 190=n:pURPLE ORB,var:item,light:2,throw:6
 191=n:pINK ORB,var:item,light:2,throw:6
-300=,nid:oRB OF lIGHT,orb:light
-301=,nid:oRB OF gRAVITY,orb:slofall
+300=,nid:oRB OF lIGHT,orb:light,usefx:17
+301=,nid:oRB OF gRAVITY,orb:slofall,usefx:17
 302=,nid:oRB OF pOWER,orb:ench
 303=,nid:oRB OF dATA,orb:id
-304=,nid:oRB OF rENEWAL,orb:life
+304=,nid:oRB OF rENEWAL,orb:life,usefx:17
 305=,nid:oRB OF fIRE,orb:fire
 306=,nid:oRB OF iCE,orb:ice
 307=,nid:oRB OF tELEPORT,orb:tele
@@ -2508,22 +2521,18 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 313=,nid:dARKSIGHT cLOAK,darksight:1
 314=,nid:cLOAK OF wISDOM,recharge:1
 315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
-316=,nid:sTAFF OF fIRE,dmg:4,range:3,rangedatk:fire
-317=,nid:sTAFF OF sTORMS,dmg:4,range:3,rangedatk:lightning
-318=,nid:sTAFF OF iCE,range:3,rangedatk:ice
-319=,nid:sTAFF OF bLINK,range:3,rangedatk:blink
+316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:30,rangedatk:fire,usefx:36
+317=,nid:sTAFF OF sTORMS,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangedatk:lightning
+318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangedatk:ice
+319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangedatk:blink
 ]],nil,"\n","=")
 
-tlsfx,adj,wpnpos,fowpals,whitepal,redpal,ided=
-assigntable"58:37,38:10,54:10,44:38,60:38,40:43",--tlsfx
+adj,fowpals,ided=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
-vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0",--wpnpos
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
-split"7,7,7,7,7,7,7,7,7,7,7,7,7,7",--whitepal
-split"8,8,8,8,8,8,8,8,8,8,8,8,8,8",--redpal
 assigntable"130:,132:,133:,134:,135:"--ided
 
 for s in all(
@@ -2591,6 +2600,10 @@ genmap(vec2s"10,13")
 srand(rseed)
 
 addtoinventory(create(130)).eQUIP(true)
+addtoinventory(create(129))
+addtoinventory(create(145))
+addtoinventory(create(161))
+addtoinventory(create(177))
 calclight()
 
 __gfx__
@@ -2856,7 +2869,7 @@ __gff__
 000000000000000000000000000000004000800880082c000000ee00be00ee007a016301ba016b03f30109096b15b301b30173017301730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070487040904003000
 __map__
-000000000000000000000000000000001011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000046004646004600470000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000001011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000046004646004600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003200cb0000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000046004646004700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003200000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000046460047470041000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003400000000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000046460047470041000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -2880,7 +2893,7 @@ __map__
 00000000000000000000000000000000000000002e000000000000002e000000200000002ea900003000000000003000300030003000363000003a300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000002e0000000000000030000000200000002ea900003000000000003000300030003000363000003a300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000002e0000000000000030000000200000002ea900003000000000001c00300030003000363000003a2e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000002e0000000000000030000000200000002ea900003000000000002ea930003000300036300000363000000000acadaeafbcbdbebfacadaeafbcbdbebf848586878191a1b18c8d8e8f9c9d9e9f0000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000002e0000000000000030000000200000002ea900003000000000002ea930003000300036300000363000000000acadaeafbcbdbebfacadaeafbcbdbebfacadaeafbcbdbebf848586878191a1b18c8d8e8f9c9d9e9f848586878191a1b18c8d8e8f9c9d9e9f0000000000000000
 00000000000000000000000000000000000000003e0000000000000030000000200000002ea9000030000000000028003000300030003630000036300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000003e0000000000000030000000200000002ea900003000000000002ec83000300030003630000036300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000003e0000000000000030000000200000002ea9000030000000000024003000300030003630000036300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
