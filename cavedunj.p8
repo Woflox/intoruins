@@ -79,9 +79,9 @@ function _draw()
 	pal(usplit"11,131,1")
 	fillp()
 	
-	if fadetoblack then
-  textanims={}
- end
+	--if fadetoblack then
+ -- textanims={}
+ --end
  if modeis"play" then
 		for anim in all(textanims) do
 		 local t=(anim[5] or 1)*
@@ -402,8 +402,7 @@ flags:
 
 function tile(typ,pos)
 	local tl={typ=typ,pos=pos}
-	assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0",tl)
-	return tl
+	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:0",tl)
 end
 
 function settile(tl,typ)
@@ -795,9 +794,6 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 											tl.typ==tywall and
 											 player.pos.x<
 											 tlpos.x
-			if vistoplayer(tl) then
-			 tl.explored=true
-			end
 			if vis then 
 				if notfirst and
 					not lastvis then
@@ -851,6 +847,9 @@ function calclight()
 					end
 				end
 			end	
+		end
+		if vistoplayer(tl) then
+			tl.explored=true
 		end
 		tl.light=-10
 		tl.lightsrc=false
@@ -993,9 +992,9 @@ function findfree(pos,var)
 end
 
 function updatemap()
-	calclight()
 	calcdist(player.pos,"pdist",true)
 	calcvis(player.pos)
+	calclight()
 end
 -->8
 --utility
@@ -2416,7 +2415,7 @@ function rangedatk(i,origin,ln,item,atktype)
 		end
 		calclight()
 		if tl.ent then
-		 setfire(tl)
+			burn(tl.ent)
 		 hurt(tl.ent,item.dmg)
 		end
 	end
