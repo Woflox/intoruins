@@ -912,7 +912,7 @@ function updateenv()
 	alltiles(
 	function(pos,tl)
 	 if tl.spores>0 then
-			tl.spores=max(tl.spores-rnd(0.25))
+			tl.spores=max(tl.spores-rnd"0.25")
 			if tl.spores>1 then
 				adjtls={}
 				visitadjrnd(pos,
@@ -1884,8 +1884,8 @@ function genroom(pos)
 		return genroom(rndpos())
 	end
 		
-	entropy-=0.15+rnd(0.1)
-	local crumble = rnd(0.25)
+	entropy-=0.15+rnd"0.1"
+	local crumble = rnd"0.25"
 	if entropy>=0 then
 		doroom()
 		if rndp(0.15) then
@@ -1921,7 +1921,7 @@ end
 
 function gentile(typ,pos)
 	local y,tl = 
-	ceil(rnd(15)),gettile(pos)
+	ceil(rnd"15"),gettile(pos)
 	if (manmade(tl)) y+=16
 	settile(tl,mget(typ,y))
 	local typ2=mget(typ+1,y)
@@ -2593,10 +2593,10 @@ for str in all(split([[
 	end
 end
 
-local rseed=rnd(0xffff.ffff)
-srand(0x5b04.17cb)
+local rseed=rnd"0xffff.ffff"
+srand"0x5b04.17cb"
 genmap(vec2s"10,13")
-srand(rseed)
+srand"rseed"
 
 addtoinventory(create(130)).eQUIP(true)
 addtoinventory(create(129))
