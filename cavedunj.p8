@@ -24,7 +24,7 @@ function _update()
 	if mode!="ui" then
  	waitforanim=#rangedatks>0
 		for i,ent in ipairs(ents) do
-			updateent(ent)
+			ent.update()
 		end
  end
 	
@@ -167,7 +167,7 @@ OF THE FABLED wINGS OF yENDOR?    \
 	  setmode"play"
 	  music(-1,300)
 	  musicplayed=false
-	  move(player,vec2s"10,12")
+	  player.move(vec2s"10,12")
 	 else
 	 	statet=5.75
 	 end
@@ -361,7 +361,7 @@ function confirmjump()
 	
 	if listitem" jUMP DOWN" then
 	 popdiag()
-	 move(player,playerdst)
+	 player.move(playerdst)
 	elseif listitem" dON'\-fT JUMP" then
 	 popdiag()
 	end
@@ -502,7 +502,7 @@ function drawents(tl)
 				ent.flash=false
 			elseif ent.animpal then
 				pal(ent.animpal)
-				if ent.fillp then
+				if ent.animfillp then
 				 fillp(lfillp)
 				end
 			end
@@ -904,7 +904,7 @@ end
 function entfire(tl)
 	if tl.ent and 
 		  not tl.ent.nofire then
-		 burn(tl.ent)
+		 tl.ent.burn()
 	end
 end
 		
@@ -942,7 +942,9 @@ function updateenv()
 				tl.fire=0
 				if tileflag(tl,10) then
 					tl.typ=thole
-					checkfall(tl.ent)
+					if tl.ent then
+						tl.ent.checkfall()
+					end
 				end
 			end
 		end
@@ -968,7 +970,7 @@ function updateenv()
 		   ent.tl.light>=2 and
 		   not ent.statuses.BURN
 		then
-			burn(ent)
+			ent.burn()
 		 trysetfire(nil,ent.tl,true)
 			sfx"36"
 		end
@@ -1021,8 +1023,8 @@ function entscreenpos(ent)
 	        vec2(-2.5,-6.5)
 end
 
-function usplit(str)
-	return unpack(split(str))
+function usplit(str,delim)
+	return unpack(split(str,delim))
 end
 
 function round(x)
@@ -1093,7 +1095,7 @@ function assigntable(str,table,delim1,delim2)
  for var in 
 		all(split(str,delim1))
 	do
-		local k,v=unpack(split(var,delim2 or ":"))
+		local k,v=usplit(var,delim2 or ":")
 		table[k]=v=="{}"and {} or v
 	end
 	return table
@@ -1143,286 +1145,263 @@ end
 -->8
 --entities
 
-function checkidle(ent)
-	if ent.idleanim then
-	 ent.setanim(ent.idleanim)
+
+function create(_typ,_pos,_behav,_group)
+	local ent=setmetatable({typ=_typ,pos=_pos,
+							behav=_behav,group=_group},{__index=_ENV})
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
+	assigntable(entdata[_typ],ent)						
+
+	do local _ENV=ent
+
+	animoffset=vec2(0,var=="ent"and 0or 2)
+	counts[_typ]=(counts[_typ]or 0)+1
+	
+--member functions
+setanim=
+function (name)
+	anim,animt,animloop=
+	split(entdata[name],""),0,false
+		
+	if anim[1]=="w" then
+		_g.waitforanim=true
+		animwait=true
+	end
+end
+
+checkidle=function()
+	if idleanim then
+	setanim(idleanim)
 	else
-		ent.animframe,ent.animheight,ent.anim,ent.animclip=
+		animframe,animheight,anim,animclip=
 		0,1
 	end
 end
 
-function create(typ,pos,behav,group)
-	local ent=setmetatable({typ=typ,pos=pos,
-							behav=behav,group=group},{__index=_ENV})
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
-	assigntable(entdata[typ],ent)						
-
-	ent.animoffset=vec2(0,ent.var=="ent"and 0or 2)
-	counts[typ]=(counts[typ]or 0)+1
-	
- ent.setanim=
- function (anim)
-		ent.anim,ent.animt,ent.animloop=
-		split(entdata[anim],""),0,false
-			
-		if ent.anim[1]=="w" then
-			waitforanim=true
-			ent.animwait=true
-		end
-	end
-
- ent.setbehav=function(behav)
-		if ent.behav!=behav then
-			if ent.behav=="sleep" then
-			 checkidle(ent)
-			end
-			
-			ent.behav=behav
-			if behav=="hunt" then
-				animtext("!",ent)
-				sfx(ent.alert)
-			elseif behav=="search"	then
-				animtext("?",ent)
-			end
-			ent.canact=false 
-		end
-	end
-	
-	if ent.pos then
-		setpos(ent,ent.pos,true)	
-	end
-	
-	ent.name=ent.ai and 
-		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
-		rnd(split"y,o,us,ox,erbee,elia")
-	add(ents,ent)
-	ent.maxhp=ent.hp
-	if (ent.flippable or ent.ai)
-	   and rndp() then
-		ent.xface*=-1
-	end
-	if ent.ai and rndp() then
-		ent.yface*=-1
-	end
-	checkidle(ent)
-	if ent.behav=="sleep" then
-		ent.setanim"sleep"
-	end
-	
-	if ent.var=="item" then
-		inititem(ent)
-	end
-	
-	ent.stat=function(name)
-	 local val=0
-	 function checkslot(slot)
-	  if ent[slot] then
-				local s = ent[slot][name]
-				if s then
-					val=type(s)=="number" and val+s or s
-				end
-			end
-	 end
-		checkslot"wpn"
-		checkslot"cloak"
-		checkslot"amulet"
-		
-		return val!=0 and val or ent[name]
-	end
-	
-	return ent
-end
-
-function checkfall(ent)
-	if ent and ent.var=="ent" and
-	   not ent.flying and
-				ent.tl.typ==thole
+checkfall=function()
+	if var=="ent" and
+	not flying and
+				tl.typ==thole
 	then
 		sfx"24"
-		ent.setanim(ent.fallanim)
-		if (ent==player) calclight()
+		setanim(fallanim)
+		if (isplayer) calclight()
 	end
 end
 
-function setpos(ent,pos,setrender)
-	if pos then
-		ent.pos=pos
-		ent.tl=gettile(pos)
-		ent.tl[ent.var]=ent
+setbehav=function(name)
+	if behav!=name then
+		if behav=="sleep" then
+			checkidle()
+		end
+		
+		behav=name
+		if name=="hunt" then
+			animtext("!",ent)
+			sfx(alert)
+		elseif name=="search" then
+			animtext("?",ent)
+		end
+		canact=false 
+	end
+end
+
+
+setpos=function(npos,setrender)
+	if npos then
+		pos=npos
+		tl=gettile(npos)
+		tl[var]=ent
 		if setrender then
-			ent.renderpos=entscreenpos(ent)+ent.animoffset
+			renderpos=entscreenpos(ent)+animoffset
 		end
-		checkfall(ent)
-		if not ent.flying then
-			flatten(ent.tl)
+		checkfall()
+		if not flying then
+			flatten(tl)
 		end
 	end
 end
 
-function setstatus(ent,name,str)
-	ent.statuses[name]=split(str)
+stat=function(name)
+	local val=0
+	function checkslot(slot)
+		if ent[slot] then
+			local s = ent[slot][name]
+			if s then
+				val=type(s)=="number" and val+s or s
+			end
+		end
+	end
+	checkslot"wpn"
+	checkslot"cloak"
+	checkslot"amulet"
+	
+	return val!=0 and val or ent[name]
 end
 
-function tickstatuses(ent)
- if (ent==player or ent.ai)
-    and ent.tl.spores>0
+setstatus=function(str)
+	local k,v=usplit(str,":")
+	statuses[k]=split(v)
+	printh(v)
+end
+
+tickstatuses=function()
+ if (isplayer or ai)
+    and tl.spores>0
  then
- 	ent.hp=min(ent.hp+2, ent.maxhp)
- 	if vistoplayer(ent.tl) then
+ 	hp=min(hp+2, maxhp)
+ 	if vistoplayer(tl) then
  		animtext("+",ent)
  	end
- 	if ent==player then
+ 	if isplayer then
  		sfx(17,-1,6)
  	end
  end
-	for k,v in next,ent.statuses do
+	for k,v in next,statuses do
 		v[1]-=1
 		if v[1]<=0 then
-			ent.statuses[k]=nil
+			statuses[k]=nil
 			if k=="TORCH" then
-				ent.wpn.eXTINGUISH()
+				wpn.eXTINGUISH()
 			elseif k=="LIGHT" then
-				ent.light=nil
+				light=nil
 			end
 		end
 		if k=="BURN" then
-		 hurt(ent,1)
+		 hurt(1)
 		end
 	end
 end
 
-function updateent(ent)
+update=function()
 	function tickanim()
-	 local anim,index=
-	   ent.anim,flr(ent.animt)
+		local index=flr(animt)
 		local char=anim[index]
 		
 		if type(char)=="number" or
-		   flr(ent.animt) > #anim then
-			ent.animframe=char
-			ent.animt+=ent.animspeed
+		   index > #anim then
+			animframe=char
+			animt+=animspeed
 			
-			if flr(ent.animt)>#anim then
-			 if ent.animloop then
-			 	ent.animt=ent.animloop
-			 else
-			 	checkidle(ent)
-					ent.animoffset=vec2s"0,0"
-			 end
+			if flr(animt)>#anim then
+				if animloop then
+					animt=animloop
+				else
+					checkidle()
+					animoffset=vec2s"0,0"
+				end
 			end
 		else
-		 function case(c)
-		 	return char==c
-		 end
-			ent.animflip=case"f"and -1or 1
+			function case(c)
+				return char==c
+			end
+			animflip=case"f"and -1or 1
 			if case"l"then
-			 ent.animloop=index+1
-			 ent.animt+=rnd(#anim-index-1)
+				animloop=index+1
+				animt+=rnd(#anim-index-1)
 			elseif case"r" then
-				ent.animwait=false
+				animwait=false
 			elseif case"z" and
-			 vistoplayer(ent.tl) 
+			vistoplayer(tl) 
 			then
-		 	animtext("z",ent,true)
+				animtext("z",ent,true)
 			elseif case"_" then
 				destroy(ent)
-			 if ent==player then
+				if isplayer then
 					--next level
-					depth+=1
-					genmap(player.pos,player.tl.manmade)
+					_g.depth+=1
+					genmap(pos,tl.manmade)
 				end
-		 elseif case"m" then
+			elseif case"m" then
 				log("dEPTH "..depth)
 			elseif case"v" then
-			 ent.animt+=1
-			 ent.animoffset.y+=anim[index+1]-4
+				animt+=1
+				animoffset.y+=anim[index+1]-4
 			elseif case"c" then
-				ent.animclip=ent.animoffset.y
+				animclip=animoffset.y
 			elseif case"e" then
-			 fadetoblack=true
+				_g.fadetoblack=true
 			elseif case"!" then
-				ent.flash=true
+				flash=true
 			elseif case"b" then
-				ent.animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				ent.fillp=true
+				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
+				animfillp=true
 				animtext(".",ent,false,8,3,6)
 			elseif case"a" then
-				ent.animoffset=
-				 ent.movratio*
-					screenpos(ent.dir)
+				animoffset=
+				movratio*
+				screenpos(dir)
 			elseif case"d" then
-			 atk(ent,ent.atktl,ent.stat"atkpat")
+				doatk(atktl,stat"atkpat")
 			elseif case"s" then
-				ent.renderpos=nil
+				renderpos=nil
 			elseif case"h" then
-			 hurt(ent,(ent.hp>ent.maxhp/19.9) and 
-			    min(ent.maxhp/3,ent.hp-1) or
-			    1000)
+				hurt((hp>maxhp/19.9) and 
+					min(maxhp/3,hp-1) or
+					1000)
 			end
-			ent.animt+=1
+			animt+=1
 			tickanim()
 		end
 		
-		if ent.animclip then
-			ent.animheight=1-(ent.animoffset.y-ent.animclip)/8
+		if animclip then
+			animheight=1-(animoffset.y-animclip)/8
 		end
 	end
 	
-	if ent.anim then
+	if anim then
 		tickanim()
 	end
-	if ent.animwait then
-		waitforanim=true
+	if animwait then
+		_g.waitforanim=true
 	end
 	
-	if ent.pos then
-		ent.renderpos=
-			 lerp(ent.renderpos,
+	if pos then
+		renderpos=
+			 lerp(renderpos,
 			      entscreenpos(ent)+
-			      ent.animoffset,
+			      animoffset,
 			      0.5)					
 	end
 end
 
-function canmove(ent,pos,special)
-	local tl=gettile(pos)
+canmove=function(npos,special)
+	local ntl=gettile(npos)
 	return
-	 (tl.ent and ent.atk and
+	 (ntl.ent and atk and
 	  special != "noatk" and not
-	  (ent.ai and tl.ent.ai) and
-	  (not tl.ent.blocking or
-	   ent.behav=="hunt" or
-	   ent==player))
+	  (ai and ntl.ent.ai) and
+	  (not ntl.ent.blocking or
+	   behav=="hunt" or
+	   isplayer))
 	 or
-	 (not tl.ent and
+	 (not ntl.ent and
 	  special != "atkonly" and
-	  navigable(tl,ent.flying))
+	  navigable(ntl,flying))
 end
 
-function seesplayer(ent)
-	return ent.tl.vis and
-	       (ent.tl.pdist>=-1 or
+seesplayer=function()
+	return tl.vis and
+	       (tl.pdist>=-1 or
 				    player.tl.light>=2 or
-				    ent.darksight)				 
+				    darksight)				 
 end
 
-function findmove(ent,var,goal,special)
-	local tl = ent.tl
+findmove=function(var,goal,special)
 	local bestscore=-2
-	visitadjrnd(ent.pos,
+	visitadjrnd(pos,
 	function(npos,ntl)
-		if canmove(ent,npos,special) and
+		if canmove(npos,special) and
 		   ntl.fire==0
 		then
 		 local score=
 		 							abs(tl[var]-goal)-
 		 							abs(ntl[var]-goal)
-		 if ntl.ent and 
-		 	ntl.ent.blocking then
-		 	score-=ent.flying and 10 or 1
+		 if ent and 
+		 	ent.blocking then
+		 	score-=flying and 10 or 1
 		 end
-		 if ent.stat"burnlight" and 
+		 if stat"burnlight" and 
 		    tl.light>-1 and 
 		    tl.pdist<-1 then
 		 	score-=3*(ntl.light-tl.light)
@@ -1432,49 +1411,333 @@ function findmove(ent,var,goal,special)
 				bestpos=npos
 			end
 		end
- end)
- if bestscore>-2 then
-		if special=="aggro" and
-		   gettile(bestpos).pdist==0
-		then
-			aggro(ent.pos)
-		else
-			return move(ent,bestpos)
+	end)
+	if bestscore>-2 then
+			if special=="aggro" and
+			gettile(bestpos).pdist==0
+			then
+				aggro(pos)
+			else
+				return move(bestpos)
+		end
  	end
+end
+
+taketurn=function()
+	if isplayer then
+		poke(0x5f5c,9)--key repeat
+		poke(0x5f5d,6)
+		
+		if skipturn then
+			skipturn=false
+			return true
+		end
+		
+		if btnp"5" then
+			dialog(inv)
+			return
+		end
+		
+		if btnp"4" then
+			_g.tock=not _g.tock
+			sfx(40,-1,not tock and 16 or 0, 8)
+			return true --wait 1 turn
+		end
+		
+		function turn(btnid,i)
+			if btnp(btnid) then
+				diri=(diri+i+5)%6+1
+				setanim"turn"
+			end
+		end
+		
+		turn(⬅️,-1)
+		turn(➡️,1)
+		turn(⬇️,3)
+		
+		function updst()
+			_g.playerdst,_g.aimitem=
+			pos+adj[player.diri]
+			dsttile=gettile(playerdst)
+		end
+		updst()
+		lookat(playerdst)
+		if dsttile.typ!=tywall or
+		playerdst.x<=pos.x
+		then
+			dsttile.hilight=2
+		end
+		if btnp"2" then
+			dsttile.hilight=0
+			if canmove(playerdst) then
+				move(playerdst,true)
+				if tl==dsttile then
+					if dsttile.item then
+						pickup(dsttile.item)
+					end
+				updst()
+				if stat"lunge" and
+					vistoplayer(dsttile) and
+					dsttile.ent
+				then
+					interact(dsttile.ent)
+				end
+			end
+					
+			return true
+			elseif dsttile.typ==thole then
+				dialog(confirmjump)
+			end
+		end
+	elseif ai and canact and behav!="dead" then
+
+		function checkseesplayer()
+			if seesplayer() then
+				_g.pseen=true
+				_g.lastpseenpos=player.pos
+			end
+		end
+		if behav=="hunt" then
+			if packatk then
+				pdist=rndp() and 0 or -2
+			end
+			checkseesplayer()
+			findmove("pdist",pdist,movandatk and "noatk")
+				checkseesplayer()
+			if movandatk then
+				findmove("pdist",0,"atkonly")
+			end
+		else
+			--notice player
+			function checkaggro(p)
+				if seesplayer()
+				and rndp(p)
+				and onscreenpos(ent.pos,62)
+				then
+				aggro(pos)
+				return true
+				end
+			end
+			checkaggro(behav=="search"
+					and 1.0 or 0.29)
+			if behav=="wander" then
+				if not wanderdsts[group]
+				or pos==wanderdsts[group]
+				or rndp(0.025)
+				then
+					repeat
+						wanderdsts[group]=rndpos()
+						local tl = gettile(
+													wanderdsts[group])
+					until navigable(tl) and
+											tl.pdist>-1000
+					calcdist(wanderdsts[group],
+														group)
+				end
+				findmove(group,0,"aggro")
+				checkaggro(0.29)
+			elseif behav=="search" 
+			then
+				local goal=packatk and 0 or pdist
+				findmove("search",goal,"aggro")
+				if not checkaggro(1.0) and
+					tl.search == goal
+				then
+					setbehav"wander"
+				end
+			end
+		end
+	end
+end
+
+hurt=function(dmg,atkdir)
+	printh("hurt "..n)
+	hp-=dmg
+	flash=true
+	if isplayer then
+		shake=1
+	end
+	if hp<=0 then
+	 sfx(death or 41)
+		setbehav"dead"
+		setanim(deathanim)
+		waitforanim=true
+		if isplayer then
+			setmode"gameover"
+			poke(0x5f40,31)
+			calclight()
+		elseif sporedeath then
+			sporeburst(tl,sporedeath)
+		end
+	else 
+		sfx"34"
+		if hurtsplit and atkdir then
+			local splitpos=findfree(pos,"ent")
+			if splitpos then
+				hp/=2
+				local newent=create(typ,splitpos,behav,group)
+				for k,v in next,statuses do
+					newent.statuses[k]={unpack(v)}
+				end
+				newent.renderpos,newent.hp=
+				renderpos,hp
+				newent.setanim"esplit"
+			end
+		end
+	end
+	if hurtfx then
+		sfx(hurtfx)	
+	end
+	if hitfire then
+		local firepos=pos
+		if atkdir then
+			local dirpos=firepos+atkdir
+			if navigable(gettile(dirpos)) then
+				firepos=dirpos
+			end
+		end
+		sfx"36"
+		light=nil
+		setfire(gettile(firepos))
+	end
+	aggro(pos)
+end
+
+burn=function()
+	setstatus"BURN:6,6,8,9"
+end
+
+doatk=function(ntl,pat)
+ local b=ntl.ent
+ local atkdir,atkdiri=hexdir(pos,ntl.pos)
+ 
+ for p in all(split(pat,"|")) do
+ 	local nntl=getadjtl(ntl.pos,(atkdiri+p)%6+1)
+ 	if vistoplayer(nntl) then
+ 		doatk(nntl)
+ 	end
+ end
+ 
+ if b then
+ 	local hitp=1
+		if b.stat"armor" then
+		 local diff=(throwatk or stat"atk")-b.stat"armor"
+		 hitp=(max(diff)+1)/
+		      (abs(diff)+2)
+		end
+		if rndp(hitp) then
+			b.hurt(ent.stat"dmg",atkdir)
+		else
+			aggro(ntl.pos)
+		end
  end
 end
 
+interact=function (b)
+ setanim(atkanim)
+	sfx"33"
+ _g.waitforanim=true
+ atktl=b.tl
+end
+
+move=function(dst,playsfx)
+	local dsttile=gettile(dst)
+	lasttl=tl
+	lookat(dst)
+	if dsttile.ent then
+		interact(dsttile.ent,
+		         wpn or ent)
+	else
+		tl.ent=nil
+		if moveanim then
+			setanim(moveanim)
+		end
+		
+		if playsfx then
+		 local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
+	  sfx(snd or 35)
+	  if snd==43 then
+				--bonez
+				aggro(playerdst)	
+		 end
+		end
+	 
+	 setpos(dst)
+	end
+end
+
+lookat=function(dst)
+	local deltax,lookdir,lookdiri=
+	dst.x-pos.x,
+	hexdir(ent.pos,dst)
+ dir=lookdir
+ diri=lookdiri
+ if deltax!=0 then 
+		xface,yface=
+		sgn(deltax),sgn(deltax)
+ end
+ if lookdir.y!=0 then
+ 	yface=sgn(lookdir.y)
+ end
+end
+--end member functions
+
+	if _pos then
+		setpos(pos,true)	
+	end
+	
+	name=ai and 
+		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
+		rnd(split"y,o,us,ox,erbee,elia")
+	add(ents,ent)
+	maxhp=hp
+	if (flippable or ai)
+	   and rndp() then
+		xface*=-1
+	end
+	if ai and rndp() then
+		yface*=-1
+	end
+	checkidle()
+	if behav=="sleep" then
+		setanim"sleep"
+	end
+	
+	if var=="item" then
+		inititem(ent)
+	end
+	end
+
+	return ent
+end
 
 function updateturn()
  if (waitforanim) return
 	
 	if turnorder==0 then
 		pseen=false
-	 if not playerturn() then
+	 if not player.taketurn() then
 	 	return
 	 end
-	 tickstatuses(player)
+	 player.tickstatuses()
 	 updatemap()
 	elseif turnorder==1 then
 		for i,ent in next,ents do
-			if ent.ai and ent.canact and
-	 				ent.behav!="dead"
-	 	then
-			 aiturn(ent,ent.pos,ent.tl,ent.group)
-			end
-			if ent!=player then
-			 tickstatuses(ent)
+			if not ent.isplayer
+			then
+				ent.taketurn()
+				ent.tickstatuses()
 			end
 		end
 	else
-	 for i,ent in next,ents do
-		 if ent.ai then
+		for i,ent in next,ents do
+			if ent.ai then
 				if ent.behav=="hunt" and not
-				   pseen then
+				pseen then
 					ent.setbehav"search"
 					setsearchpos(lastpseenpos)
 				end
-		  ent.canact=true
+			ent.canact=true
 			end
 		end
 		updateenv()
@@ -1483,131 +1746,6 @@ function updateturn()
 	end
 	turnorder+=1
 	updateturn()
-end
-
-function playerturn()
-	poke(0x5f5c,9)--key repeat
-	poke(0x5f5d,6)
-	
-	if skipturn then
-	 skipturn=false
-	 return true
-	end
-	
-	if btnp"5" then
-	 dialog(inv)
-	 return
-	end
-	
-	if btnp"4" then
-		tock=not tock
-		sfx(40,-1,not tock and 16 or 0, 8)
-		return true --wait 1 turn
-	end
-	
-	function turn(btnid,i)
-	 if btnp(btnid) then
-			player.diri=(player.diri+i+5)%6+1
-			player.setanim"turn"
-		end
-	end
-	
-	turn(⬅️,-1)
-	turn(➡️,1)
-	turn(⬇️,3)
-	
-	function updst()
-		playerdst,aimitem=
-		player.pos+adj[player.diri]
-		dsttile=gettile(playerdst)
-	end
-	updst()
-	lookat(player,playerdst)
-	if dsttile.typ!=tywall or
-	   playerdst.x<=player.pos.x
-	then
-		dsttile.hilight=2
-	end
-	if btnp"2" then
-	 dsttile.hilight=0
-	 if canmove(player,playerdst) then
-			move(player,playerdst,true)
-			if player.tl==dsttile then
-				if dsttile.item then
-					pickup(dsttile.item)
-				end
-			 updst()
-				if player.stat"lunge" and
-				   vistoplayer(dsttile) and
-				   dsttile.ent then
-			 	interact(player,dsttile.ent)
-			 end
-			end
-			
-			return true
-		elseif dsttile.typ==thole then
-			dialog(confirmjump)
-		end
-	end
-end
-
-function aiturn(ent,pos,tl,group)
- function checkseesplayer()
- 	if seesplayer(ent) then
-		 pseen=true
-		 lastpseenpos=player.pos
-		end
- end
- if ent.behav=="hunt" then
-	 if ent.pack then
-	 	ent.pdist=rndp() and 0 or -2
-	 end
-	 checkseesplayer()
-	 findmove(ent,"pdist",ent.pdist,ent.movandatk and "noatk")
-		checkseesplayer()
-		if ent.movandatk then
-			findmove(ent,"pdist",0,"atkonly")
-		end
-	else
-		--notice player
-		function checkaggro(p)
-			if seesplayer(ent)
-			   and rndp(p)
-			   and onscreenpos(ent.pos,62)
-			then
-			 aggro(pos)
-			 return true
-			end
-		end
-		checkaggro(behav=="search"
-		           and 1.0 or 0.29)
-		if ent.behav=="wander" then
-			if not wanderdsts[group]
-			   or ent.pos==wanderdsts[group]
-			   or rndp(0.025)
-			then
-				repeat
-					wanderdsts[group]=rndpos()
-					local tl = gettile(
-												wanderdsts[group])
-				until navigable(tl) and
-										tl.pdist>-1000
-				calcdist(wanderdsts[group],
-													group)
-			end
-			findmove(ent,group,0,"aggro")
-			checkaggro(0.29)
-		elseif ent.behav=="search" 
-		then
-			local goal=ent.pack and 0 or ent.pdist
-			findmove(ent,"search",goal,"aggro")
-			if not checkaggro(1.0) and
-				  ent.tl.search == goal
-		 then
-				ent.setbehav"wander"
-			end
-		end
-	end
 end
 
 function setsearchpos(pos)
@@ -1625,7 +1763,7 @@ function aggro(pos)
 		   ent.behav!="dead" and
 					ent.tl.aggro>=-3
 		then
-			if seesplayer(ent) then
+			if ent.seesplayer() then
 				ent.setbehav"hunt"
 				pseen=true
 			elseif ent.behav!="hunt"
@@ -1641,138 +1779,6 @@ function destroy(ent)
 		del(ents,ent)
 		ent.tl[ent.var]=nil
 	end
-end
-
-function hurt(ent,dmg,atkdir)
- printh("hurt "..ent.n)
-	ent.hp-=dmg
- ent.flash=true
-	if ent==player then
-		shake=1
-	end
-	if ent.hp<=0 then
-	 sfx(ent.death or 41)
-		ent.setbehav"dead"
-		ent.setanim(ent.deathanim)
-		waitforanim=true
-		if ent==player then
-			setmode"gameover"
-			poke(0x5f40,31)
-			calclight()
-		elseif ent.sporedeath then
-			sporeburst(ent.tl,ent.sporedeath)
-		end
-	else 
-		sfx"34"
-		if ent.hurtsplit and atkdir then
-			local splitpos=findfree(ent.pos,"ent")
-			if splitpos then
-				ent.hp/=2
-				local newent=create(ent.typ,splitpos,ent.behav,ent.group)
-			 for k,v in next,ent.statuses do
-			 	newent.statuses[k]={unpack(v)}
-			 end
-			 newent.renderpos,newent.hp=
-			 ent.renderpos,ent.hp
-				newent.setanim"esplit"
-			end
-		end
-	end
-	if ent.hurtfx then
-		sfx(ent.hurtfx)	
-	end
-	if ent.hitfire then
-		local firepos=ent.pos
-		if atkdir then
-			local dirpos=firepos+atkdir
-			local ntl=gettile(dirpos)
-			if navigable(ntl) then
-				firepos=dirpos
-			end
-		end
-		sfx"36"
-		ent.light=nil
-		setfire(gettile(firepos))
-	end
-	aggro(ent.pos)
-end
-
-function burn(ent)
-	setstatus(ent,"BURN","6,6,8,9")
-end
-
-function atk(ent,tl,pat)
- local b=tl.ent
- local dir,diri=hexdir(ent.pos,tl.pos)
- 
- for p in all(split(pat,"|")) do
- 	local tl=getadjtl(tl.pos,(diri+p)%6+1)
- 	if vistoplayer(tl) then
- 		atk(ent,tl)
- 	end
- end
- 
- if b then
- 	local hitp=1
-		if b.stat"armor" then
-		 local diff=(ent.throwatk or ent.stat"atk")-b.stat"armor"
-		 hitp=(max(diff)+1)/
-		      (abs(diff)+2)
-		end
-		if rndp(hitp) then
-			hurt(b,ent.stat"dmg",dir)
-		else
-			aggro(tl.pos)
-		end
- end
-end
-
-function interact(a,b)
- a.setanim(a.atkanim)
-	sfx"33"
- waitforanim=true
- a.atktl=b.tl
-end
-
-function move(ent,dst,playsfx)
-	local dsttile=gettile(dst)
-	ent.lasttl=ent.tl
-	lookat(ent,dst)
-	if dsttile.ent then
-		interact(ent,dsttile.ent,
-		         ent.wpn or ent)
-	else
-		ent.tl.ent=nil
-		if ent.moveanim then
-			ent.setanim(ent.moveanim)
-		end
-		
-		if playsfx then
-		 local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
-	  sfx(snd or 35)
-	  if snd==43 then
-				--bonez
-				aggro(playerdst)	
-		 end
-		end
-	 
-	 setpos(ent,dst)
-	end
-end
-
-function lookat(ent,dst)
-	local deltax,dir,diri=
-	dst.x-ent.pos.x,
-	hexdir(ent.pos,dst)
- ent.dir=dir
- ent.diri=diri
- if deltax!=0 then 
-		ent.xface,ent.yface=
-		sgn(deltax),sgn(deltax)
- end
- if dir.y!=0 then
- 	ent.yface=sgn(dir.y)
- end
 end
 -->8
 --level generation
@@ -2132,7 +2138,7 @@ function postproc()
 	
 	if depth>0 then
 		player.animoffset.y=-21
-	 player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
+		player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
 	 
 		--spawn entities										
 		wanderdsts={}
@@ -2180,7 +2186,7 @@ item.eQUIP=function(nosnd)
 	player[item.slot]=item
 	item.equipped=true
 	if item.lit then
-		setstatus(player,"TORCH","160,160,2,9")
+		player.setstatus"TORCH:160,160,2,9"
 	end
 	id(item)
 end
@@ -2204,17 +2210,17 @@ item.tHROW=function()
 end
 
 function orbis(str)
- return orb==str
+	return orbcmp==str
 end
 
 item.uSE=function()
- orb=item.orb
-	if orb then
+ orbcmp=item.orb
+	if orbcmp then
 		if orbis"light" then
-			setstatus(player,"LIGHT","160,160,2,13")
+			player.setstatus"LIGHT:160,160,2,13"
 			player.light,player.lcool=4,true
 		elseif orbis"slofall" then
-			setstatus(player,"SLOFALL","160,160,2,3")
+			player.setstatus"SLOFALL:160,160,2,3"
 		elseif orbis"ench" then
 			
 		elseif orbis"id" then
@@ -2261,18 +2267,6 @@ function orbeffect(tl)
 		end
 	end
 end
-
---[[item.dROP=function()
-	local pos = findfree(player.pos,"item",100)
-	if pos then	
-	 sfx(25)
-		item.sTOW()
-		setpos(item,pos,true)
-		del(inventory,item)
-	else
-		log"nO ROOM"
-	end
-end]]
 
 item.eXTINGUISH=function()
 	item.throwln,item.lit,item.light,
@@ -2332,7 +2326,7 @@ function updateaim(item,lineparams,atktype)
 	for pos in all(aimline) do
 	 gettile(pos).hilight=2
 	end
-	lookat(player,aimpos)
+	player.lookat(aimpos)
 	item.xface=player.xface
 	if #aimline>0 and btn"5" and
 	   statet>0.2 then
@@ -2374,10 +2368,10 @@ function rangedatk(i,origin,ln,item,atktype)
 		 	sfx"27"
 		 else
 		  if item.atk then
-		  	atk(item,dsttl)
+		  	item.doatk(dsttl)
 		  end
 			 if item.throw then
-			 	setpos(item,findfree(dst,"item"),true)
+			 	item.setpos(findfree(dst,"item"),true)
 			 end
 		 end
 		end
@@ -2415,8 +2409,8 @@ function rangedatk(i,origin,ln,item,atktype)
 		end
 		calclight()
 		if tl.ent then
-			burn(tl.ent)
-		 hurt(tl.ent,item.dmg)
+			tl.ent.burn()
+		 tl.ent.hurt(item.dmg)
 		end
 	end
 end
@@ -2424,7 +2418,7 @@ end
 --game data / init
 
 
-assigntable(
+_g=assigntable(
 [[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
@@ -2434,9 +2428,9 @@ assigntable(
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0
+[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,pack:,movandatk:,alert:20,hurtfx:21
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,packatk:,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
 66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangedatk:summon|heal
 67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangedatk:throw,atksfx:26
@@ -2447,7 +2441,7 @@ entdata=assigntable(
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
 76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alert:47,hurtfx:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,pack:,light:3,alert:49,hurtfx:50
+77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,packatk:,light:3,alert:49,hurtfx:50
 78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alert:51,hurtfx:52
 137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
@@ -2555,7 +2549,7 @@ split([[16
 -8,-4
 1,0
 15,8]],"◆")) do
-	local typ,baseoffset,offset,size=unpack(split(s,"\n"))
+	local typ,baseoffset,offset,size=usplit(s,"\n")
 	specialtiles[typ]=
 	{vec2s(baseoffset),
 	 vec2list(offset),
@@ -2596,7 +2590,7 @@ end
 local rseed=rnd"0xffff.ffff"
 srand"0x5b04.17cb"
 genmap(vec2s"10,13")
-srand"rseed"
+srand(rseed)
 
 addtoinventory(create(130)).eQUIP(true)
 addtoinventory(create(129))
