@@ -278,7 +278,7 @@ function inv()
 		for item in all(inventory) do
 			if item.equipped==eqpd then
 			 i+=1
-				if listitem(getname(item),i==invindex) then
+				if listitem(item.getname(),i==invindex) then
 					dialog(info)
 					selitem=item
 				end
@@ -298,9 +298,9 @@ function info()
  menuindex=getindex(2)
 
  spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
- ?"\fd    "..getname(selitem)
+ ?"\fd    "..selitem.getname()
  local statstr="\f1 ……………………………\fd\|j"
- if isid(selitem) then
+ if selitem.isid() then
  	for str in all(split(
 "nAME: ,name|\
   cASTS LIGHT\
@@ -1473,7 +1473,7 @@ taketurn=function()
 				move(playerdst,true)
 				if tl==dsttile then
 					if dsttile.item then
-						pickup(dsttile.item)
+						dsttile.item.pickup()
 					end
 				updst()
 				if stat"lunge" and
@@ -1680,6 +1680,126 @@ lookat=function(dst)
  	yface=sgn(lookdir.y)
  end
 end
+
+eQUIP=function()
+	if player[slot] then
+		player[slot].sTOW()
+	end
+	player[slot]=ent
+	equipped=true
+	if lit then
+		player.setstatus"TORCH:160,160,2,9"
+	end
+	id()
+end
+
+sTOW=function(staylit)
+	if equipped then
+		equipped=nil
+		if lit then
+		 if staylit then
+				player.statuses.TORCH=nil
+		 else
+		 	eXTINGUISH()
+			end
+		end
+		player[slot]=nil
+	end
+end
+
+tHROW=function()
+ aim{ent,{throw},"throw"}
+end
+
+function orbis(str)
+	return orb==str
+end
+
+uSE=function()
+	if orb then
+		if orbis"light" then
+			player.setstatus"LIGHT:160,160,2,13"
+			player.light,player.lcool=4,true
+		elseif orbis"slofall" then
+			player.setstatus"SLOFALL:160,160,2,3"
+		elseif orbis"ench" then
+			
+		elseif orbis"id" then
+			
+		elseif orbis"life" then
+		 player.maxhp+=5
+		 player.hp=player.maxhp
+		 sfx"17"
+		else
+			orbeffect(player.tl)
+		end
+		
+		id()
+		del(inventory,ent)
+		destroy(ent)
+	else
+		--staffs
+		aim{ent,{range,pass,block,true},rangetyp}
+	end
+end
+
+orbeffect=function(tl)
+	if orbis"light" then
+	
+	elseif orbis"ench" then
+	
+	elseif orbis"id" then
+	
+	elseif orbis"tele" then
+	
+	end
+	
+	for i in all(split"1,2,3,4,5,0") do
+		local ntl=getadjtl(tl.pos,i)
+		if orbis"slofall" then
+		
+		elseif orbis"life" then
+			sporeburst(ntl,12)
+		elseif orbis"fire" then
+			setfire(tl)
+			sfx"36"
+		elseif orbis"ice" then
+		
+		end
+	end
+end
+
+eXTINGUISH=function()
+	throwln,lit,light,
+	player.statuses.TORCH=0.125
+	typ+=1
+end
+
+getname=function()
+	return isid() and nid or n
+end
+
+isid=function()
+ return ided[typ]
+end
+
+id=function()
+	if not isid() then
+		ided[typ]=true
+		log("id: "..getname())
+	end
+end
+
+pickup=function()
+	addtoinventory()
+	tl.item=nil
+	log("+"..getname())
+	sfx"25"
+end
+
+addtoinventory=function()
+ return add(inventory,ent)
+end
 --end member functions
 
 	if _pos then
@@ -1701,10 +1821,6 @@ end
 	checkidle()
 	if behav=="sleep" then
 		setanim"sleep"
-	end
-	
-	if var=="item" then
-		inititem(ent)
 	end
 	end
 
@@ -2174,132 +2290,7 @@ function postproc()
 		end
 	end
 end
--->8
---items
 
-function inititem(item)
-item.setanim"flash"
-item.eQUIP=function(nosnd)
-	if player[item.slot] then
-		player[item.slot].sTOW()
-	end
-	player[item.slot]=item
-	item.equipped=true
-	if item.lit then
-		player.setstatus"TORCH:160,160,2,9"
-	end
-	id(item)
-end
-
-item.sTOW=function(staylit)
-	if item.equipped then
-		item.equipped=nil
-		if item.lit then
-		 if staylit then
-				player.statuses.TORCH=nil
-		 else
-		 	item.eXTINGUISH()
-			end
-		end
-		player[item.slot]=nil
-	end
-end
-
-item.tHROW=function()
- aim{item,{item.throw},"throw"}
-end
-
-function orbis(str)
-	return orbcmp==str
-end
-
-item.uSE=function()
- orbcmp=item.orb
-	if orbcmp then
-		if orbis"light" then
-			player.setstatus"LIGHT:160,160,2,13"
-			player.light,player.lcool=4,true
-		elseif orbis"slofall" then
-			player.setstatus"SLOFALL:160,160,2,3"
-		elseif orbis"ench" then
-			
-		elseif orbis"id" then
-			
-		elseif orbis"life" then
-		 player.maxhp+=5
-		 player.hp=player.maxhp
-		 sfx"17"
-		else
-			orbeffect(player.tl)
-		end
-		
-		id(item)
-		del(inventory,item)
-		destroy(item)
-	else
-		--staffs
-		aim{item,{item.range,item.pass,item.block,true},item.rangedatk}
-	end
-end
-
-function orbeffect(tl)
-	if orbis"light" then
-	
-	elseif orbis"ench" then
-	
-	elseif orbis"id" then
-	
-	elseif orbis"tele" then
-	
-	end
-	
-	for i in all(split"1,2,3,4,5,0") do
-		local ntl=getadjtl(tl.pos,i)
-		if orbis"slofall" then
-		
-		elseif orbis"life" then
-			sporeburst(ntl,12)
-		elseif orbis"fire" then
-			setfire(tl)
-			sfx"36"
-		elseif orbis"ice" then
-		
-		end
-	end
-end
-
-item.eXTINGUISH=function()
-	item.throwln,item.lit,item.light,
-	player.statuses.TORCH=0.125
-	item.typ+=1
-end
-end
-
-function getname(item)
-	return isid(item) and item.nid or item.n
-end
-
-function isid(item)
- return ided[item.typ]
-end
-
-function id(item)
-	if not isid(item) then
-		ided[item.typ]=true
-		log("id: "..getname(item))
-	end
-end
-
-function pickup(item)
-	addtoinventory(item)
-	item.tl.item=nil
-	log("+"..getname(item))
-	sfx"25"
-end
-
-function addtoinventory(item)
- return add(inventory,item)
-end
 -->8
 --ranged attacks
 
@@ -2363,8 +2354,8 @@ function rangedatk(i,origin,ln,item,atktype)
 		 	setfire(dsttl)
 		 	sfx"36"
 		 elseif orb then
-		  orbeffect(dsttl)
-		  id(item)
+		  item.orbeffect(dsttl)
+		  item.id()
 		 	sfx"27"
 		 else
 		  if item.atk then
@@ -2432,17 +2423,17 @@ entdata=assigntable(
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,packatk:,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangedatk:summon|heal
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangedatk:throw,atksfx:26
-68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangedatk:fire
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangetyp:summon|heal
+67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:throw,atksfx:26
+68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:fire
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
 72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangedatk:blink|ice|lightning,alert:47,hurtfx:48
+76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
 77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,packatk:,light:3,alert:49,hurtfx:50
-78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangedatk:fire,alert:51,hurtfx:52
+78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangetyp:fire,alert:51,hurtfx:52
 137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
@@ -2473,31 +2464,31 @@ fall=w0v50v50v60cv70v80v8or_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16
-129=n:oAKEN STAFF,var:item,throw:4
-145=n:dRIFTWOOD STAFF,var:item,throw:4
-161=n:eBONY STAFF,var:item,throw:4
-177=n:pUPLEHEART STAFF,var:item,throw:4
-140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4
-141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4
-142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4
-143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4
-156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2
-157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2
-158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2
-159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2
-172=n:cYAN ORB,var:item,light:2,throw:6
-173=n:yELLOW ORB,var:item,light:2,throw:6
-174=n:rED ORB,var:item,light:2,throw:6
-175=n:bLACK ORB,var:item,light:2,throw:6
-188=n:gREEN ORB,var:item,light:2,throw:6
-189=n:oRANGE ORB,var:item,light:2,throw:6
-190=n:pURPLE ORB,var:item,light:2,throw:6
-191=n:pINK ORB,var:item,light:2,throw:6
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16,idleanim:flash
+129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash
+145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash
+161=n:eBONY STAFF,var:item,throw:4,idleanim:flash
+177=n:pUPLEHEART STAFF,var:item,throw:4,idleanim:flash
+140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash
+141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash
+142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash
+143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash
+156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash
+157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash
+158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash
+159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash
+172=n:cYAN ORB,var:item,light:2,throw:6,idleanim:flash
+173=n:yELLOW ORB,var:item,light:2,throw:6,idleanim:flash
+174=n:rED ORB,var:item,light:2,throw:6,idleanim:flash
+175=n:bLACK ORB,var:item,light:2,throw:6,idleanim:flash
+188=n:gREEN ORB,var:item,light:2,throw:6,idleanim:flash
+189=n:oRANGE ORB,var:item,light:2,throw:6,idleanim:flash
+190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash
+191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash
 300=,nid:oRB OF lIGHT,orb:light,usefx:17
 301=,nid:oRB OF gRAVITY,orb:slofall,usefx:17
 302=,nid:oRB OF pOWER,orb:ench
@@ -2514,10 +2505,10 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 313=,nid:dARKSIGHT cLOAK,darksight:1
 314=,nid:cLOAK OF wISDOM,recharge:1
 315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
-316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:30,rangedatk:fire,usefx:36
-317=,nid:sTAFF OF sTORMS,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangedatk:lightning
-318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangedatk:ice
-319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangedatk:blink
+316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:30,rangetyp:fire,usefx:36
+317=,nid:sTAFF OF sTORMS,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning
+318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangetyp:ice
+319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink
 ]],nil,"\n","=")
 
 adj,fowpals,ided=
@@ -2526,7 +2517,7 @@ vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
-assigntable"130:,132:,133:,134:,135:"--ided
+assigntable"130:,131:,132:,133:,134:,135:"--ided
 
 for s in all(
 split([[16
@@ -2592,11 +2583,11 @@ srand"0x5b04.17cb"
 genmap(vec2s"10,13")
 srand(rseed)
 
-addtoinventory(create(130)).eQUIP(true)
-addtoinventory(create(129))
-addtoinventory(create(145))
-addtoinventory(create(161))
-addtoinventory(create(177))
+create(130).addtoinventory().eQUIP(true)
+create(129).addtoinventory()
+create(145).addtoinventory()
+create(161).addtoinventory()
+create(177).addtoinventory()
 calclight()
 
 __gfx__
