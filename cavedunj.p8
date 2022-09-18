@@ -67,8 +67,8 @@ function _draw()
 	end
 	
 	for atk in all(rangedatks) do
-	 atk[1]+=1 --counter
-		if rangedatk(unpack(atk)) then
+	 atk[2][1]+=1 --counter
+		if atk[1](unpack(atk[2])) then
 		 del(rangedatks,atk)
 		end
 	end
@@ -1800,6 +1800,75 @@ end
 addtoinventory=function()
  return add(inventory,ent)
 end
+
+rangedatk=function(i,origin,ln,atktype)
+	function atkis(str)
+	 return atktype==str
+	end
+	
+	local dst=ln[#ln]
+	local dsttl=gettile(dst)
+	local spd=atkis"throw" and throw/12 or 0.999
+	
+ if (i*spd>=#ln) then
+  if atkis"throw" then
+		 if dsttl.typ==thole then
+		 	sfx"24"
+		 elseif lit then
+		 	setfire(dsttl)
+		 	sfx"36"
+		 elseif orb then
+		  orbeffect(dsttl)
+		  id()
+		 	sfx"27"
+		 else
+		  if atk then
+		  	doatk(dsttl)
+		  end
+			 if throw then
+			 	setpos(findfree(dst,"item"),true)
+			 end
+		 end
+		end
+		return true
+	end
+	
+	local tl = gettile(ln[flr(i*spd)+1])
+ 
+	if atkis"throw" then
+		flatten(tl)
+		initpal(tl)
+		
+		function getpos(i,offs)
+			local t,airtime=
+			spd*i/#ln, #ln/spd
+			local arcy,pos=
+			(t*t-t)*airtime*airtime/4,
+			lerp(origin,ln[#ln],t)
+			local scrpos=screenpos(pos)+offs
+			return scrpos.x,scrpos.y+arcy,1,1,xface<0
+		end
+		
+		if throwln then
+			local x1,y1=getpos(i-1,vec2s"0,-2")
+		 local x2,y2=getpos(i,vec2s"0,-2")
+		 tline(x2,y2,x1,y1,18,throwln)
+		else
+		 xface*=throwflp		 
+			spr(typ,getpos(i,vec2s"-3,-6"))
+		end
+	elseif atkis"fire" then
+		trysetfire(nil,tl,true)
+		if tl.fire==0 then
+			create(138,tl.pos)
+		end
+		calclight()
+		if tl.ent then
+			tl.ent.burn()
+		 tl.ent.hurt(dmg)
+		end
+	end
+end
 --end member functions
 
 	if _pos then
@@ -2292,7 +2361,7 @@ function postproc()
 end
 
 -->8
---ranged attacks
+--aiming
 
 function aim(params)
 	aimparams,aimpos=params,playerdst
@@ -2329,82 +2398,13 @@ function updateaim(item,lineparams,atktype)
 			item.pos,aimitem=player.pos
 		end
 		player.setanim"throw"
-		add(rangedatks,{0,player.pos,aimline,item,atktype})
+		add(rangedatks,{item.rangedatk,{0,player.pos,aimline,atktype}})
 	elseif btnp"4" then
 	 skipturn=false
 	 setmode"play"
 	end
 end
 
-function rangedatk(i,origin,ln,item,atktype)
-	function atkis(str)
-	 return atktype==str
-	end
-	
-	local dst=ln[#ln]
-	local dsttl=gettile(dst)
-	local spd=atkis"throw" and item.throw/12 or 0.999
-	
- if (i*spd>=#ln) then
-  orb=item.orb
-  if atkis"throw" then
-		 if dsttl.typ==thole then
-		 	sfx"24"
-		 elseif item.lit then
-		 	setfire(dsttl)
-		 	sfx"36"
-		 elseif orb then
-		  item.orbeffect(dsttl)
-		  item.id()
-		 	sfx"27"
-		 else
-		  if item.atk then
-		  	item.doatk(dsttl)
-		  end
-			 if item.throw then
-			 	item.setpos(findfree(dst,"item"),true)
-			 end
-		 end
-		end
-		return true
-	end
-	
-	local tl = gettile(ln[flr(i*spd)+1])
- 
-	if atkis"throw" then
-		flatten(tl)
-		initpal(tl)
-		
-		function getpos(i,offs)
-			local t,airtime=
-			spd*i/#ln, #ln/spd
-			local arcy,pos=
-			(t*t-t)*airtime*airtime/4,
-			lerp(origin,ln[#ln],t)
-			local scrpos=screenpos(pos)+offs
-			return scrpos.x,scrpos.y+arcy,1,1,item.xface<0
-		end
-		
-		if item.throwln then
-			local x1,y1=getpos(i-1,vec2s"0,-2")
-		 local x2,y2=getpos(i,vec2s"0,-2")
-		 tline(x2,y2,x1,y1,18,item.throwln)
-		else
-		 item.xface*=item.throwflp		 
-			spr(item.typ,getpos(i,vec2s"-3,-6"))
-		end
-	elseif atkis"fire" then
-		trysetfire(nil,tl,true)
-		if tl.fire==0 then
-			create(138,tl.pos)
-		end
-		calclight()
-		if tl.ent then
-			tl.ent.burn()
-		 tl.ent.hurt(item.dmg)
-		end
-	end
-end
 -->8
 --game data / init
 
