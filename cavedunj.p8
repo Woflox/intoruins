@@ -869,15 +869,6 @@ function flatten(tl)
  end
 end
 
-function effect(var,pos,typ,val)
-	local tl=gettile(pos)
-	tl[var]=max(tl[var],val)
-	if not (tl.effect and 
-									tl.effect.typ==typ) then
-		create(typ,pos)	
-	end
-end
-
 function setfire(tl)
  tl.fire,tl.spores,tl.newspores=
  max(tl.fire,1),0,0
@@ -1896,6 +1887,8 @@ end
 	return ent
 end
 
+-->8
+--entity management
 function updateturn()
  if (waitforanim) return
 	
