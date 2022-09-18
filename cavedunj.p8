@@ -487,59 +487,14 @@ function drawtl(tl,typ,pos,baseoffset,offset,size,flp,bg,hilight)
 end
 
 function drawents(tl)
- function drawent(var)
-  local ent=tl[var]
-		if ent and (vistoplayer(tl) or
-		   ent.lasttl and vistoplayer(ent.lasttl))
-	 then
-			initpal(ent.tl)
-			if ent==player then
-				pal(8,ent.stat"ccol")
-				pal(9,ent.stat"acol") 
-			end
-			if ent.flash then
-				pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
-				ent.flash=false
-			elseif ent.animpal then
-				pal(ent.animpal)
-				if ent.animfillp then
-				 fillp(lfillp)
-				end
-			end
-			local flp=ent.xface*ent.animflip<0
-			local scrpos=ent.renderpos+
-						vec2(flp and -1 or 0,0)
-			local frame=
-							ent.animframe
-							+0.5+ent.yface*0.5
-			spr(ent.typ+frame*16,
-							scrpos.x,scrpos.y,
-							1,ent.animheight,
-							flp)
-			local held=aimitem or ent.wpn
-			if ent==player and
-			   held and
-			   frame<=5 then
-			 local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
-				pal(8,8)
-				pal(9,9)
-				
-				spr(held.typ +
-				    frame%4*held.wpnfrms,
-								scrpos.x+
-								wpnpos.x*ent.xface,
-								scrpos.y+wpnpos.y,
-								1,ent.animheight,
-								flp)
-			end
-			ent.lasttl=nil
-		end
+	function drawent(var)
+		if (tl[var]) tl[var].draw()
 	end
 
 	drawent"item"
- drawent"ent"
- checkeffects(tl)
- drawent"effect"
+	drawent"ent"
+	checkeffects(tl)
+	drawent"effect"
 end
 
 function checkeffects(tl)
@@ -1149,6 +1104,54 @@ function create(_typ,_pos,_behav,_group)
 	counts[_typ]=(counts[_typ]or 0)+1
 	
 --member functions
+draw=function()
+	if vistoplayer(tl) or
+		lasttl and vistoplayer(lasttl)
+	then
+		initpal(tl)
+		if isplayer then
+			pal(8,stat"ccol")
+			pal(9,stat"acol") 
+		end
+		if flash then
+			pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
+			flash=false
+		elseif animpal then
+			pal(animpal)
+			if animfillp then
+				fillp(lfillp)
+			end
+		end
+		local flp=xface*animflip<0
+		local scrpos=renderpos+
+					vec2(flp and -1 or 0,0)
+		local frame=
+						animframe
+						+0.5+yface*0.5
+		spr(typ+frame*16,
+						scrpos.x,scrpos.y,
+						1,animheight,
+						flp)
+		local held=aimitem or wpn
+		if isplayer and
+			held and
+			frame<=5 then
+			local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
+			pal(8,8)
+			pal(9,9)
+			
+			spr(held.typ +
+				frame%4*held.wpnfrms,
+							scrpos.x+
+							wpnpos.x*xface,
+							scrpos.y+wpnpos.y,
+							1,animheight,
+							flp)
+		end
+		lasttl=nil
+	end
+end
+
 setanim=
 function (name)
 	anim,animt,animloop=
