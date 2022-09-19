@@ -1717,6 +1717,7 @@ uSE=function()
 		if orbis"light" then
 			player.setstatus"LIGHT:160,160,2,13"
 			player.light,player.lcool=4,true
+			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL:160,160,2,3"
 		elseif orbis"ench" then
