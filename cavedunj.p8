@@ -915,7 +915,8 @@ function updateenv()
 	calclight()
 	
 	for ent in all(ents) do
-		if ent.burnlight and 
+		if ent.hp and 
+		   ent.stat"burnlight" and 
 		   ent.tl.light>=2 and
 		   not ent.statuses.BURN
 		then
@@ -1239,7 +1240,6 @@ end
 setstatus=function(str)
 	local k,v=usplit(str,":")
 	statuses[k]=split(v)
-	printh(v)
 end
 
 tickstatuses=function()
@@ -1548,7 +1548,6 @@ taketurn=function()
 end
 
 hurt=function(dmg,atkdir)
-	printh("hurt "..n)
 	hp-=dmg
 	flash=true
 	if isplayer then
