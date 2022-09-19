@@ -400,37 +400,70 @@ flags:
 12:bridge
 ]]
 
-function tile(typ,pos)
-	local tl={typ=typ,pos=pos}
-	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:0",tl)
+function tile(_typ,_pos)
+	local tl=setmetatable({typ=_typ,pos=_pos},{__index=_ENV})
+	do local _ENV=tl
+--tile member functions
+
+set=function(ntyp)
+	typ,bg,genned=ntyp
 end
 
-function settile(tl,typ)
-	tl.typ,tl.bg,tl.genned=typ
-end
+draw=function(_typ,_pos,baseoffset,offset,size,flp,_bg,_hilight)
+	dtyp=_typ or (_bg and bg) or typ
+	local xtraheight,litsprite=
+	fget(dtyp,2)and 5 or 0,dtyp+192
 	
-function drawcall(func,args)
-	add(drawcalls, {func,args})
+	--lighting
+	for i=0,6 do
+		if not _bg and fow==4 and 
+		   fget(litsprite,i) then
+			local adjtile=
+				getadjtl(_pos,i)
+			if adjtile and
+						adjtile.lightsrc then
+				dtyp=litsprite
+				pal(8,adjtile.lcool and 13 or 4)
+				pal(9,adjtile.lcool and 12 or 9)
+			end
+		end
+	end
+	
+	local scrpos=screenpos(_pos)+
+	             offset+baseoffset
+	sspr(dtyp%16*8+offset.x,
+							flr(dtyp/16)*8+
+								offset.y-xtraheight,
+							size.x,size.y+xtraheight,
+							scrpos.x,scrpos.y-xtraheight,
+							size.x,size.y+xtraheight,flp)
+	if _hilight then
+	 hifade+=mid(-1,hilight-hifade,1)
+	 if hifade>0 and vistoplayer(tl) then
+	  pal(usplit"2,34,2")
+	 	spr(hifade*16-8,scrpos.x,scrpos.y,2,1)
+	 end
+ 	hilight=0
+	end
 end
 
-function initpal(tl, fadefow)
+initpal=function(fadefow)
  pal()	
 	palt(1)
-	fow=1
+	nfow=1
 	if fadefow then
 	 if not fadetoblack then
 			if modeis"gameover" then
-				fow=tl==player.tl and 3 or 1
+				nfow=tl==player.tl and 3 or 1
 			elseif vistoplayer(tl) and
 			   mode != "ui" then
-				fow=tl.light>=2 and 4 or 3
-			elseif tl.explored then
-				fow=2
+				nfow=light>=2 and 4 or 3
+			elseif explored then
+				nfow=2
 			end
 		end
-		tl.fow+=mid(-1,fow-tl.fow,1)
+		fow+=mid(-1,nfow-fow,1)
 	end
-	fow=tl.fow
 
 	if fow<4 then
 		fillp(lfillp)
@@ -438,6 +471,92 @@ function initpal(tl, fadefow)
 	else
 		fillp()
  end
+end
+
+checkeffects=function()
+
+ function checkeffect(_typ,has)
+ 	local effect=effect
+ 	if effect then
+		 if	effect.typ==_typ then
+		  if not effect.dead and
+		 	not has then
+			 	effect.setanim(effect.deathanim)
+			 	effect.dead,effect.light=true
+		 	end
+		 elseif has then
+		 	destroy(effect)
+		 end
+		end
+		if not effect and has then
+		 create(_typ,pos)
+		end
+	end
+	
+	local hasfire=fire>0 or
+ 						ent and 
+ 						ent.statuses.BURN
+ local hasspores=spores>0
+
+	_g.anyfire=_g.anyfire or hasfire and mode!="ui"
+
+ checkeffect(138,hasfire)
+ checkeffect(139,hasspores)
+end
+
+
+tileflag=function(i)
+	return fget(typ+flr(i/8),i%8)
+end
+
+navigable=function(flying)
+	return tileflag(flying and 8 or 0)
+end
+
+genable=function()
+	return tileflag"4"
+end
+
+ismanmade=function()
+	return tileflag"7" or
+	(bg and fget(bg,7))
+end
+
+vistoplayer=function()
+	return vis and (light>-player.stat"darksight" 
+	    or pdist>-2-player.stat"darksight")
+end
+
+flatten=function()
+ if typ==tlonggrass then
+ 	typ=tflatgrass
+ end
+end
+
+setfire=function()
+ fire,spores,newspores=
+ max(fire,1),0,0
+ entfire(tl)
+end
+
+sporeburst=function(val)
+	spores+=val
+	sfx"17"
+end
+
+entfire=function()
+	if ent and 
+		  not ent.nofire then
+		 ent.burn()
+	end
+end
+--end tile member functions
+	end
+	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:0",tl)
+end
+
+function drawcall(func,args)
+	add(drawcalls, {func,args})
 end
 
 function onscreenpos(pos,pad)
@@ -448,44 +567,6 @@ function onscreenpos(pos,pad)
         scrpos
 end
 
-function drawtl(tl,typ,pos,baseoffset,offset,size,flp,bg,hilight)
-	typ=typ or (bg and tl.bg) or tl.typ
-	local xtraheight,litsprite=
-	fget(typ,2)and 5 or 0,typ+192
-	
-	--lighting
-	for i=0,6 do
-		if not bg and fow==4 and 
-		   fget(litsprite,i) then
-			local adjtile=
-				getadjtl(pos,i)
-			if adjtile and
-						adjtile.lightsrc then
-				typ=litsprite
-				pal(8,adjtile.lcool and 13 or 4)
-				pal(9,adjtile.lcool and 12 or 9)
-			end
-		end
-	end
-	
-	local scrpos=screenpos(pos)+
-	             offset+baseoffset
-	sspr(typ%16*8+offset.x,
-							flr(typ/16)*8+
-								offset.y-xtraheight,
-							size.x,size.y+xtraheight,
-							scrpos.x,scrpos.y-xtraheight,
-							size.x,size.y+xtraheight,flp)
-	if hilight then
-	 tl.hifade+=mid(-1,tl.hilight-tl.hifade,1)
-	 if tl.hifade>0 and vistoplayer(tl) then
-	  pal(usplit"2,34,2")
-	 	spr(tl.hifade*16-8,scrpos.x,scrpos.y,2,1)
-	 end
- 	tl.hilight=0
-	end
-end
-
 function drawents(tl)
 	function drawent(var)
 		if (tl[var]) tl[var].draw()
@@ -493,39 +574,8 @@ function drawents(tl)
 
 	drawent"item"
 	drawent"ent"
-	checkeffects(tl)
+	tl.checkeffects()
 	drawent"effect"
-end
-
-function checkeffects(tl)
-
- function checkeffect(typ,has)
- 	local effect=tl.effect
- 	if effect then
-		 if	effect.typ==typ then
-		  if not effect.dead and
-		 	not has then
-			 	effect.setanim(effect.deathanim)
-			 	effect.dead,effect.light=true
-		 	end
-		 elseif has then
-		 	destroy(effect)
-		 end
-		end
-		if not tl.effect and has then
-		 create(typ,tl.pos)
-		end
-	end
-	
-	local hasfire=tl.fire>0 or
- 						tl.ent and 
- 						tl.ent.statuses.BURN
- local hasspores=tl.spores>0
-
-	anyfire=anyfire or hasfire and mode!="ui"
-
- checkeffect(138,hasfire)
- checkeffect(139,hasspores)
 end
 
 function setupdrawcalls()
@@ -538,7 +588,7 @@ function setupdrawcalls()
 		
 		function draw(tltodraw,pos,i,bg)
 			if not palready then
-				drawcall(initpal,{tl,true})
+				drawcall(tl.initpal,{true})
 				palready=true
 			end
 			local typ,flp=
@@ -572,11 +622,11 @@ function setupdrawcalls()
 				end
 			end
 			
-			drawcall(drawtl,
-							 {tltodraw,typ,pos,
+			drawcall(tl.draw,
+							 {typ,pos,
 							  baseoffset,offset,size,
 							 	flp and 
-							 		tileflag(tltodraw,6), bg, 
+							 		tltodraw.tileflag"6", bg, 
 							 	not i and not bg})
 		end
 		
@@ -610,7 +660,7 @@ function setupdrawcalls()
 				then
 					draw(adjtl,pos,i)
 				elseif i<=2 and
-					      tileflag(adjtl,11)
+					      adjtl.tileflag"11"
 				then
 				 wallpos=pos+adj[i]
 					if adjtyp==tywall and
@@ -628,7 +678,7 @@ function setupdrawcalls()
 							adjtl.bg!=thole
 				then
 				 draw(tl,pos,i+
-				 	(manmade(adjtl)
+				 	(adjtl.ismanmade()
 				 	and 3 or 0),--brick hole
 				 	tl.bg==thole)--bridges
 				end 
@@ -636,7 +686,7 @@ function setupdrawcalls()
 		end
 		local uprtl=getadjtl(pos,3)
 		if uprtl and 
-					navigable(uprtl,true) then
+					uprtl.navigable(true) then
 			drawcall(drawents,{uprtl})	
 		end
 	end)	
@@ -653,6 +703,10 @@ end
 function inbounds(pos)
  local y=tileinbounds[pos.y]
 	return y and y[pos.x]
+end
+
+function passlight(tl)
+	return tl.tileflag"1"
 end
 
 function getadjtl(pos,i)
@@ -680,32 +734,6 @@ function alltiles(func)
 	end
 end
 
-function tileflag(tl,i)
-	return fget(tl.typ+flr(i/8),i%8)
-end
-
-function navigable(tl,flying)
-	return tileflag(tl,flying and 8 or 0)
-end
-
-function passlight(tl)
-	return tileflag(tl,1)
-end
-
-function genable(tl)
-	return tileflag(tl,4)
-end
-
-function manmade(tl)
-	return tileflag(tl,7) or
-	(tl.bg and fget(tl.bg,7))
-end
-
-function vistoplayer(tl)
-	return tl.vis and (tl.light>-player.stat"darksight" 
-	    or tl.pdist>-2-player.stat"darksight")
-end
-
 function dijkstra(var,tovisit,check)
 	while #tovisit>0 do
 		local tl=deli(tovisit,1)
@@ -729,10 +757,10 @@ function calcdist(pos,var,ignblock)
 		         or -1000
 	end)
 	dijkstra(var,{gettile(pos)},
-	function(tl)
-		return tileflag(tl,0) and 
+	function(_ENV)
+		return navigable() and 
 		(ignblock or not
-		(tl.ent and tl.ent.blocking))
+		(ent and ent.blocking))
 	end)
 end
 
@@ -745,7 +773,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	 if tl then
 			local vis,splitlim=
 			passlight(tl)
-			tl.vis=tileflag(tl,5) or
+			tl.vis=tl.tileflag"5" or
 											tl.typ==tywall and
 											 player.pos.x<
 											 tlpos.x
@@ -788,126 +816,101 @@ function calclight()
  local tovisit={}
 
  alltiles(
- function(pos,tl)
-		ent=tl.ent
+ function(pos,_ENV)
 		function checklight(var)
-		 local ent =tl[var]
-			if ent then
-				local light=ent.stat"light"
-				if light and light>tl.light then
-					tl.light=light
-					if light>=3 then
-						tl.lightsrc=true
-						tl.lcool=ent.lcool
+		 local nent =_ENV[var]
+			if nent then
+				local tlight=nent.stat"light"
+				if tlight and tlight>light then
+					light=tlight
+					if tlight>=3 then
+						lightsrc=true
+						lcool=nent.lcool
 					end
 				end
 			end	
 		end
-		if vistoplayer(tl) then
-			tl.explored=true
+		if vistoplayer() then
+			explored=true
 		end
-		tl.light=-10
-		tl.lightsrc=false
+		light=-10
+		lightsrc=false
 		checklight"item"
 		checklight"effect"
 		checklight"ent"
-  if tl.light>0 then
-			add(tovisit,tl)
+  if light>0 then
+			add(tovisit,_ENV)
 		end
 	end)
 	dijkstra("light",tovisit,passlight)
 end
 
-function flatten(tl)
- if tl.typ==tlonggrass then
- 	tl.typ=tflatgrass
- end
-end
-
-function setfire(tl)
- tl.fire,tl.spores,tl.newspores=
- max(tl.fire,1),0,0
- entfire(tl)
-end
-
-function sporeburst(tl,val)
-	tl.spores+=val
-	sfx"17"
-end
-
-function trysetfire(pos,tl,nop)
-	if tileflag(tl,10) or
-    tl.spores>0 or
+function trysetfire(pos,_ENV,nop)
+	if tileflag"10" or
+    spores>0 or
     (rndp() or nop) and
-   	(tileflag(tl,9) or
-    	tl.ent and
-					tl.ent.flammable)
+   	(tileflag"9" or
+    	ent and
+					ent.flammable)
 	then
- 	setfire(tl)
+ 	setfire()
  end
 end
 
-function entfire(tl)
-	if tl.ent and 
-		  not tl.ent.nofire then
-		 tl.ent.burn()
-	end
-end
-		
 function updateenv()
 	alltiles(
-	function(pos,tl)
-	 if tl.spores>0 then
-			tl.spores=max(tl.spores-rnd"0.25")
-			if tl.spores>1 then
-				adjtls={}
-				visitadjrnd(pos,
-				function(npos,ntl)
-					if navigable(ntl,true) and
-					   ntl.fire==0
-				 then
-						add(adjtls,ntl)
-					end
-				end)
-				local portion=tl.spores/(#adjtls+1)
-				tl.newspores-=tl.spores-portion
-				for ntl in all(adjtls) do
-					ntl.newspores+=portion
-				end
-			end
-		end
-		if tl.fire>=2 then
-		 entfire(tl)
-		 visitadjrnd(pos,trysetfire)
-			if tileflag(tl,9) then
-			 if rndp(0.2) then
-			 	tl.fire=0
-			 	tl.typ=34
-			 end
-			else
-				tl.fire=0
-				if tileflag(tl,10) then
-					tl.typ=thole
-					if tl.ent then
-						tl.ent.checkfall()
+	function(pos,_ENV)
+			if spores>0 then
+				spores=max(spores-rnd"0.25")
+				if spores>1 then
+					adjtls={}
+					visitadjrnd(pos,
+					function(npos,ntl)
+						if ntl.navigable(true) and
+							ntl.fire==0
+						then
+								add(adjtls,ntl)
+						end
+					end)
+					local portion=spores/(#adjtls+1)
+					newspores-=spores-portion
+					for ntl in all(adjtls) do
+						ntl.newspores+=portion
 					end
 				end
 			end
-		end
+			if fire>=2 then
+			entfire(_ENV)
+			visitadjrnd(pos,trysetfire)
+				if tileflag"9" then
+				if rndp(0.2) then
+					fire=0
+					typ=34
+				end
+				else
+					fire=0
+					if tileflag"10" then
+						typ=thole
+						if ent then
+							ent.checkfall()
+						end
+					end
+				end
+			end
 	end)
 	alltiles(
-	function(pos,tl)
-		tl.spores+=tl.newspores
-		tl.newspores=0
-		if tl.ent and
-		 tl.ent.statuses.BURN then
-		 trysetfire(nil,tl,true)
+	function(pos,_ENV)
+		spores+=newspores
+		newspores=0
+		if ent and
+		 ent.statuses.BURN then
+		 trysetfire(nil,_ENV,true)
 		end
-		if tl.fire>=1 then
-			tl.fire+=1
-		 setfire(tl)
+		if fire>=1 then
+			fire+=1
+		 setfire()
 		end
-		checkeffects(tl)
+		checkeffects()
 	end)
 	calclight()
 	
@@ -927,10 +930,10 @@ function findfree(pos,var)
  calcdist(pos,"free")
  local bestd,bestpos=-100
  alltiles(
- function(npos,ntl)
-  local d=ntl.free+rnd()
- 	if navigable(ntl) and
- 	   not ntl[var] and
+ function(npos,_ENV)
+  local d=free+rnd()
+ 	if navigable() and
+ 	   not _ENV[var] and
  	   d>bestd then
  		bestd,bestpos=
  		d,npos
@@ -993,7 +996,7 @@ function hexline(p1,p2,range,pass,block,cont)
 							lerp(p1,p2,i/dist))
 	 local tl=gettile(pos)
 	 if not tl or
-	    not navigable(tl,true) or
+	    not tl.navigable(true) or
 	    (tl.ent and block) then
 	  break
 	 end
@@ -1105,10 +1108,10 @@ function create(_typ,_pos,_behav,_group)
 	
 --member functions
 draw=function()
-	if vistoplayer(tl) or
-		lasttl and vistoplayer(lasttl)
+	if tl.vistoplayer() or
+		lasttl and lasttl.vistoplayer()
 	then
-		initpal(tl)
+		tl.initpal()
 		if isplayer then
 			pal(8,stat"ccol")
 			pal(9,stat"acol") 
@@ -1211,7 +1214,7 @@ setpos=function(npos,setrender)
 		end
 		checkfall()
 		if not flying then
-			flatten(tl)
+			tl.flatten()
 		end
 	end
 end
@@ -1244,7 +1247,7 @@ tickstatuses=function()
     and tl.spores>0
  then
  	hp=min(hp+2, maxhp)
- 	if vistoplayer(tl) then
+ 	if tl.vistoplayer() then
  		animtext("+",ent)
  	end
  	if isplayer then
@@ -1296,7 +1299,7 @@ update=function()
 			elseif case"r" then
 				animwait=false
 			elseif case"z" and
-			vistoplayer(tl) 
+			tl.vistoplayer() 
 			then
 				animtext("z",ent,true)
 			elseif case"_" then
@@ -1371,7 +1374,7 @@ canmove=function(npos,special)
 	 or
 	 (not ntl.ent and
 	  special != "atkonly" and
-	  navigable(ntl,flying))
+	  ntl.navigable(flying))
 end
 
 seesplayer=function()
@@ -1391,8 +1394,8 @@ findmove=function(var,goal,special)
 		 local score=
 		 							abs(tl[var]-goal)-
 		 							abs(ntl[var]-goal)
-		 if ent and 
-		 	ent.blocking then
+		 if ntl.ent and 
+		 	ntl.ent.blocking then
 		 	score-=flying and 10 or 1
 		 end
 		 if stat"burnlight" and 
@@ -1471,7 +1474,7 @@ taketurn=function()
 					end
 				updst()
 				if stat"lunge" and
-					vistoplayer(dsttile) and
+					dsttile.vistoplayer() and
 					dsttile.ent
 				then
 					interact(dsttile.ent)
@@ -1523,7 +1526,7 @@ taketurn=function()
 						wanderdsts[group]=rndpos()
 						local tl = gettile(
 													wanderdsts[group])
-					until navigable(tl) and
+					until tl.navigable() and
 											tl.pdist>-1000
 					calcdist(wanderdsts[group],
 														group)
@@ -1561,7 +1564,7 @@ hurt=function(dmg,atkdir)
 			poke(0x5f40,31)
 			calclight()
 		elseif sporedeath then
-			sporeburst(tl,sporedeath)
+			tl.sporeburst(sporedeath)
 		end
 	else 
 		sfx"34"
@@ -1586,13 +1589,13 @@ hurt=function(dmg,atkdir)
 		local firepos=pos
 		if atkdir then
 			local dirpos=firepos+atkdir
-			if navigable(gettile(dirpos)) then
+			if gettile(dirpos).navigable() then
 				firepos=dirpos
 			end
 		end
 		sfx"36"
 		light=nil
-		setfire(gettile(firepos))
+		gettile(firepos).setfire()
 	end
 	aggro(pos)
 end
@@ -1607,7 +1610,7 @@ doatk=function(ntl,pat)
  
  for p in all(split(pat,"|")) do
  	local nntl=getadjtl(ntl.pos,(atkdiri+p)%6+1)
- 	if vistoplayer(nntl) then
+ 	if nntl.vistoplayer() then
  		doatk(nntl)
  	end
  end
@@ -1753,9 +1756,9 @@ orbeffect=function(tl)
 		if orbis"slofall" then
 		
 		elseif orbis"life" then
-			sporeburst(ntl,12)
+			ntl.sporeburst(6)
 		elseif orbis"fire" then
-			setfire(tl)
+			tl.setfire()
 			sfx"36"
 		elseif orbis"ice" then
 		
@@ -1809,7 +1812,7 @@ rangedatk=function(i,origin,ln,atktype)
 		 if dsttl.typ==thole then
 		 	sfx"24"
 		 elseif lit then
-		 	setfire(dsttl)
+		 	dsttl.setfire()
 		 	sfx"36"
 		 elseif orb then
 		  orbeffect(dsttl)
@@ -1830,8 +1833,8 @@ rangedatk=function(i,origin,ln,atktype)
 	local tl = gettile(ln[flr(i*spd)+1])
  
 	if atkis"throw" then
-		flatten(tl)
-		initpal(tl)
+		tl.flatten()
+		tl.initpal()
 		
 		function getpos(i,offs)
 			local t,airtime=
@@ -2055,11 +2058,11 @@ function genroom(pos)
 								--to spread here
 							end
 						else
-							settile(tl,
+							tl.set(
 								xwall and txwall or tywall)
 						end
 					else
-						settile(tl,tdunjfloor)
+						tl.set(tdunjfloor)
 					end
 					tl.manmade=true
 				end
@@ -2090,11 +2093,11 @@ function gencave(pos)
 	if tl then
 		visitadjrnd(pos,
 		function(npos,ntl)
-			if not genable(ntl) then
+			if not ntl.genable() then
 				if inbounds(npos) and 
 							rndp(entropy) then
 					gentile(tl.typ,npos)
-					if genable(ntl) then
+					if ntl.genable() then
 						if rndp(0.01) then
 							genroom(rndpos())
 						end
@@ -2109,8 +2112,8 @@ end
 function gentile(typ,pos)
 	local y,tl = 
 	ceil(rnd"15"),gettile(pos)
-	if (manmade(tl)) y+=16
-	settile(tl,mget(typ,y))
+	if (tl.ismanmade()) y+=16
+	tl.set(mget(typ,y))
 	local typ2=mget(typ+1,y)
 	tl.flip,tl.genned=
 	rndp(),true
@@ -2126,13 +2129,13 @@ end
 function postgen(pos,tl,prevtl)
 	tl.postgenned=true
 	visitadjrnd(pos,
-	function(npos,ntl)
-		if genable(ntl) and not
-					ntl.postgenned then
-			if not ntl.genned then
+	function(npos,_ENV)
+		if genable() and not
+					postgenned then
+			if not genned then
 				gentile(tl.typ,npos)
 			end
-			postgen(npos,ntl,genable(tl) and tl or prevtl)
+			postgen(npos,_ENV,tl.genable() and tl or prevtl)
 		end
 	end)
 end
@@ -2145,11 +2148,11 @@ function postproc()
 		 
 			local unreach,numtls={},0
 			alltiles(
-			function(pos,tl)
-				if navigable(tl) and
-							tl.pdist==-1000 and
+			function(pos,_ENV)
+				if navigable() and
+							pdist==-1000 and
 							((permissive or
-							  not manmade(tl)) or
+							  not ismanmade()) or
 								pos.y%2==1)
 				then
 					add(unreach,pos)
@@ -2166,7 +2169,7 @@ function postproc()
 				end
 				local p1=rnd(unreach)
 				local diri=
-		   manmade(gettile(p1)) and
+		   gettile(p1).ismanmade() and
 		   not permissive and 
 		   rnd(split"1,2,4,5") or
 		   rndint(6)+1
@@ -2174,8 +2177,8 @@ function postproc()
 				local p2=p1+rndint(18)*dir
 				local tl2=gettile(p2)
 				if tl2 then
-					if navigable(tl2) and
-								genable(tl2) and
+					if tl2.navigable() and
+								tl2.genable() and
 								tl2.pdist>-1000 then
 						d=hexdist(p1,p2)
 						if d<bestdist then
@@ -2191,9 +2194,9 @@ function postproc()
 				repeat
 					bestp1+=bestdir
 					local tl=gettile(bestp1)
-					local nav=navigable(tl)
+					local nav=tl.navigable()
 					if not nav then
-					 if manmade(tl) then
+					 if tl.ismanmade() then
 					 	tl.typ=tdunjfloor
 					 elseif tl.typ == thole then
 					 	if bestdiri%3==2 then
@@ -2216,9 +2219,9 @@ function postproc()
 	
 	--delete bridges lol
 	alltiles(
-	function(pos,tl)
-		if tileflag(tl,12) then
-			settile(tl,thole)
+	function(pos,_ENV)
+		if tileflag"12" then
+			set(thole)
 		end			
 	end)
 	
@@ -2234,10 +2237,8 @@ function postproc()
 	function(pos,tl)
 		if tl.typ==tempty and 
 					inbounds(pos) then
-			if genable(
-							getadjtl(pos,2)) and
-				  genable(
-							getadjtl(pos,5)) then
+			if getadjtl(pos,2).genable() and
+				  getadjtl(pos,5).genable() then
 				gentile(tcavewall,pos)
 			end
 		end
@@ -2247,28 +2248,28 @@ function postproc()
 	local numholes,furthestd=0,0
 	
 		
-	function checkspawn(tl,typ,mindist,nolight,allowent)
-		if navigable(tl) and
-		 tl.pdist < mindist and
-			tl.pdist > -1000 and
-			(allowent or not tl.ent) and
-			(not nolight or tl.light<=0) 
+	function checkspawn(_ENV,_typ,mindist,nolight,allowent)
+		if navigable() and
+		 pdist < mindist and
+			pdist > -1000 and
+			(allowent or not ent) and
+			(not nolight or light<=0) 
 		then	
-			return typ and create(typ,tl.pos) or true
+			return _typ and create(_typ,pos) or true
 		end
 	end
 	
 	alltiles(
-	function(pos,tl)
+	function(pos,_ENV)
 		--local uptl,uprighttl,righttl=
 		--		getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
-		if tl.typ==tempty then
+		if typ==tempty then
 			--add cavewalls
 			for i = 1,6 do
 				ntl = getadjtl(pos,i)
 				if ntl and 
-							tileflag(ntl,5) then--drawnormal
-					 tl.typ=tcavewall
+							ntl.tileflag"5" then--drawnormal
+					 typ=tcavewall
 				end
 			end
 		--[[elseif tl.typ==txwall then
@@ -2281,17 +2282,17 @@ function postproc()
 			then
 				tl.typ=tywall
 			end]]
-		elseif tl.typ==tywall and
+		elseif typ==tywall and
 		  getadjtl(pos,4).typ==txwall
 		then
-			tl.typ=txwall
-		elseif tl.pdist>-1000 and
-		 tl.typ==thole 
+			typ=txwall
+		elseif pdist>-1000 and
+		 typ==thole 
 		then
 			numholes+=1
 		end
-		if checkspawn(tl,nil,0,false,true) then
-			furthestd=min(furthestd,tl.pdist)
+		if checkspawn(_ENV,nil,0,false,true) then
+			furthestd=min(furthestd,pdist)
 		end
 	end)
 	
@@ -2301,7 +2302,7 @@ function postproc()
 		function (npos,ntl)
 			if checkspawn(ntl,nil,furthestd+2.5+rnd(),false,true)
 			then
-			 settile(ntl,thole)
+			 ntl.set(thole)
 				destroy(ntl.ent)
 			end
 		end)
