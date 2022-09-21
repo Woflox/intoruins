@@ -885,43 +885,43 @@ end
 function updateenv()
 	alltiles(
 	function(pos,_ENV)
-			if spores>0 then
-				spores=max(spores-rnd"0.25")
-				if spores>1 then
-					adjtls={}
-					visitadjrnd(pos,
-					function(npos,ntl)
-						if ntl.tileflag"8" and
-							ntl.fire==0
-						then
-								add(adjtls,ntl)
-						end
-					end)
-					local portion=spores/(#adjtls+1)
-					newspores-=spores-portion
-					for ntl in all(adjtls) do
-						ntl.newspores+=portion
+		if spores>0 then
+			spores=max(spores-rnd"0.25")
+			if spores>1 then
+				adjtls={}
+				visitadjrnd(pos,
+				function(npos,ntl)
+					if ntl.tileflag"8" and
+						ntl.fire==0
+					then
+							add(adjtls,ntl)
 					end
+				end)
+				local portion=spores/(#adjtls+1)
+				newspores-=spores-portion
+				for ntl in all(adjtls) do
+					ntl.newspores+=portion
 				end
 			end
-			if fire>=2 then
+		end
+		if fire>=2 then
 			entfire(_ENV)
 			visitadjrnd(pos,trysetfire)
-				if tileflag"9" then
+			if tileflag"9" then
 				if rndp(0.2) then
 					fire=0
 					typ=34
 				end
-				else
-					fire=0
-					if tileflag"10" then
-						typ=thole
-						if ent then
-							ent.checkfall()
-						end
+			else
+				fire=0
+				if tileflag"10" then
+					typ=thole
+					if ent then
+						ent.checkfall()
 					end
 				end
 			end
+		end
 	end)
 	alltiles(
 	function(pos,_ENV)
@@ -939,14 +939,14 @@ function updateenv()
 	end)
 	calclight(true)
 	
-	for ent in all(ents) do
-		if ent.hp and 
-		   ent.stat"burnlight" and 
-		   ent.tl.light>=2 and
-		   not ent.statuses.BURN
+	for _ENV in all(ents) do
+		if hp and 
+		   stat"burnlight" and 
+		   tl.light>=2 and
+		   not statuses.BURN
 		then
-			ent.burn()
-		 trysetfire(nil,ent.tl,true)
+			burn()
+		 trysetfire(nil,tl,true)
 			sfx"36"
 		end
 	end
@@ -2002,22 +2002,21 @@ function updateturn()
 	 player.tickstatuses()
 	 updatemap()
 	elseif turnorder==1 then
-		for i,ent in next,ents do
-			if not ent.isplayer
-			then
-				ent.taketurn()
-				ent.tickstatuses()
+		for _ENV in all(ents) do
+			if not isplayer then
+				taketurn()
+				tickstatuses()
 			end
 		end
 	else
-		for i,ent in next,ents do
-			if ent.ai then
-				if ent.behav=="hunt" and not
-				pseen then
-					ent.setbehav"search"
+		for _ENV in all(ents) do
+			if ai then
+				if behav=="hunt" and not
+				_g.pseen then
+					setbehav"search"
 					setsearchpos(lastpseenpos)
 				end
-			ent.canact=true
+			canact=true
 			end
 		end
 		updateenv()
@@ -2038,27 +2037,27 @@ end
 function aggro(pos)
 	setsearchpos(player.pos)
 	calcdist(pos,"aggro",true)
-	for i,ent in ipairs(ents) do
-		if ent.ai and
-		   ent.behav!="dead" and
-					ent.tl.aggro>=-3
+	for _ENV in all(ents) do
+		if ai and
+		   behav!="dead" and
+					tl.aggro>=-3
 		then
-			if ent.seesplayer() then
-				ent.setbehav"hunt"
-				pseen=true
-			elseif ent.behav!="hunt"
+			if seesplayer() then
+				setbehav"hunt"
+				_g.pseen=true
+			elseif behav!="hunt"
 			then
-				ent.setbehav"search"
+				setbehav"search"
 			end
 		end
 	end
 end
 
-function destroy(ent)
- if ent then
-		del(ents,ent)
-		if ent.tl then
-			ent.tl[ent.var]=nil
+function destroy(_ENV)
+ if _ENV then
+		del(ents,_ENV)
+		if tl then
+			tl[var]=nil
 		end
 	end
 end
@@ -2149,7 +2148,7 @@ function genroom(pos)
 					    alt!=1 and not
 					    (xwall and ywall) then				   
 						 tl.typ=tdunjfloor --needs manmade flag
-							gentile(txwall,npos)
+							gentile(txwall,tl)
 							if not tl.ent then
 								tl.genned=false
 								--still want eg. grass
@@ -2194,7 +2193,7 @@ function gencave(pos)
 			if not ntl.genable() then
 				if inbounds(npos) and 
 							rndp(entropy) then
-					gentile(tl.typ,npos)
+					gentile(tl.typ,ntl)
 					if ntl.genable() then
 						if rndp(0.01) then
 							genroom(rndpos())
@@ -2207,9 +2206,8 @@ function gencave(pos)
 	end
 end
 
-function gentile(typ,pos)
-	local y,tl = 
-	ceil(rnd"15"),gettile(pos)
+function gentile(typ,tl)
+	local y =	ceil(rnd"15")
 	if (tl.ismanmade()) y+=16
 	tl.set(mget(typ,y))
 	local typ2=mget(typ+1,y)
@@ -2231,7 +2229,7 @@ function postgen(pos,tl,prevtl)
 		if genable() and not
 					postgenned then
 			if not genned then
-				gentile(tl.typ,npos)
+				gentile(tl.typ,tl)
 			end
 			postgen(npos,_ENV,tl.genable() and tl or prevtl)
 		end
@@ -2337,7 +2335,7 @@ function postproc()
 					inbounds(pos) then
 			if getadjtl(pos,2).genable() and
 				  getadjtl(pos,5).genable() then
-				gentile(tcavewall,pos)
+				gentile(tcavewall,tl)
 			end
 		end
 	end)
