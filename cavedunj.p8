@@ -1145,11 +1145,11 @@ draw=function()
 		if flash then
 			pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
 			flash=false
-		elseif statuses.FROZEN then
-			pal(frozepal)
 		elseif animpal then
 			pal(animpal)
 			fillp(lfillp)
+		elseif statuses.FROZEN then
+			pal(frozepal)
 		end
 		local flp=xface*animflip<0
 		local scrpos=renderpos+
@@ -1291,7 +1291,7 @@ tickstatuses=function()
 			end
 		end
 		if k=="BURN" then
-		 hurt(1)
+		 hurt(1,nil,true)
 		end
 	end
 end
@@ -1577,7 +1577,7 @@ taketurn=function()
 	end
 end
 
-hurt=function(dmg,atkdir)
+hurt=function(dmg,atkdir,nosplit)
 	hp-=dmg
 	flash=true
 	if isplayer then
@@ -1596,7 +1596,9 @@ hurt=function(dmg,atkdir)
 		end
 	else 
 		sfx"34"
-		if hurtsplit and atkdir and not statuses.FROZEN then
+		if hurtsplit and 
+		not (statuses.FROZEN or nosplit) 
+		then
 			local splitpos=findfree(pos,"ent")
 			if splitpos then
 				hp/=2
@@ -1613,9 +1615,6 @@ hurt=function(dmg,atkdir)
 	if statuses.FROZEN then
 	 sfx(27)
 	 statuses.FROZEN[1]-=dmg
-	 if statuses.FROZEN[1]<=0 then
-	 	statuses.FROZEN=nil
-	 end
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
