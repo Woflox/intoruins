@@ -83,19 +83,16 @@ function _draw()
  -- textanims={}
  --end
  if modeis"play" then
-		for anim in all(textanims) do
-		 local t=(anim[5] or 1)*
-		          (time()-anim[7])
-		 local col=anim[4] or 7
+		for _ENV in all(textanims) do
+		 local t=speed*(time()-start)
 		 if t>0.5 then
-				del(textanims,anim)
+				del(textanims,_ENV)
 			else
-				anim[2].y-=0.5-t
-				local text,x=anim[1],anim[2].x
+				y-=0.5-t
 				print(text,
 										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
-										(anim[3] and cos(t*2) or 0),
-										anim[2].y+(anim[6] or 0)-6,
+										(wavy and cos(t*2) or 0),
+										y+offset-6,
 										t>0.433 and 5 or col)
 			end
 		end
@@ -227,12 +224,8 @@ function textcrawl(str,x,y,fadet,col,m,mus,xtra)
 	end
 end
 
-function animtext(text,ent,wavy,col,spd,offset)
- add(textanims,{text,entscreenpos(ent),wavy,col,spd,offset,time()})
-end
-
 function log(text)
- animtext(text,player,false,7,0.5)
+ player.animtext(text..",col:7,speed:0.5")
 end
 
 function frame(x,y,x2,y2,func)
@@ -568,7 +561,7 @@ freeze=function()
 	 end
 		ent.statuses.BURN=--nil
 		ent.setstatus"FROZEN:8,8,13,6"
-		animtext("○",ent)
+		ent.animtext"○"
 	end
 end
 --end tile member functions
@@ -993,11 +986,6 @@ function screenpos(pos)
 							 				 pos.y*8+pos.x*4) 
 end
 
-function entscreenpos(ent)
-	return screenpos(ent.pos)+
-	        vec2(-2.5,-6.5)
-end
-
 function usplit(str,delim)
 	return unpack(split(str,delim))
 end
@@ -1221,10 +1209,10 @@ setbehav=function(name)
 		
 		behav=name
 		if name=="hunt" and not statuses.FROZEN then
-			animtext("!",ent)
+			animtext"!"
 			sfx(alert)
 		elseif name=="search" then
-			animtext("?",ent)
+			animtext"?"
 		end
 		canact=false 
 	end
@@ -1237,7 +1225,7 @@ setpos=function(npos,setrender)
 		tl=gettile(npos)
 		tl[var]=ent
 		if setrender then
-			renderpos=entscreenpos(ent)+animoffset
+			renderpos=entscreenpos()+animoffset
 		end
 		checkfall()
 		if not flying then
@@ -1274,7 +1262,7 @@ tickstatuses=function()
  then
  	hp=min(hp+2, maxhp)
  	if tl.vistoplayer() then
- 		animtext("+",ent)
+ 		animtext"+"
  	end
  	if isplayer then
  		sfx(usplit"17,-1,6")
@@ -1328,7 +1316,7 @@ update=function()
 			elseif case"z" and
 			tl.vistoplayer() 
 			then
-				animtext("z",ent,true)
+				animtext"z,wavy:"
 			elseif case"_" then
 				destroy(ent)
 				if isplayer then
@@ -1349,7 +1337,7 @@ update=function()
 				flash=true
 			elseif case"b" then
 				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext(".",ent,false,8,3,6)
+				animtext".,col:8,speed:3,offset:6"
 			elseif case"a" then
 				animoffset=
 				movratio*
@@ -1382,7 +1370,7 @@ update=function()
 	if pos then
 		renderpos=
 			 lerp(renderpos,
-			      entscreenpos(ent)+
+			      entscreenpos()+
 			      animoffset,
 			      0.5)					
 	end
@@ -1793,7 +1781,7 @@ orbeffect=function(tl,used)
 		elseif orbis"life" then
 		 player.maxhp+=5
 		 player.hp=player.maxhp
- 		animtext("+",player)
+ 		player.animtext"+"
 		end
 	else
 		if orbis"light" then
@@ -1845,7 +1833,7 @@ end
 id=function()
 	if not isid() then
 		ided[typ]=true
-		log("id: "..getname())
+		log("id "..getname())
 	end
 end
 
@@ -1961,6 +1949,16 @@ rangedatk=function(i,ln,atktype)
 			spr(153,scrpos.x-2.5,scrpos.y-4.5)
 		end
 	end
+end
+
+animtext=function(str)
+ local scrpos=entscreenpos()
+ add(textanims,setmetatable(assigntable("speed:1,col:7,offset:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()),{__index=_ENV}))
+end
+
+entscreenpos=function()
+	return screenpos(pos)+
+	        vec2(-2.5,-6.5)
 end
 --end member functions
 
