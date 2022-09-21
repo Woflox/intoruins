@@ -552,7 +552,7 @@ entfire=function()
 end
 --end tile member functions
 	end
-	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10",tl)
+	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10",tl)
 end
 
 function drawcall(func,args)
@@ -833,9 +833,11 @@ function calclight(clearflash)
 		if vistoplayer() then
 			explored=true
 		end
+		local flash=max(lflash,lflashl)
 		light,lightsrc,lcool=
-		lflash,lflash>1,lflash>1
-		if (clearflash) lflash=0
+		flash,flash>1,flash>1
+		if (clearflash) lflash=-10
+		lflashl=-10
 		checklight"item"
 		checklight"effect"
 		checklight"ent"
@@ -1002,7 +1004,7 @@ function hexline(p1,p2,range,pass,block,cont)
 	    (tl.ent and block) then
 	  break
 	 end
-		add(ln,pos)
+		add(ln,tl)
 		if tl.ent and not pass then
 		 break
 		end
@@ -1689,7 +1691,6 @@ tele=function(dst)
 	end
 	tl.ent=nil
 	setanim"tele"
-	sfx"29"
 	setpos(dst.pos,true)
 end
 
@@ -1741,7 +1742,7 @@ uSE=function()
 end
 
 orbeffect=function(tl,used)
- --_g.waitforanim=true
+ _g.waitforanim=true
  if not used or orbfx!=55 then
  	sfx(orbfx,nil,fxoffset,fxlength)
  end
@@ -1749,6 +1750,7 @@ orbeffect=function(tl,used)
 	 if orbis"light" then
 			player.setstatus"LIGHT:160,160,2,13"
 			player.light,player.lcool=4,true
+			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL:160,160,2,3"
 		elseif orbis"ench" then
@@ -1825,13 +1827,13 @@ addtoinventory=function()
  return add(inventory,ent)
 end
 
-rangedatk=function(i,origin,ln,atktype)
+rangedatk=function(i,ln,atktype)
 	function atkis(str)
 	 return atktype==str
 	end
 	
-	local dst=ln[#ln]
-	local dsttl=gettile(dst)
+	local dsttl=ln[#ln]
+	local dst=dsttl.pos
 	local spd=atkis"throw" and throw/12 or 0.999
 	
  if (i*spd>=#ln) then
@@ -1860,7 +1862,7 @@ rangedatk=function(i,origin,ln,atktype)
 		return true
 	end
 	
-	local tl = gettile(ln[flr(i*spd)+1])
+	local tl = ln[flr(i*spd)+1]
  
 	if atkis"blink" then
 	 (ai and ent or player).tele(dsttl)
@@ -1872,10 +1874,10 @@ rangedatk=function(i,origin,ln,atktype)
 		function getpos(i,offs)
 			local t,airtime=
 			spd*i/#ln, #ln/spd
-			local arcy,pos=
+			local arcy,_pos=
 			(t*t-t)*airtime*airtime/4,
-			lerp(origin,ln[#ln],t)
-			local scrpos=screenpos(pos)+offs
+			lerp(pos,ln[#ln].pos,t)
+			local scrpos=screenpos(_pos)+offs
 			return scrpos.x,scrpos.y+arcy,1,1,xface<0
 		end
 		
@@ -1887,15 +1889,38 @@ rangedatk=function(i,origin,ln,atktype)
 		 xface*=throwflp		 
 			spr(typ,getpos(i,vec2s"-3,-6"))
 		end
-	elseif atkis"fire" then
-		trysetfire(nil,tl,true)
-		if tl.fire==0 then
-			create(138,tl.pos)
-		end
-		calclight()
-		if tl.ent then
-			tl.ent.burn()
-		 tl.ent.hurt(dmg)
+	else
+	 if i==1 then
+		 gettile(pos).lflash=2
+		 aggro(pos)
+	 end
+	 if atkis"fire" then
+			trysetfire(nil,tl,true)
+			if tl.fire==0 then
+				create(138,tl.pos)
+			end
+			calclight()
+			if tl.ent then
+				tl.ent.burn()
+			 tl.ent.hurt(dmg)
+			end
+		 gettile(pos).lflash=2
+		elseif atkis"lightning" then
+			drawln=function(_pos)
+				line(screenpos(_pos).x+rnd(6)-3,
+				     screenpos(_pos).y-2.5-rnd(3))
+			end	
+			fillp()
+		 line(i%2*5+7)
+		 drawln(0.5*(pos+ln[1].pos))
+		 for i=1,i do
+		 	drawln(ln[i].pos)
+		 	ln[i].lflashl=6
+		 end
+		 if tl.ent then
+		 	tl.ent.hurt(dmg)
+		 end
+		 calclight()
 		end
 	end
 end
@@ -2415,22 +2440,26 @@ function updateaim(item,lineparams,atktype)
 	            aimscrpos.y/8-aimscrpos.x/24)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
-	for pos in all(aimline) do
-	 gettile(pos).hilight=2
+	for tl in all(aimline) do
+	 tl.hilight=2
 	end
 	player.lookat(aimpos)
 	item.xface=player.xface
 	if #aimline>0 and btn"5" and
 	   statet>0.2 then
 		setmode"play"
+		item.pos=player.pos
 		if atktype=="throw" then
 			sfx"12"
 			item.sTOW(true)
 			del(inventory,item)
-			item.pos,aimitem=player.pos
+			aimitem=nil
+		else
+			item.id()
+			sfx(item.usefx)
 		end
 		player.setanim"throw"
-		add(rangedatks,{item.rangedatk,{0,player.pos,aimline,atktype}})
+		add(rangedatks,{item.rangedatk,{0,aimline,atktype}})
 	elseif btnp"4" then
 	 skipturn=false
 	 setmode"play"
@@ -2492,7 +2521,7 @@ pdeath=w444l6
 mushdeath=w01r_
 brazierdeath=w33r_
 propdeath=w11r_
-tele=st0!0
+tele=rst0!0
 fall=w0v50v50v60cv70v80v8or_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
@@ -2530,7 +2559,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 305=,nid:oRB OF fIRE,orb:fire,orbfx:36
 306=,nid:oRB OF iCE,orb:ice,orbfx:28
 307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29
-308=,nid:aMULET ょdEFENSE,armor:1
+308=,nid:aMULET OF dEFNSE,armor:1
 309=,nid:dARKSIGHT aMULET,darksight:1
 310=,nid:aMULET OF wISDOM,recharge:1
 311=,nid:pACIFIST aMULET,pac:,hpdmg:-1,falldamp:,cursed:
@@ -2538,10 +2567,10 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 313=,nid:dARKSIGHT cLOAK,darksight:1
 314=,nid:cLOAK OF wISDOM,recharge:1
 315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
-316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:30,rangetyp:fire,usefx:36
-317=,nid:sTAFF OF sTORMS,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning
-318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangetyp:ice
-319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink
+316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36
+317=,nid:sTAFF OF lYTNING,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning,usefx:9
+318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangetyp:ice,usefx:28
+319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink,usefx:29
 ]],nil,"\n","=")
 
 adj,fowpals,ided,counts=
@@ -2619,18 +2648,18 @@ genmap(vec2s"10,13")
 srand(rseed)
 
 create(130).addtoinventory().eQUIP(true)
---[[create(129).addtoinventory()
+create(129).addtoinventory()
 create(145).addtoinventory()
 create(161).addtoinventory()
-create(177).addtoinventory()]]
-create(172).addtoinventory()
+create(177).addtoinventory()
+--[[create(172).addtoinventory()
 create(173).addtoinventory()
 create(174).addtoinventory()
 create(175).addtoinventory()
 create(188).addtoinventory()
 create(189).addtoinventory()
 create(190).addtoinventory()
-create(191).addtoinventory()
+create(191).addtoinventory()]]
 calclight()
 
 __gfx__
@@ -2958,7 +2987,7 @@ c4020b00326103503437061242311d21310231000000000000000000000000000000000000000000
 940310000165500000206650002106051090210b541095210a5310b5010a5210b5010c5010b5010a5110b50100000000000000000000000000000000000000000000000000000000000000000000000000000000
 c40406003a62532525136003f52500605026010160100505006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 04020c0006553000030955300003000031153300003000031a5330000300003355230000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-36030b003d60135211006013e5113e5113a511385013e5003a5013850100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+36030b003d60135211006113e5113e5113a511385013e5003a5013850100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000114000915009161091710b1700a171091500416102150021300113101150011610117102170031610317002171031700815108130001000010000100001000010000100001000010000100001000010000100
 d40220000015000250002500f6600f2600e2500915009650091500425009150052500325004250031500125000100002500010000100002500010000230001000010000100001000023000200002000020000200
 a8011700322103e2313f2313f2312f200232002e2002f20023200002000020000200002003020038201272022f221392513d2513d251002000020000200002000020000200002000020000200002000020000200
@@ -2983,7 +3012,7 @@ a9030800260242a01100100001000010000100001000010000100001000010000100001000010000
 c004000000656046560a666131761d6761e67621676216762067623676236762367623666216661f6661c6561a65615656146561365612656116560e6410c6310963109621056210361100611006010020100000
 9102000000656046560e666141761d6761e67621676216761f176236762367623676236661d1661f6661c6561a65615656146561365612656116560e6410c6510963109631056210362100611006110020100000
 35040d003550135521355223551235512355110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-480600000f60102011080210d6211403119631230313c6113f6010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+490600000f60102011080110d6111402119621230313a6113f6010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 400520001f501375513c5001f501375213c5001f501375113c50000500005000050000500005000050000500005003c020005003201000500370102a500005000050000500005000050000500005000050000500
 04a014001882018820188251b8001c8001e8101e8241e81518c001bc001f8101f8101f815240002a8001f8201f825158000000000000000000000000000000000000000000000000000000000000000000000000
 6ca00014155141e52621517155120e5111e5141e5141e502175141f5061c51418516185121a5111a5121b5111b5141b5121b5121b5133f5000050000500005000050000500005000050000500005000050000500
