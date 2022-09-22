@@ -605,7 +605,6 @@ function drawents(tl)
 end
 
 function setupdrawcalls()
-	drawcalls={}
 	alltiles(
 	
 	function(tl,pos)
@@ -952,9 +951,9 @@ function updateenv()
 	end
 end
 
-function findfree(pos,var)
- calcdist(pos,"free")
- local bestd,bestpos=-100
+function findfree(_pos,var,distlimit)
+ calcdist(_pos,"free",distlimit)
+ local bestd,bestpos=distlimit or-1000
  alltiles(
  function(_ENV)
   local d=free+rnd()
@@ -1574,7 +1573,7 @@ hurt=function(dmg,atkdir,nosplit)
 		if hurtsplit and 
 		not (statuses.FROZEN or nosplit) 
 		then
-			local splitpos=findfree(pos,"ent")
+			local splitpos=findfree(pos,"ent",-2)
 			if splitpos then
 				hp/=2
 				local newent=create(typ,splitpos,behav,group)
@@ -2051,17 +2050,16 @@ end
 --level generation
 
 function genmap(startpos,manmade)
-	genpos=startpos
-	cave=not manmade
+	genpos,cave=
+	startpos,not manmade
 	
-	alltiles(function(ntl)
+	alltiles(function(_ENV)
 	 --required for now or we run
 	 --out of memory
-		ntl.adjtl=nil
+		adjtl=nil
 	end)
 
-	world,ents,validtiles,inboundposes,tileinbounds=
-	{},{},{},{},{},{}
+	assigntable("world:{},ents:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
 
 	for y=0,20 do
 	 world[y],tileinbounds[y]=
@@ -2513,7 +2511,7 @@ end
 
 
 _g=assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:title,statet:0,depth:5,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
