@@ -410,10 +410,10 @@ flags:
 ]]
 
 function tile(_typ,_pos)
-	local tl=setmetatable({typ=_typ,pos=_pos},{__index=_ENV})
-	do local _ENV=tl
---tile member functions
-
+	local _ENV=setmetatable({},{__index=_ENV})
+	typ,pos,tscrpos=
+	_typ,_pos,screenpos(_pos)
+--tile member functions)
 set=function(ntyp)
 	typ,bg,genned=ntyp
 end
@@ -471,7 +471,7 @@ initpal=function(fadefow)
 	 if not fadetoblack then
 			if modeis"gameover" then
 				nfow=tl==player.tl and 3 or 1
-			elseif vistoplayer(tl) and
+			elseif vistoplayer() and
 			   mode != "ui" then
 				nfow=light>=2 and 4 or 3
 			elseif explored then
@@ -552,7 +552,7 @@ end
 setfire=function()
  fire,spores,newspores,frozen=
  max(fire,1),0,0
- entfire(tl)
+ entfire()
 end
 
 sporeburst=function(val)
@@ -581,21 +581,20 @@ freeze=function()
 	end
 end
 --end tile member functions
-	end
-	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",tl)
+	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",_ENV)
 end
 
 function drawcall(func,args)
 	add(drawcalls, {func,args})
 end
 
-function onscreenpos(pos,pad)
+--[[function onscreenpos(pos,pad)
  local scrpos=screenpos(pos)
  local scrposrel=scrpos-smooth
 	return max(abs(scrposrel.x),
         abs(scrposrel.y))<=pad and
         scrpos
-end
+end]]
 
 function drawents(tl)
 	function drawent(var)
@@ -973,7 +972,7 @@ end
 
 -->8
 --utility
---[[
+
 function screenpos(pos)
 	return vec2(pos.x*12,
 							 				 pos.y*8+pos.x*4) 
@@ -1103,12 +1102,12 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local ent=setmetatable({typ=_typ,pos=_pos,
-							behav=_behav,group=_group},{__index=_ENV})
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",ent)
-	assigntable(entdata[_typ],ent)						
-
-	do local _ENV=ent
+	local _ENV=setmetatable({},{__index=_ENV})
+	typ,pos,behav,group=
+	_typ,_pos,_behav,_group
+	
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",_ENV)
+	assigntable(entdata[_typ],_ENV)						
 
 	animoffset=vec2(0,var=="ent"and 0or 2)
 	counts[_typ]=(counts[_typ]or 0)+1
@@ -1216,7 +1215,7 @@ setpos=function(npos,setrender)
 	if npos then
 		pos=npos
 		tl=gettile(npos)
-		tl[var]=ent
+		tl[var]=_ENV
 		if setrender then
 			renderpos=entscreenpos()+animoffset
 		end
@@ -1230,8 +1229,8 @@ end
 stat=function(name)
 	local val=0
 	function checkslot(slot)
-		if ent[slot] then
-			local s = ent[slot][name]
+		if _ENV[slot] then
+			local s = _ENV[slot][name]
 			if s then
 				val=type(s)=="number" and val+s or s
 			end
@@ -1241,7 +1240,7 @@ stat=function(name)
 	checkslot"cloak"
 	checkslot"amulet"
 	
-	return val!=0 and val or ent[name]
+	return val!=0 and val or _ENV[name]
 end
 
 setstatus=function(str)
@@ -1311,7 +1310,7 @@ update=function()
 			then
 				animtext"z,wavy:"
 			elseif case"_" then
-				destroy(ent)
+				destroy(_ENV)
 				if isplayer then
 					--next level
 					_g.depth+=1
@@ -1517,7 +1516,7 @@ taketurn=function()
 			function checkaggro(p)
 				if seesplayer()
 				and rndp(p)
-				and onscreenpos(ent.pos,62)
+				--and onscreenpos(ent.pos,62)
 				then
 				aggro(pos)
 				return true
@@ -1635,7 +1634,7 @@ doatk=function(ntl,pat)
 		      (abs(diff)+2)
 		end
 		if rndp(hitp) then
-			b.hurt(ent.stat"dmg",atkdir)
+			b.hurt(stat"dmg",atkdir)
 		else
 			aggro(ntl.pos)
 		end
@@ -1682,7 +1681,7 @@ end
 lookat=function(dst)
 	local deltax,lookdir,lookdiri=
 	dst.x-pos.x,
-	hexdir(ent.pos,dst)
+	hexdir(pos,dst)
  dir=lookdir
  diri=lookdiri
  if deltax!=0 then 
@@ -1710,7 +1709,7 @@ eQUIP=function()
 	if player[slot] then
 		player[slot].sTOW()
 	end
-	player[slot]=ent
+	player[slot]=_ENV
 	equipped=true
 	if lit then
 		player.setstatus"TORCH:160,160,2,9"
@@ -1732,7 +1731,7 @@ sTOW=function(staylit)
 end
 
 tHROW=function()
- aim{ent,{throw},"throw"}
+ aim{_ENV,{throw},"throw"}
 end
 
 function orbis(str)
@@ -1744,11 +1743,11 @@ uSE=function()
 		orbeffect(player.tl,true)
 		
 		id()
-		del(inventory,ent)
-		destroy(ent)
+		del(inventory,_ENV)
+		destroy(_ENV)
 	else
 		--staffs
-		aim{ent,{range,pass,block,true},rangetyp}
+		aim{_ENV,{range,pass,block,true},rangetyp}
 	end
 end
 
@@ -1835,7 +1834,7 @@ pickup=function()
 end
 
 addtoinventory=function()
- return add(inventory,ent)
+ return add(inventory,_ENV)
 end
 
 rangedatk=function(i,ln,atktype)
@@ -1888,7 +1887,7 @@ end
 	end
  
 	if atkis"blink" then
-	 (ai and ent or player).tele(ln[#ln])
+	 (ai and _ENV or player).tele(ln[#ln])
 		return true
 	elseif atkis"throw" then
 		tl.flatten()
@@ -1960,7 +1959,7 @@ end
 	name=ai and 
 		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
 		rnd(split"y,o,us,ox,erbee,elia")
-	add(ents,ent)
+	add(ents,_ENV)
 	maxhp=hp
 	if (flippable or ai)
 	   and rndp() then
@@ -1973,9 +1972,8 @@ end
 	if behav=="sleep" then
 		setanim"sleep"
 	end
-	end
 
-	return ent
+	return _ENV
 end
 
 -->8
@@ -2020,10 +2018,10 @@ function updateturn()
 end
 
 function setsearchpos(pos)
-	if (searchpos==pos)return
- 	lastpseenpos=pos
-	calcdist(pos,"search")
-	searchpos=lastpseenpos
+	if searchpos!=pos then
+		lastpseenpos,searchpos=pos,pos
+		calcdist(pos,"search")
+	end
 end
 
 function aggro(pos)
