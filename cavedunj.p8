@@ -411,14 +411,14 @@ flags:
 
 function tile(_typ,_pos)
 	local _ENV=setmetatable({},{__index=_ENV})
-	typ,pos,tscrpos=
+	typ,pos,tlscrpos=
 	_typ,_pos,screenpos(_pos)
 --tile member functions)
 set=function(ntyp)
 	typ,bg,genned=ntyp
 end
 
-draw=function(_typ,_pos,baseoffset,offset,size,flp,_bg,_hilight)
+draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 	dtyp=_typ or (_bg and bg) or typ
 	if frozen then
 		if fget(dtyp+1,5)	then
@@ -434,8 +434,7 @@ draw=function(_typ,_pos,baseoffset,offset,size,flp,_bg,_hilight)
 	for i=0,6 do
 		if not _bg and fow==4 and 
 		   fget(litsprite,i) then
-			local adjtile=
-				getadjtl(_pos,i)
+			local adjtile=i==0 and postl or postl.adjtl[i]
 			if adjtile and
 						adjtile.lightsrc then
 				dtyp=litsprite
@@ -445,8 +444,6 @@ draw=function(_typ,_pos,baseoffset,offset,size,flp,_bg,_hilight)
 		end
 	end
 	
-	local scrpos=screenpos(_pos)+
-	             offset+baseoffset
 	sspr(dtyp%16*8+offset.x,
 							flr(dtyp/16)*8+
 								offset.y-xtraheight,
@@ -615,7 +612,7 @@ function setupdrawcalls()
 		local typ,palready=
 		tl.typ,false
 		
-		function draw(tltodraw,pos,i,bg)
+		function draw(tltodraw,postl,i,bg)
 			if not palready then
 				drawcall(tl.initpal,{true})
 				palready=true
@@ -635,7 +632,7 @@ function setupdrawcalls()
 		 --special tiles
 			if i then
 			 if typ==tywall and
-							(pos.y+genpos.y)%2==0 then
+							(postl.pos.y+genpos.y)%2==0 then
 					baseoffset+=vec2s"-6,-2"
 				end
 				if typ==thole then
@@ -652,8 +649,9 @@ function setupdrawcalls()
 			end
 			
 			drawcall(tl.draw,
-							 {typ,pos,
-							  baseoffset,offset,size,
+							 {typ,postl,
+							 postl.tlscrpos+offset+baseoffset,
+							  offset,size,
 							 	flp and 
 							 		tltodraw.tileflag"6", bg, 
 							 	not i and not bg})
@@ -662,21 +660,21 @@ function setupdrawcalls()
 		infront=fget(typ,3)
 		
 		if tl.bg then
-			draw(tl,pos,nil,true)
+			draw(tl,tl,nil,true)
 		end
 		
 		if not infront and
 					fget(typ,5) or
 					(typ==tywall and
 					(pos.y+genpos.y)%2==1) then
-			draw(tl,pos)
+			draw(tl,tl)
 		end
 		
 		for n=1,6 do
 			i=split"2,1,3,4,5,6"[n]
 			
 			if infront and i==4 then
-				draw(tl,pos)		
+				draw(tl,tl)		
 			end
 			
 			local adjtl=getadjtl(pos,i)
@@ -687,18 +685,18 @@ function setupdrawcalls()
 				 		typ!=tempty and
 				 		adjtyp==tcavewall 
 				then
-					draw(adjtl,pos,i)
+					draw(adjtl,tl,i)
 				elseif i<=2 and
 					      adjtl.tileflag"11"
 				then
-				 wallpos=pos+adj[i]
+				 walltl=tl.adjtl[i]
 					if adjtyp==tywall and
 							 i==1 and
-							 (wallpos.y+genpos.y)%2==0 
+							 (walltl.pos.y+genpos.y)%2==0 
 					then
-					 draw(adjtl,wallpos)
+					 draw(adjtl,walltl)
 					end
-					draw(adjtl,wallpos,i)
+					draw(adjtl,walltl,i)
 				end
 				if (typ==thole or
 				    tl.bg==thole) and
@@ -706,14 +704,14 @@ function setupdrawcalls()
 							adjtyp!=thole and
 							adjtl.bg!=thole
 				then
-				 draw(tl,pos,i+
+				 draw(tl,tl,i+
 				 	(adjtl.ismanmade()
 				 	and 3 or 0),--brick hole
 				 	tl.bg==thole)--bridges
 				end 
 			end
 		end
-		local uprtl=getadjtl(pos,3)
+		local uprtl=tl.adjtl[3]
 		if uprtl and 
 					uprtl.tileflag"8" then
 			drawcall(drawents,{uprtl})	
@@ -1848,14 +1846,14 @@ rangedatk=function(i,ln,atktype)
 
  if atkis"lightning" then
 	drawln=function(_pos)
-		line(screenpos(_pos).x+rnd(6)-3,
-				screenpos(_pos).y-2.5-rnd(3))
+		line(_pos.x+rnd(6)-3,
+				_pos.y-2.5-rnd(3))
 	end	
 	fillp()
 	line(i%2*5+7)
-	drawln(0.5*(pos+ln[1].pos))
+	drawln(0.5*(tlscrpos+ln[1].tlscrpos))
 	for i=1,min(i,#ln) do
-		drawln(ln[i].pos)
+		drawln(ln[i].tlscrpos)
 		ln[i].lflashl=6
 	end
 end
@@ -1869,9 +1867,8 @@ end
 		 	sfx"36"
 		 elseif orb then
 		  orbeffect(tl)
-		  scrpos=screenpos(tl.pos)
 		  tl.initpal()
-		  spr(153,scrpos.x-2.5,scrpos.y-4.5)
+		  spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
 		  id()
 		 	sfx"27"
 		 else
@@ -1914,8 +1911,7 @@ end
 	elseif atkis"ice" then
 		tl.freeze()
 		tl.initpal()
-		local scrpos=screenpos(tl.pos)
-		spr(153,scrpos.x-2.5,scrpos.y-4.5)
+		spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
  else
 	 if i==1 then
 		 gettile(pos).lflash=2
