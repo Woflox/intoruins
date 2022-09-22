@@ -236,14 +236,15 @@ function frame(x,y,x2,y2,func)
 	clip(x-3,y,x2-x+2,y2-y)
 end
 
-function listitem(str,sel)
+function listitem(str,sel,dis)
  if sel==nil then
   curindex+=1
   sel=curindex==menuindex
  end
- ?(sel and "\#0\f7\|h❎ "or"\fd\|h  ")..str
+ ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
 	return sel and focus and 
-	 not inputblocked and btnp"5" 
+	 not (inputblocked or dis)
+	 and btnp"5" 
 end
 
 function getindex(maxind,cur)
@@ -295,7 +296,9 @@ function info()
  local statstr="\f1 ……………………………\fd\|j"
  if selitem.isid() then
  	for str in all(split(
-"nAME: ,name|\
+"\
+  cHARGES:   ,charges|/,maxcharges|\
+  nAME: ,name|\
   cASTS LIGHT\
 ,lit|\
   aTTACK SHAPE:   \|k^\+3c❎\+fd❎\+fj❎\
@@ -304,16 +307,15 @@ function info()
 ,pierce|\
   lUNGE ATTACK\
 ,lunge|\
-  kNOCKBACK=knockback|\
-  hEALTH:      ,hp|/=maxhp|\
+  kNOCKBACK:   ,knockback|\
+  hEALTH:      ,hp|/,maxhp|\
   aCCURACY:   +,atk|\
   dAMAGE:      ,dmg|\
   aRMOR:      +,armor|\
   dARKSIGHT:  +,darksight|\
   tHROW RANGE: ,throw|\
   tHROW ACC:  +,throwatk|\
-  sTUN:        ,stun|\
-  cHARGES:     ,charge|/,maxcharges",
+  sTUN:        ,stun",
   "|"))
   do
   	k,v=usplit(str)
@@ -337,7 +339,10 @@ function info()
    or"eQUIP")or "uSE",
   "tHROW"})
  do
- 	if listitem(action) then
+ 	if listitem(action,nil,
+				 	action=="uSE" and
+				 	selitem.charges==0)
+  then
  	 popdiag()popdiag()
  	 skipturn,waitforanim=
  	 true,true
@@ -562,6 +567,7 @@ freeze=function()
 		ent.statuses.BURN=--nil
 		ent.setstatus"FROZEN:8,8,13,6"
 		ent.animtext"○"
+		_g.aggro(pos)
 	end
 end
 --end tile member functions
@@ -1325,7 +1331,7 @@ update=function()
 					genmap(pos,tl.manmade)
 				end
 			elseif case"m" then
-				log("dEPTH "..depth)
+				log("\-i◆ dEPTH "..depth.." ◆")
 			elseif case"v" then
 				animt+=1
 				animoffset.y+=anim[index+1]-4
@@ -1833,7 +1839,7 @@ end
 id=function()
 	if not isid() then
 		ided[typ]=true
-		log("id "..getname())
+		log("\-g☉ "..getname())
 	end
 end
 
@@ -1910,7 +1916,12 @@ rangedatk=function(i,ln,atktype)
 		 xface*=throwflp		 
 			spr(typ,getpos(i,vec2s"-3,-6"))
 		end
-	else
+	elseif atkis"ice" then
+		tl.freeze()
+		tl.initpal()
+		local scrpos=screenpos(tl.pos)
+		spr(153,scrpos.x-2.5,scrpos.y-4.5)
+ else
 	 if i==1 then
 		 gettile(pos).lflash=2
 		 aggro(pos)
@@ -1942,11 +1953,6 @@ rangedatk=function(i,ln,atktype)
 		 	tl.ent.hurt(dmg)
 		 end
 		 calclight()
-		elseif atkis"ice" then
-			tl.freeze()
-			tl.initpal()
-			local scrpos=screenpos(tl.pos)
-			spr(153,scrpos.x-2.5,scrpos.y-4.5)
 		end
 	end
 end
@@ -2477,6 +2483,7 @@ function updateaim(item,lineparams,atktype)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
 	for tl in all(aimline) do
+	 if (tl==player.tl) return
 	 tl.hilight=2
 	end
 	player.lookat(aimpos)
@@ -2492,6 +2499,7 @@ function updateaim(item,lineparams,atktype)
 			del(inventory,item)
 		else
 			item.id()
+			item.charges-=1
 			sfx(item.usefx)
 		end
 		player.setanim"throw"
@@ -2738,16 +2746,16 @@ ff888ffffff3f3fffff223fffff3f3ffff1003ffb3333344ffffffffffff4f4f10000001ffffffff
 ff88dfffffbbb3f6ff22234fff44439ff100038fb3333b42ffffffffffff444f05000550fffeeefff8288228ffc7cfffffdccfffffffdddffffff88988888fff
 ff88d6ffffbbbf6fff222f4fff4445f9f100014f4bbbb92ffff4f4ffff44422f11101111ffe227eff8f28288fccdccffffdccfffcffccdff889f8598855588ff
 ff882fffffbbb3ffff22234fff222366f100034ffbbbb4ffffff55fff44422fffff1ffffffe222eff2f28f2ffffcfffffffcfffffccdddffff899988888f8fff
-ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eeff288822ffffffffffffdfffff22dfdffff2888882086ffff
-ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222ef2828882ffffffffffffffffffdfdfffffff262226fffffff
+ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eeff288822ffffffffffffdfffff22d02ffff2888882086ffff
+ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222ef2828882ffffffffffffffffff202fffffff262226fffffff
 fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffff88d8fffffffffffff7fffffffcfcffffffffffffffffff
 fff22ffffffffffffff22fffffffffffff1001ff333993fffffffffffffffffff100101ffffffffff822828ffffcffffffc77fffffffcfcfffffffffffffffff
 ff882ffffff3f3fffff323fffff3f3ffff13031f99333bffffffffffffffffff10500001ffffffff2f88fffeffc7cffffcc777ffffffcfcfffffff8fffffffff
 ff8d9fffffb333ffff2333ffff4333fff103331f99b33b44ffffffff4fffffff05580850fffeeefff8288228ffc7cfffffdccfffcfff6c6f889ff888f99fffff
 ff86dfffffbbbff6ff222f4fff44299ff1000181499bbf42ffffffff24424f4f11101111ffe227effef28282fccdccffffdccffffccfdcffff898558888a8fff
 ff826fffffbbbf6fff222f4fff2445f9f1000141f449942ffef4f4fff422444ffff1ffffffe222eff2f28f2ffffcfffffffcfffffddcddffff289855588888ff
-ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eeff288822ffffffffffffdfffffdfd22fffff228888822ffff
-ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222ef2882822ffffffffffffffffffffdfdfffffff22226006fff
+ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eeff288822ffffffffffffdfffff20d22fffff228888822ffff
+ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222ef2882822ffffffffffffffffffff202fffffff22226006fff
 ffffffffffffffffffffc4cfffffffffff11ff8fffffff6fffffffffff6fff6f11ffff11ffffffffffffffffffcccffffff7ffffffffffffffff8fff98ffffff
 fff67fffffffffffff2ec4cffffffffff1051878fffffff6fffffffffff64f460011f100fffffffff628ff28ffffccffffc77efffffffffffff888f9888fffff
 fff88fffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005ffffffffff6f8868fffffccfecc777eeff2c7c7fff85588982ff88ff
