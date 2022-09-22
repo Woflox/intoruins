@@ -974,18 +974,6 @@ end
 -->8
 --utility
 --[[
-function checkinput()
-	input=bufferedinput
-	bufferedbtns=nil
-end
-
-function getbtnp(b)
-	if bufferedbtns & (1<<b) != 0 then
-		bufferedbtns=nil--eat the input
-		return true
-	end
-end
-]]
 function screenpos(pos)
 	return vec2(pos.x*12,
 							 				 pos.y*8+pos.x*4) 
