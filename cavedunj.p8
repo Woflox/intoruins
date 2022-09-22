@@ -463,11 +463,11 @@ end
 initpal=function(fadefow)
  pal()	
 	palt(1)
-	nfow=1
+	local nfow=1
 	if fadefow then
 	 if not fadetoblack then
 			if modeis"gameover" then
-				nfow=tl==player.tl and 3 or 1
+				nfow=_ENV==player.tl and 3 or 1
 			elseif vistoplayer() and
 			   mode != "ui" then
 				nfow=light>=2 and 4 or 3
@@ -1851,7 +1851,7 @@ rangedatk=function(i,ln,atktype)
 	end	
 	fillp()
 	line(i%2*5+7)
-	drawln(0.5*(tlscrpos+ln[1].tlscrpos))
+	drawln(0.5*(screenpos(pos)+ln[1].tlscrpos))
 	for i=1,min(i,#ln) do
 		drawln(ln[i].tlscrpos)
 		ln[i].lflashl=6
@@ -2522,7 +2522,7 @@ _g=assigntable(
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:2000,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
+[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,packatk:,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
