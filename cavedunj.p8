@@ -23,7 +23,7 @@ function _update()
 	
 	if mode!="ui" then
  	waitforanim=#rangedatks>0
-		for i,ent in ipairs(ents) do
+		for ent in all(ents) do
 			ent.update()
 		end
  end
@@ -188,6 +188,8 @@ OF THE FABLED wINGS OF yENDOR?    \
  	setmode"reset"
 	end
 	inputblocked=false
+	
+	print("memory: "..stat(0),0,0)
 end
 
 function popdiag()
@@ -572,7 +574,7 @@ freeze=function()
 end
 --end tile member functions
 	end
-	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10",tl)
+	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",tl)
 end
 
 function drawcall(func,args)
@@ -757,9 +759,8 @@ end
 function dijkstra(var,tovisit,check)
 	while #tovisit>0 do
 		local tl=deli(tovisit,1)
-		local pos,d=tl.pos,tl[var]-1
-		for i=1,6 do
-		 local ntl=gettile(pos+adj[i])
+		local d=tl[var]-1
+		for k,ntl in ipairs(tl.adjtl) do
 			if ntl[var]<d then
 				ntl[var]=d
 				if check(ntl) then
@@ -770,12 +771,12 @@ function dijkstra(var,tovisit,check)
 	end
 end
 
-function calcdist(pos,var,ignblock)
+function calcdist(pos,var,ignblock,mindist)
 	alltiles(
 	function(npos,ntl)
-		ntl[var]=pos==npos and 0
-		         or -1000
+		ntl[var]=mindist or-1000
 	end)
+	gettile(pos)[var]=0
 	dijkstra(var,{gettile(pos)},
 	function(_ENV)
 		return navigable() and 
@@ -970,7 +971,6 @@ end
 function updatemap()
 	calcdist(player.pos,"pdist",true)
 	calcvis(player.pos)
-	calclight()
 end
 -->8
 --utility
@@ -1637,7 +1637,7 @@ doatk=function(ntl,pat)
  local atkdir,atkdiri=hexdir(pos,ntl.pos)
  
  for p in all(split(pat,"|")) do
- 	local nntl=getadjtl(ntl.pos,(atkdiri+p)%6+1)
+ 	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
  	if nntl.vistoplayer() then
  		doatk(nntl)
  	end
@@ -1859,40 +1859,52 @@ rangedatk=function(i,ln,atktype)
 	 return atktype==str
 	end
 	
-	local dsttl=ln[#ln]
-	local dst=dsttl.pos
 	local spd=atkis"throw" and throw/12 or 0.999
-	
+ 
+	local tl = ln[min(flr(i*spd)+1,#ln)]
+
+ if atkis"lightning" then
+	drawln=function(_pos)
+		line(screenpos(_pos).x+rnd(6)-3,
+				screenpos(_pos).y-2.5-rnd(3))
+	end	
+	fillp()
+	line(i%2*5+7)
+	drawln(0.5*(pos+ln[1].pos))
+	for i=1,min(i,#ln) do
+		drawln(ln[i].pos)
+		ln[i].lflashl=6
+	end
+end
+
  if (i*spd>=#ln) then
   if atkis"throw" then
-		 if dsttl.typ==thole then
+		 if tl.typ==thole then
 		 	sfx"24"
 		 elseif lit then
-		 	dsttl.setfire()
+		 	tl.setfire()
 		 	sfx"36"
 		 elseif orb then
-		  orbeffect(dsttl)
-		  scrpos=screenpos(dst)
-		  dsttl.initpal()
+		  orbeffect(tl)
+		  scrpos=screenpos(tl.pos)
+		  tl.initpal()
 		  spr(153,scrpos.x-2.5,scrpos.y-4.5)
 		  id()
 		 	sfx"27"
 		 else
 		  if atk then
-		  	doatk(dsttl)
+		  	doatk(tl)
 		  end
 			 if throw then
-			 	setpos(findfree(dst,"item"),true)
+			 	setpos(findfree(tl.pos,"item"),true)
 			 end
 		 end
 		end
 		return true
 	end
-	
-	local tl = ln[flr(i*spd)+1]
  
 	if atkis"blink" then
-	 (ai and ent or player).tele(dsttl)
+	 (ai and ent or player).tele(ln[#ln])
 		return true
 	elseif atkis"throw" then
 		tl.flatten()
@@ -1938,17 +1950,6 @@ rangedatk=function(i,ln,atktype)
 			end
 		 gettile(pos).lflash=2
 		elseif atkis"lightning" then
-			drawln=function(_pos)
-				line(screenpos(_pos).x+rnd(6)-3,
-				     screenpos(_pos).y-2.5-rnd(3))
-			end	
-			fillp()
-		 line(i%2*5+7)
-		 drawln(0.5*(pos+ln[1].pos))
-		 for i=1,i do
-		 	drawln(ln[i].pos)
-		 	ln[i].lflashl=6
-		 end
 		 if tl.ent then
 		 	tl.ent.hurt(dmg)
 		 end
@@ -2006,13 +2007,14 @@ function updateturn()
 	 player.tickstatuses()
 	 updatemap()
 	elseif turnorder==1 then
+		calclight()
 		for _ENV in all(ents) do
 			if not isplayer then
 				taketurn()
 				tickstatuses()
 			end
 		end
-	else
+	elseif turnorder==2 then
 		for _ENV in all(ents) do
 			if ai then
 				if behav=="hunt" and not
@@ -2023,24 +2025,25 @@ function updateturn()
 			canact=true
 			end
 		end
+	else
 		updateenv()
 		turnorder=0
 		return
 	end
 	turnorder+=1
-	updateturn()
+	--updateturn()
 end
 
 function setsearchpos(pos)
 	if (searchpos==pos)return
- lastpseenpos=pos
+ 	lastpseenpos=pos
 	calcdist(pos,"search")
 	searchpos=lastpseenpos
 end
 
 function aggro(pos)
 	setsearchpos(player.pos)
-	calcdist(pos,"aggro",true)
+	calcdist(pos,"aggro",nil,-4)
 	for _ENV in all(ents) do
 		if ai and
 		   behav!="dead" and
@@ -2072,6 +2075,10 @@ function genmap(startpos,manmade)
 	genpos=startpos
 	cave=not manmade
 	
+	alltiles(function(pos,ntl)
+		ntl.adjtls=nil
+	end)
+
 	world,ents,validtiles,inboundposes,tileinbounds=
 	{},{},{},{},{},{}
 
@@ -2092,6 +2099,13 @@ function genmap(startpos,manmade)
 			end
 	 end
 	end
+
+	alltiles(
+	function(npos,tl)
+		for i=1,6 do
+			tl.adjtl[i]=getadjtl(npos,i)
+		end
+	end)
 	
 	entropy=1.5
 	if manmade then
@@ -2433,14 +2447,14 @@ function postproc()
 			local spawn,behav,spawnedany
 			=rnd(spawns[min(spawndepth,20)]),
 			rnd{"sleep","wander"}
-			for i,typ in next,spawn do
+			for typ in all(spawn) do
 				local found=false
 				visitadjrnd(spawnpos,
 				function(npos,ntl)
 					if not found and
 				 	checkspawn(ntl,nil,-4,typ==72)
 				 then
-				  create(typ,npos,behav,i)
+				  create(typ,npos,behav,n)
 						found=true
 						spawnpos=npos
 					end
@@ -2524,7 +2538,7 @@ _g=assigntable(
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
+[[64=n:yOU,hp:2000,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,packatk:,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
