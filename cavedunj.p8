@@ -1401,7 +1401,7 @@ findmove=function(var,goal,special)
 		 	ntl.ent.blocking then
 		 	score-=flying and 10 or 1
 		 end
-		 if stat"light" and 
+		 if burnlight and 
 		    tl.light>-1 and 
 		    tl.pdist<-1 then
 		 	score-=3*(ntl.light-tl.light)
@@ -1824,10 +1824,14 @@ id=function()
 end
 
 pickup=function()
-	addtoinventory()
-	tl,tl.item=--nil
-	log("+"..getname())
-	sfx"25"
+ if #inventory<10 then
+		sfx"25"
+		addtoinventory()
+		tl,tl.item=--nil
+		log("+"..getname())
+	else
+	 log"INVENTORY FULL"
+	end
 end
 
 addtoinventory=function()
@@ -2204,16 +2208,16 @@ function gencave(pos)
 	end
 end
 
-function gentile(typ,tl)
+function gentile(typ,_ENV)
 	local y =	ceil(rnd"15")
-	if (tl.ismanmade()) y+=16
-	tl.set(mget(typ,y))
+	if (ismanmade()) y+=16
+	set(mget(typ,y))
 	local typ2=mget(typ+1,y)
-	tl.flip,tl.genned=
+	flip,genned=
 	rndp(),true
  if typ2!=0 then
   if typ2<64 then
- 		tl.bg=typ2
+ 		bg=typ2
 	 else
  		create(typ2,pos)
  	end
@@ -2227,7 +2231,7 @@ function postgen(pos,tl,prevtl)
 		if genable() and not
 					postgenned then
 			if not genned then
-				gentile(tl.typ,tl)
+				gentile(tl.typ,_ENV)
 			end
 			postgen(npos,_ENV,tl.genable() and tl or prevtl)
 		end
@@ -2343,7 +2347,7 @@ function postproc()
 	
 		
 	function checkspawn(_ENV,_typ,mindist,nolight,allowent)
-		if navigable() and
+		if navigable(nolight) and
 		 pdist < mindist and
 			pdist > -1000 and
 			(allowent or not ent) and
@@ -2441,6 +2445,7 @@ function postproc()
 					end
 				end)
 			end
+			--spawn items
 			checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
 		end
 		--rubberbanding important orbs
@@ -2511,7 +2516,7 @@ end
 
 
 _g=assigntable(
-[[mode:title,statet:0,depth:5,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
