@@ -756,14 +756,14 @@ function alltiles(func)
 	end
 end
 
-function dijkstra(var,tovisit,check)
+function dijkstra(var,tovisit,flag)
 	while #tovisit>0 do
 		local tl=deli(tovisit,1)
 		local d=tl[var]-1
 		for k,ntl in ipairs(tl.adjtl) do
 			if ntl[var]<d then
 				ntl[var]=d
-				if check(ntl) then
+				if fget(ntl.typ,flag) then
 					add(tovisit,ntl) 
 				end
 			end
@@ -771,18 +771,13 @@ function dijkstra(var,tovisit,check)
 	end
 end
 
-function calcdist(pos,var,ignblock,mindist)
+function calcdist(pos,var,mindist)
 	alltiles(
 	function(ntl)
 		ntl[var]=mindist or-1000
 	end)
 	gettile(pos)[var]=0
-	dijkstra(var,{gettile(pos)},
-	function(_ENV)
-		return navigable() and 
-		(ignblock or not
-		(ent and ent.blocking))
-	end)
+	dijkstra(var,{gettile(pos)},0)
 end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
@@ -811,10 +806,10 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 			end
 			
 			if splitlim then
-				local expamd=(d+1)/d
+				local expand=(d+1)/d
 				viscone(pos,dir1,dir2,
-												expamd*lim1,
-												expamd*splitlim,
+												expand*lim1,
+												expand*splitlim,
 												d+1)
 			end
 			lastvis,notfirst=
@@ -823,13 +818,13 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	end
 end
 
-function calcvis(pos)
+function calcvis()
 	alltiles(
 	function(tl,npos)
-		tl.vis=npos==pos
+		tl.vis=npos==player.pos
 	end)
 	for i=1,6 do
-		viscone(pos,adj[i],adj[(i+1)%6+1],0,1,1)
+		viscone(player.pos,adj[i],adj[(i+1)%6+1],0,1,1)
 	end
 end
 
@@ -866,7 +861,7 @@ function calclight(clearflash)
 			add(tovisit,_ENV)
 		end
 	end)
-	dijkstra("light",tovisit,passlight)
+	dijkstra("light",tovisit,1)
 end
 
 function trysetfire(pos,_ENV,nop)
@@ -968,10 +963,6 @@ function findfree(pos,var)
  return bestpos
 end
 
-function updatemap()
-	calcdist(player.pos,"pdist",true)
-	calcvis(player.pos)
-end
 -->8
 --utility
 --[[
@@ -2005,16 +1996,18 @@ function updateturn()
 	 	return
 	 end
 	 player.tickstatuses()
-	 updatemap()
+	 calcdist(player.pos,"pdist")
 	elseif turnorder==1 then
+		calcvis()
 		calclight()
+	elseif turnorder==2 then
 		for _ENV in all(ents) do
 			if not isplayer then
 				taketurn()
 				tickstatuses()
 			end
 		end
-	elseif turnorder==2 then
+	elseif turnorder==3 then
 		for _ENV in all(ents) do
 			if ai then
 				if behav=="hunt" and not
@@ -2043,7 +2036,7 @@ end
 
 function aggro(pos)
 	setsearchpos(player.pos)
-	calcdist(pos,"aggro",nil,-4)
+	calcdist(pos,"aggro",-4)
 	for _ENV in all(ents) do
 		if ai and
 		   behav!="dead" and
@@ -2076,6 +2069,8 @@ function genmap(startpos,manmade)
 	cave=not manmade
 	
 	alltiles(function(ntl)
+	 --required for now or we run
+	 --out of memory
 		ntl.adjtl=nil
 	end)
 
@@ -2430,7 +2425,8 @@ function postproc()
   =player,1
   add(ents,player)
 	end
-	updatemap()
+	calcdist(player.pos,"pdist")
+	calclight()
 	
 	if depth>0 then
 		player.animoffset.y=-21
@@ -2470,6 +2466,7 @@ function postproc()
 		end
 	end
 	
+	calcvis()
 	calclight()
 end
 
