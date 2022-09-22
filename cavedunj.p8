@@ -189,7 +189,7 @@ OF THE FABLED wINGS OF yENDOR?    \
 	end
 	inputblocked=false
 	
-	print("memory: "..stat(0),0,0)
+	--print("memory: "..stat(0),0,0)
 end
 
 function popdiag()
@@ -604,7 +604,7 @@ function setupdrawcalls()
 	drawcalls={}
 	alltiles(
 	
-	function(pos,tl)
+	function(tl,pos)
 		local typ,palready=
 		tl.typ,false
 		
@@ -752,7 +752,7 @@ end
 
 function alltiles(func)
 	for i,tl in ipairs(validtiles) do
-		func(tl.pos,tl)
+		func(tl,tl.pos)
 	end
 end
 
@@ -773,7 +773,7 @@ end
 
 function calcdist(pos,var,ignblock,mindist)
 	alltiles(
-	function(npos,ntl)
+	function(ntl)
 		ntl[var]=mindist or-1000
 	end)
 	gettile(pos)[var]=0
@@ -825,7 +825,7 @@ end
 
 function calcvis(pos)
 	alltiles(
-	function(npos,tl)
+	function(tl,npos)
 		tl.vis=npos==pos
 	end)
 	for i=1,6 do
@@ -837,7 +837,7 @@ function calclight(clearflash)
  local tovisit={}
 
  alltiles(
- function(pos,_ENV)
+ function(_ENV)
 		function checklight(var)
 		 local nent =_ENV[var]
 			if nent then
@@ -884,7 +884,7 @@ end
 
 function updateenv()
 	alltiles(
-	function(pos,_ENV)
+	function(_ENV)
 		if spores>0 then
 			spores=max(spores-rnd"0.25")
 			if spores>1 then
@@ -924,7 +924,7 @@ function updateenv()
 		end
 	end)
 	alltiles(
-	function(pos,_ENV)
+	function(_ENV)
 		spores+=newspores
 		newspores=0
 		if ent and
@@ -956,13 +956,13 @@ function findfree(pos,var)
  calcdist(pos,"free")
  local bestd,bestpos=-100
  alltiles(
- function(npos,_ENV)
+ function(_ENV)
   local d=free+rnd()
  	if navigable() and
  	   not _ENV[var] and
  	   d>bestd then
  		bestd,bestpos=
- 		d,npos
+ 		d,pos
  	end
  end)
  return bestpos
@@ -2075,8 +2075,8 @@ function genmap(startpos,manmade)
 	genpos=startpos
 	cave=not manmade
 	
-	alltiles(function(pos,ntl)
-		ntl.adjtls=nil
+	alltiles(function(ntl)
+		ntl.adjtl=nil
 	end)
 
 	world,ents,validtiles,inboundposes,tileinbounds=
@@ -2101,9 +2101,9 @@ function genmap(startpos,manmade)
 	end
 
 	alltiles(
-	function(npos,tl)
+	function(_ENV)
 		for i=1,6 do
-			tl.adjtl[i]=getadjtl(npos,i)
+			adjtl[i]=getadjtl(pos,i)
 		end
 	end)
 	
@@ -2262,7 +2262,7 @@ function postproc()
 		 
 			local unreach,numtls={},0
 			alltiles(
-			function(pos,_ENV)
+			function(_ENV)
 				if navigable() and
 							pdist==-1000 and
 							((permissive or
@@ -2333,7 +2333,7 @@ function postproc()
 	
 	--delete bridges lol
 	alltiles(
-	function(pos,_ENV)
+	function(_ENV)
 		if tileflag"12" then
 			set(thole)
 		end			
@@ -2348,7 +2348,7 @@ function postproc()
 	
 	--replace single cavewalls
 	alltiles(
-	function(pos,tl)
+	function(tl,pos)
 		if tl.typ==tempty and 
 					inbounds(pos) then
 			if getadjtl(pos,2).genable() and
@@ -2374,7 +2374,7 @@ function postproc()
 	end
 	
 	alltiles(
-	function(pos,_ENV)
+	function(_ENV,pos)
 		--local uptl,uprighttl,righttl=
 		--		getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
 		if typ==tempty then
@@ -2413,11 +2413,11 @@ function postproc()
 	--create exit holes if needed
 	if numholes<3 then
 		alltiles(
-		function (npos,ntl)
-			if checkspawn(ntl,nil,furthestd+2.5+rnd(),false,true)
+		function (_ENV)
+			if checkspawn(_ENV,nil,furthestd+2.5+rnd(),false,true)
 			then
-			 ntl.set(thole)
-				destroy(ntl.ent)
+			 set(thole)
+				destroy(ent)
 			end
 		end)
 	end
