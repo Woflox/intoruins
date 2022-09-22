@@ -8,7 +8,15 @@ function modeis(m)
 	return mode==m
 end
 
+function getbtn(b)
+	b&=btns
+	btns&=~b
+	return b!=0
+end
+
 function _update()
+	btns|=btnp()
+
 	if modeis"play" then
 		updateturn()
 	elseif modeis"aim" then
@@ -377,8 +385,8 @@ function dialog(func)
 end
 
 function setmode(m)
-	mode,statet,inputblocked=
-	m,0,true
+	mode,statet,inputblocked,btns=
+	m,0,true,0
 end
 -->8
 --[[tiles, rendering
@@ -1444,35 +1452,32 @@ taketurn=function()
   return true
  end
 	if isplayer then
-		poke(0x5f5c,9)--key repeat
-		poke(0x5f5d,6)
-		
 		if _g.skipturn then
 			_g.skipturn=false
 			return true
 		end
 		
-		if btnp"5" then
+		if getbtn(32) then
 			dialog(inv)
 			return
 		end
 		
-		if btnp"4" then
+		if getbtn(16) then
 			_g.tock=not _g.tock
 			sfx(40,-1,not tock and 16 or 0, 8)
 			return true --wait 1 turn
 		end
 		
 		function turn(btnid,i)
-			if btnp(btnid) then
+			if getbtn(btnid) then
 				diri=(diri+i+5)%6+1
 				setanim"turn"
 			end
 		end
 		
-		turn(⬅️,-1)
-		turn(➡️,1)
-		turn(⬇️,3)
+		turn(1,-1)
+		turn(2,1)
+		turn(8,3)
 		
 		function updst()
 			_g.playerdst,_g.aimitem=
@@ -1486,7 +1491,7 @@ taketurn=function()
 		then
 			dsttile.hilight=2
 		end
-		if btnp"2" then
+		if getbtn(4) then
 			dsttile.hilight=0
 			if canmove(playerdst) then
 				move(playerdst,true)
@@ -2000,14 +2005,13 @@ function updateturn()
 	elseif turnorder==1 then
 		calcvis()
 		calclight()
-	elseif turnorder==2 then
-		for _ENV in all(ents) do
+	 for _ENV in all(ents) do
 			if not isplayer then
 				taketurn()
 				tickstatuses()
 			end
 		end
-	elseif turnorder==3 then
+	elseif turnorder==2 then
 		for _ENV in all(ents) do
 			if ai then
 				if behav=="hunt" and not
@@ -2110,6 +2114,7 @@ function genmap(startpos,manmade)
 	end
 	postproc()
 	setupdrawcalls()
+	btns=0
 end
 
 function genroom(pos)
@@ -2526,7 +2531,7 @@ end
 
 
 _g=assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1
+[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2718,6 +2723,8 @@ create(190).addtoinventory()
 create(191).addtoinventory()]]
 calclight()
 
+poke(0x5f5c,9)--key repeat
+poke(0x5f5d,6)
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffff0100000fffffffff0000000ffffff0000000fffffffffffffffffffffffff155111551ffffffffffffffffffffffffffffffffffffffffffffffffffff
