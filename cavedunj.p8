@@ -656,7 +656,7 @@ function setupdrawcalls()
 							 	_hilight})
 		end
 		
-		local infront=fget(_typ,3)
+		local infront,uprtl=fget(_typ,3),adjtl[3]
 		
 		if bg then
 			tdraw(_ENV,_ENV,nil,true)
@@ -710,7 +710,6 @@ function setupdrawcalls()
 				end 
 			end
 		end
-		local uprtl=adjtl[3]
 		if uprtl and 
 					uprtl.tileflag"8" then
 			drawcall(drawents,{uprtl})	
@@ -746,7 +745,7 @@ function visitadjrnd(pos,func)
 		local n=i+rndint(7-i)
 		local tl=getadjtl(pos,indices[n])
 		indices[n]=indices[i]
-		func(tl.pos,tl)
+		func(tl,tl.pos)
 	end
 end
 
@@ -868,7 +867,7 @@ function calclight(clearflash)
 	dijkstra("light",tovisit,1)
 end
 
-function trysetfire(pos,_ENV,nop)
+function trysetfire(_ENV,pos,nop)
 	frozen=nil
 	if tileflag"10" or
     spores>0 or
@@ -889,7 +888,7 @@ function updateenv()
 			if spores>1 then
 				adjtls={}
 				visitadjrnd(pos,
-				function(npos,ntl)
+				function(ntl)
 					if ntl.tileflag"8" and
 						ntl.fire==0
 					then
@@ -928,7 +927,7 @@ function updateenv()
 		newspores=0
 		if ent and
 		 ent.statuses.BURN then
-		 trysetfire(nil,_ENV,true)
+		 trysetfire(_ENV,nil,true)
 		end
 		if fire>=1 then
 			fire+=1
@@ -945,7 +944,7 @@ function updateenv()
 		   not statuses.BURN
 		then
 			burn()
-		 trysetfire(nil,tl,true)
+		 trysetfire(tl,nil,true)
 			sfx"36"
 		end
 	end
@@ -1390,7 +1389,7 @@ end
 findmove=function(var,goal,special)
 	local bestscore=-2
 	visitadjrnd(pos,
-	function(npos,ntl)
+	function(ntl,npos)
 		if canmove(npos,special) and
 		   ntl.fire==0
 		then
@@ -1921,7 +1920,7 @@ end
 		 aggro(pos)
 	 end
 	 if atkis"fire" then
-			trysetfire(nil,tl,true)
+			trysetfire(tl,nil,true)
 			if tl.fire==0 then
 				create(138,tl.pos)
 			end
@@ -2191,7 +2190,7 @@ function gencave(pos)
 	entropy -= 0.013
 	if tl then
 		visitadjrnd(pos,
-		function(npos,ntl)
+		function(ntl,npos)
 			if not ntl.genable() then
 				if inbounds(npos) and 
 							rndp(entropy) then
@@ -2224,16 +2223,16 @@ function gentile(typ,_ENV)
  end									
 end
 
-function postgen(pos,tl,prevtl)
+function postgen(_pos,tl,prevtl)
 	tl.postgenned=true
-	visitadjrnd(pos,
-	function(npos,_ENV)
+	visitadjrnd(_pos,
+	function(_ENV)
 		if genable() and not
 					postgenned then
 			if not genned then
 				gentile(tl.typ,_ENV)
 			end
-			postgen(npos,_ENV,tl.genable() and tl or prevtl)
+			postgen(pos,_ENV,tl.genable() and tl or prevtl)
 		end
 	end)
 end
@@ -2335,8 +2334,8 @@ function postproc()
 	function(_ENV)
 		if typ==tempty and 
 					inbounds(pos) then
-			if getadjtl(pos,2).genable() and
-				  getadjtl(pos,5).genable() then
+			if adjtl[2].genable() and
+				  adjtl[5].genable() then
 				gentile(tcavewall,_ENV)
 			end
 		end
@@ -2363,8 +2362,7 @@ function postproc()
 		--		getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
 		if typ==tempty then
 			--add cavewalls
-			for i = 1,6 do
-				ntl = getadjtl(pos,i)
+			for k,ntl in next,adjtl do
 				if ntl and 
 							ntl.tileflag"5" then--drawnormal
 					 typ=tcavewall
@@ -2381,7 +2379,7 @@ function postproc()
 				tl.typ=tywall
 			end]]
 		elseif typ==tywall and
-		  getadjtl(pos,4).typ==txwall
+		  adjtl[4].typ==txwall
 		then
 			typ=txwall
 		elseif pdist>-1000 and
@@ -2435,13 +2433,13 @@ function postproc()
 			for typ in all(spawn) do
 				local found=false
 				visitadjrnd(spawnpos,
-				function(npos,ntl)
+				function(_ENV)
 					if not found and
-				 	checkspawn(ntl,nil,-4,typ==72)
+				 	checkspawn(_ENV,nil,-4,typ==72)
 				 then
-				  create(typ,npos,behav,n)
+				  create(typ,pos,behav,n)
 						found=true
-						spawnpos=npos
+						spawnpos=pos
 					end
 				end)
 			end
