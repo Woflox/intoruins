@@ -608,37 +608,36 @@ end
 function setupdrawcalls()
 	alltiles(
 	
-	function(tl,pos)
-		local typ,palready=
-		tl.typ,false
+	function(_ENV)
+		local _typ,palready=typ
 		
-		function draw(tltodraw,postl,i,bg,hilight)
+		function tdraw(tltodraw,postl,i,_bg,_hilight)
 			if not palready then
-				drawcall(tl.initpal,{true})
+				drawcall(initpal,{true})
 				palready=true
 			end
-			local typ,flp=
+			local _typ,flp=
 			i and (bg and tltodraw.bg or
 			              tltodraw.typ),
-			tl.flip
+			flip
 			if not i and tltodraw.typ==tywall then
-				typ=tdunjfloor
+				_typ=tdunjfloor
 			end
 
-		 local baseoffset,offsets,sizes=unpack(specialtiles[i and typ or "default"])
+		 local baseoffset,offsets,sizes=unpack(specialtiles[i and _typ or "default"])
 		 local offset,size=
 		 offsets[i or 1],
 		 sizes[i or 1]
 		 --special tiles
 			if i then
-			 if typ==tywall and
+			 if _typ==tywall and
 							(postl.pos.y+genpos.y)%2==0 then
 					baseoffset+=vec2s"-6,-2"
 				end
-				if typ==thole then
-				 typ+=192
+				if _typ==thole then
+				 _typ+=192
 					if i>3 then
-					 typ += 2--brick hole
+					 _typ += 2--brick hole
 					 flp=false
 					 baseoffset+=vec2s"0,1"
 					end
@@ -648,70 +647,70 @@ function setupdrawcalls()
 				end
 			end
 			
-			drawcall(tl.draw,
-							 {typ,postl,
+			drawcall(draw,
+							 {_typ,postl,
 							 postl.tlscrpos+offset+baseoffset,
 							  offset,size,
 							 	flp and 
-							 		tltodraw.tileflag"6", bg, 
-							 	hilight})
+							 		tltodraw.tileflag"6", _bg, 
+							 	_hilight})
 		end
 		
-		infront=fget(typ,3)
+		local infront=fget(_typ,3)
 		
-		if tl.bg then
-			draw(tl,tl,nil,true)
+		if bg then
+			tdraw(_ENV,_ENV,nil,true)
 		end
 		
 		if not infront and
 					fget(typ,5) or
-					(typ==tywall and
+					(_typ==tywall and
 					(pos.y+genpos.y)%2==1) then
-			draw(tl,tl,nil,nil,true)
+			tdraw(_ENV,_ENV,nil,nil,true)
 		end
 		
 		for n=1,6 do
 			i=split"2,1,3,4,5,6"[n]
 			
 			if infront and i==4 then
-				draw(tl,tl,nil,nil,true)		
+				tdraw(_ENV,_ENV,nil,nil,true)		
 			end
 			
-			local adjtl=getadjtl(pos,i)
-			if adjtl then
-				adjtyp = adjtl.typ
+			local _adjtl=adjtl[i]
+			if _adjtl then
+				local adjtyp = _adjtl.typ
 				
-			 if typ!=tcavewall and
-				 		typ!=tempty and
+			 if _typ!=tcavewall and
+				 		_typ!=tempty and
 				 		adjtyp==tcavewall 
 				then
-					draw(adjtl,tl,i)
+					tdraw(_adjtl,_ENV,i)
 				elseif i<=2 and
-					      adjtl.tileflag"11"
+					      _adjtl.tileflag"11"
 				then
-				 walltl=tl.adjtl[i]
+				 walltl=adjtl[i]
 					if adjtyp==tywall and
 							 i==1 and
 							 (walltl.pos.y+genpos.y)%2==0 
 					then
-					 draw(adjtl,walltl,nil,nil,true)
+					 tdraw(_adjtl,walltl,nil,nil,true)
 					end
-					draw(adjtl,walltl,i)
+					tdraw(_adjtl,walltl,i)
 				end
-				if (typ==thole or
-				    tl.bg==thole) and
+				if (_typ==thole or
+				    bg==thole) and
 				   i<=3 and
 							adjtyp!=thole and
-							adjtl.bg!=thole
+							_adjtl.bg!=thole
 				then
-				 draw(tl,tl,i+
-				 	(adjtl.ismanmade()
+				 tdraw(_ENV,_ENV,i+
+				 	(_adjtl.ismanmade()
 				 	and 3 or 0),--brick hole
-				 	tl.bg==thole)--bridges
+				 	bg==thole)--bridges
 				end 
 			end
 		end
-		local uprtl=tl.adjtl[3]
+		local uprtl=adjtl[3]
 		if uprtl and 
 					uprtl.tileflag"8" then
 			drawcall(drawents,{uprtl})	
@@ -757,7 +756,7 @@ end
 
 function alltiles(func)
 	for i,tl in ipairs(validtiles) do
-		func(tl,tl.pos)
+		func(tl)
 	end
 end
 
@@ -825,8 +824,8 @@ end
 
 function calcvis()
 	alltiles(
-	function(tl,npos)
-		tl.vis=npos==player.pos
+	function(_ENV)
+		vis=pos==player.pos
 	end)
 	for i=1,6 do
 		viscone(player.pos,adj[i],adj[(i+1)%6+1],0,1,1)
@@ -2333,12 +2332,12 @@ function postproc()
 	
 	--replace single cavewalls
 	alltiles(
-	function(tl,pos)
-		if tl.typ==tempty and 
+	function(_ENV)
+		if typ==tempty and 
 					inbounds(pos) then
 			if getadjtl(pos,2).genable() and
 				  getadjtl(pos,5).genable() then
-				gentile(tcavewall,tl)
+				gentile(tcavewall,_ENV)
 			end
 		end
 	end)
@@ -2359,7 +2358,7 @@ function postproc()
 	end
 	
 	alltiles(
-	function(_ENV,pos)
+	function(_ENV)
 		--local uptl,uprighttl,righttl=
 		--		getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
 		if typ==tempty then
