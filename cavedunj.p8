@@ -307,7 +307,6 @@ function info()
  if selitem.isid() then
  	for str in all(split(
 "\
-  cHARGES:   ,charges|/,maxcharges|\
   nAME: ,name|\
   cASTS LIGHT\
 ,lit|\
@@ -325,7 +324,9 @@ function info()
   dARKSIGHT:  +,darksight|\
   tHROW RANGE: ,throw|\
   tHROW ACC:  +,throwatk|\
-  sTUN:        ,stun",
+  sTUN:        ,stun|\
+\
+  cHARGES:   ,charges|/,maxcharges",
   "|"))
   do
   	k,v=usplit(str)
@@ -451,12 +452,12 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 							scrpos.x,scrpos.y-xtraheight,
 							size.x,size.y+xtraheight,flp)
 	if _hilight then
-	 hifade+=mid(-1,hilight-hifade,1)
-	 if hifade>0 and vistoplayer(tl) then
+	 postl.hifade+=mid(-1,postl.hilight-postl.hifade,1)
+	 if postl.hifade>0 and vistoplayer(_ENV) then
 	  pal(usplit"2,34,2")
-	 	spr(hifade*16-8,scrpos.x,scrpos.y,2,1)
+	 	spr(postl.hifade*16-8,scrpos.x,scrpos.y,2,1)
 	 end
- 	hilight=0
+ 	postl.hilight=0
 	end
 end
 
@@ -611,7 +612,7 @@ function setupdrawcalls()
 		local typ,palready=
 		tl.typ,false
 		
-		function draw(tltodraw,postl,i,bg)
+		function draw(tltodraw,postl,i,bg,hilight)
 			if not palready then
 				drawcall(tl.initpal,{true})
 				palready=true
@@ -653,7 +654,7 @@ function setupdrawcalls()
 							  offset,size,
 							 	flp and 
 							 		tltodraw.tileflag"6", bg, 
-							 	not i and not bg})
+							 	hilight})
 		end
 		
 		infront=fget(typ,3)
@@ -666,14 +667,14 @@ function setupdrawcalls()
 					fget(typ,5) or
 					(typ==tywall and
 					(pos.y+genpos.y)%2==1) then
-			draw(tl,tl)
+			draw(tl,tl,nil,nil,true)
 		end
 		
 		for n=1,6 do
 			i=split"2,1,3,4,5,6"[n]
 			
 			if infront and i==4 then
-				draw(tl,tl)		
+				draw(tl,tl,nil,nil,true)		
 			end
 			
 			local adjtl=getadjtl(pos,i)
@@ -693,7 +694,7 @@ function setupdrawcalls()
 							 i==1 and
 							 (walltl.pos.y+genpos.y)%2==0 
 					then
-					 draw(adjtl,walltl)
+					 draw(adjtl,walltl,nil,nil,true)
 					end
 					draw(adjtl,walltl,i)
 				end
@@ -2645,6 +2646,10 @@ split([[16
 -5,-2
 9,-8|2,-8
 6,17|7,17
+◆54
+-3,-4
+1,0
+7,7
 ◆default
 -8,-4
 1,0
@@ -2781,7 +2786,7 @@ ff888fffffffff3fffffffffffffffffffffffffffffffffffffffffffffffffff899fffffffffff
 ff88d6fffffff44ffffafffffffffffffffff7fffffffffffffff4ffffff97ffff998ffffffccffffff8fffffffffcffff4ff4ffff5ff5ffff9ff9ffff6ff6ff
 ff88dffffff4400ffff9fffffff5ffffffffdfffffff7fffffff5d6fffff997fff544fffffccc7ffff8ffffffffffffffff49ffffff56ffffff9affffff67fff
 f8822ffff4400ffffff4fffffff4fffffff4ffffff56fffffff4f6fffff5f9fffff5ffffffffdffff898ffffffffffffff4fffffff5fffffff9fffffff6fffff
-ff22fffff00fffffffffffffffffffffff4fffffff5fffffff4fffffff5fffffff554ffffcf2d2fff8998fffffffffffffffffffffffffffffffffffffffffff
+ff25fffff00fffffffffffffffffffffff4fffffff5fffffff4fffffff5fffffff554ffffcf2d2fff8998fffffffffffffffffffffffffffffffffffffffffff
 ff0dfffffffffffffffffffffffffffff4ffffffffffffffffffffffffffffffff505ffffdf00fffff88ffffffdfffffffffffffffffffffffffffffffffffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff22fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff899fffffcfcfffff8fffffcfffffffffffffffffffffffffffffffffffffff
