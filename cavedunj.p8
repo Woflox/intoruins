@@ -60,8 +60,7 @@ function _draw()
 	cls()
 	camera(campos.x,campos.y)
 	lfillp=localfillp(0xbfd6.4,
-								-campos.x,
-								-campos.y)
+								-campos)
 
  anyfire=false
 	for i,drawcall in 
@@ -105,18 +104,18 @@ function _draw()
 			end
 		end
 	elseif modeis"aim" then
-		?"\+fe\19",aimscrpos.x,aimscrpos.y,7
+		?"\+fe⁙",aimscrpos.x,aimscrpos.y,7
 	end
 	camera()
  
 	if modeis"play" or
 	   modeis"ui" then
 		local x=drawbar(player.hp/player.maxhp,
-		        "HP",2,123,2,8)
+		        "HP",2,2,8)
 		for k,v in 
 			pairs(player.statuses)
 		do
-			x=drawbar(v[1]/v[2],k,x,123,v[3],v[4])	
+			x=drawbar(v[1]/v[2],k,x,v[3],v[4])	
 		end
 	elseif modeis"aim" then
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
@@ -204,21 +203,22 @@ function popdiag()
 	deli(diags)
 	if #diags==0 then
 		setmode"play"
+		uimode=nil
 		return true
 	end
 end
 
-function drawbar(ratio,label,x,y,col1,col2)
- ?label,x-1,y-7,0
- ?label,x,y-6,col1
+function drawbar(ratio,label,x,col1,col2)
+ clip(usplit"0,117,127,127")
+ ?"\#0"..label,x,117,col1
  
- local w = max(#label*4-1,20)
+ local w=max(#label*4-1,20)
  local barw=ceil(ratio*w)-1
- rect(x-1,y-1,x+w,y+3,15)
- rect(x,y,x+barw,y+2,col2)
+ rect(x-1,122,x+w,126,15)
+ rect(x,123,x+barw,125,col2)
  if barw>0 then
-	 rectfill(x,y+1,x+barw-1,
-	 									y+2,col1)
+	 rectfill(x,124,x+barw-1,
+	 									125,col1)
 	end
  return x+w+4
 end
@@ -243,7 +243,7 @@ function frame(x,y,x2,y2,func)
  func(x-1,y-1,x2+1,y2+1,0)
 	rect(x,y,x2,y2,1)
 	cursor(x-3,y+4)
-	clip(x-3,y,x2-x+2,y2-y)
+	clip(0,0,x2-1,y2)
 end
 
 function listitem(str,sel,dis)
@@ -274,7 +274,8 @@ function inv()
  frame(gettrans(126,40),6,126,111,rect)
  local i=0
  local sely=0
-	?"\fd  iNVENTORY\n\f1 ……………… EQUIPPED"
+	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
+	?"\f1 ……………… EQUIPPED"
 	
 	invindex=getindex(#inventory,invindex)
 	
@@ -282,7 +283,13 @@ function inv()
 		for item in all(inventory) do
 			if item.equipped==eqpd then
 			 i+=1
-				if listitem(item.getname(),i==invindex) then
+				if listitem(item.getname(),
+								i==invindex,
+								(uimode=="iDENTIFY"and
+								 item.isid()) or
+								(uimode=="eMPOWER"and
+								 item.orb))
+				then
 					dialog(info)
 					selitem=item
 				end
@@ -299,7 +306,7 @@ function info()
  local eqpd = selitem.equipped
  local x=gettrans(42,4)
  frame(x,6,gettrans(42,93.5),111,rectfill)
- menuindex=getindex(2)
+ menuindex=getindex(uimode and 1 or 2)
 
  spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
  ?"\fd    "..selitem.getname()
@@ -316,23 +323,32 @@ function info()
 ,pierce|\
   lUNGE ATTACK\
 ,lunge|\
-  kNOCKBACK:   ,knockback|\
-  hEALTH:      ,hp|/,maxhp|\
+  kNOCKBACK:   1,knockback|\
+  sTUN:        ,stun|\
+  hEALTH:    ,hp|/,maxhp|\
   aCCURACY:   +,atk|\
   dAMAGE:      ,dmg|\
+  rANGE:       ,range|\
   aRMOR:      +,armor|\
   dARKSIGHT:  +,darksight|\
   tHROW RANGE: ,throw|\
   tHROW ACC:  +,throwatk|\
-  sTUN:        ,stun|\
+  tHROW DAMAGE:,throwdmg|\
 \
-  cHARGES:   ,charges|/,maxcharges",
+  cHARGES: ,charges|/,maxcharges",
   "|"))
   do
   	k,v=usplit(str)
-	  local val=selitem[v]
+	  local val,enchval=
+	  selitem[v],
+	  selitem.eMPOWER(v,true)
 	  if val then
 	   statstr..=k..val
+	   if uimode=="eMPOWER" and
+	    		enchval
+	   then
+	   	statstr..="\fc▶"..enchval.."\fd"
+	   end
 	  end
 	 end
 	else
@@ -342,8 +358,9 @@ function info()
  
  --menu
  ?"\f1 ……………………………",x-3,86
- 
+                             
  for action in all(
+ uimode and{uimode}or
  {selitem.slot and
   (eqpd and 
    (selitem.lit and"eXTINGUISH" or "sTOW") 
@@ -355,8 +372,7 @@ function info()
 				 	selitem.charges==0)
   then
  	 popdiag()popdiag()
- 	 skipturn,waitforanim=
- 	 true,true
+ 	 skipturn=true
  		selitem[action]()
  		sfx"25"
  	end
@@ -376,18 +392,18 @@ function confirmjump()
 	end
 end
 
-function dialog(func)
-	uitrans=mode=="ui" and 
-	        0.33 or 1
+function dialog(func,nosnd)
+	uitrans,menuindex=
+	mode=="ui" and 0.33 or 1,1
+	     
  setmode"ui"
-	menuindex=1
  add(diags,func)
- sfx"39"
+ if (not nosnd)sfx"39"
 end
 
 function setmode(m)
-	mode,statet,inputblocked,btns=
-	m,0,true,0
+	mode=m
+	assigntable("statet:0,inputblocked:true,btns:0",_ENV)
 end
 -->8
 --[[tiles, rendering
@@ -446,18 +462,19 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 	end
 	
 	sspr(dtyp%16*8+offset.x,
-							flr(dtyp/16)*8+
+							dtyp\16*8+
 								offset.y-xtraheight,
 							size.x,size.y+xtraheight,
 							scrpos.x,scrpos.y-xtraheight,
 							size.x,size.y+xtraheight,flp)
 	if _hilight then
-	 postl.hifade+=mid(-1,postl.hilight-postl.hifade,1)
-	 if postl.hifade>0 and vistoplayer(_ENV) then
+	 local _ENV=postl
+	 hifade+=mid(-1,hilight-hifade,1)
+	 if hifade>0 then
 	  pal(usplit"2,34,2")
-	 	spr(postl.hifade*16-8,scrpos.x,scrpos.y,2,1)
+	 	spr(hifade*16-8,scrpos.x,scrpos.y,2,1)
 	 end
- 	postl.hilight=0
+ 	hilight=0
 	end
 end
 
@@ -611,7 +628,7 @@ function setupdrawcalls()
 	function(_ENV)
 		local _typ,palready=typ
 		
-		function tdraw(tltodraw,postl,i,_bg,_hilight)
+		function tdraw(tltodraw,postl,i,_bg)
 			if not palready then
 				drawcall(initpal,{true})
 				palready=true
@@ -653,7 +670,7 @@ function setupdrawcalls()
 							  offset,size,
 							 	flp and 
 							 		tltodraw.tileflag"6", _bg, 
-							 	_hilight})
+							 	not(i or _bg)})
 		end
 		
 		local infront,uprtl=fget(_typ,3),adjtl[3]
@@ -666,14 +683,14 @@ function setupdrawcalls()
 					fget(typ,5) or
 					(_typ==tywall and
 					(pos.y+genpos.y)%2==1) then
-			tdraw(_ENV,_ENV,nil,nil,true)
+			tdraw(_ENV,_ENV)
 		end
 		
 		for n=1,6 do
 			i=split"2,1,3,4,5,6"[n]
 			
 			if infront and i==4 then
-				tdraw(_ENV,_ENV,nil,nil,true)		
+				tdraw(_ENV,_ENV)		
 			end
 			
 			local _adjtl=adjtl[i]
@@ -693,7 +710,7 @@ function setupdrawcalls()
 							 i==1 and
 							 (walltl.pos.y+genpos.y)%2==0 
 					then
-					 tdraw(_adjtl,walltl,nil,nil,true)
+					 tdraw(_adjtl,walltl)
 					end
 					tdraw(_adjtl,walltl,i)
 				end
@@ -1088,10 +1105,10 @@ function vec2(x,y)
 end
 
 --local fillp by makke, felice & sparr
-function localfillp(p, x, y)
- local p16, x = flr(p), band(x, 3)
- local f, p32 = flr(15 / 2 ^ x) * 0x1111, rotr(p16 + lshr(p16, 16), band(y, 3) * 4 + x)
- return p - p16 + flr(band(p32, f) + band(rotl(p32, 4), 0xffff - f))
+function localfillp(p, _ENV)
+ local p16, x = flr(p), x&3
+ local f, p32 = 15\2^x*0x1111,p16+(p16>>>16)>><(y&3)*4+x
+ return p - p16 + flr((p32&f) + band(p32<<>4, 0xffff - f))
 end
 -->8
 --entities
@@ -1102,7 +1119,7 @@ function create(_typ,_pos,_behav,_group)
 	typ,pos,behav,group=
 	_typ,_pos,_behav,_group
 	
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,statuses:{}",_ENV)
+	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,statuses:{}",_ENV)
 	assigntable(entdata[_typ],_ENV)						
 
 	animoffset=vec2(0,var=="ent"and 0or 2)
@@ -1335,8 +1352,8 @@ update=function()
 			elseif case"s" then
 				renderpos=nil
 			elseif case"h" then
-				hurt((hp>maxhp/19.9) and 
-					min(maxhp/3,hp-1) or
+				hurt((hp>maxhp\20) and 
+					min(maxhp\4,hp-1) or
 					1000)
 		 end
 			animt+=1
@@ -1562,7 +1579,7 @@ hurt=function(dmg,atkdir,nosplit)
 		setanim(deathanim)
 		if isplayer then
 			setmode"gameover"
-			poke(0x5f40,31)
+			?"\^!5f40\31"--slow audio poke
 			calclight()
 		elseif sporedeath then
 			tl.sporeburst(sporedeath)
@@ -1630,7 +1647,7 @@ doatk=function(ntl,pat)
 		      (abs(diff)+2)
 		end
 		if rndp(hitp) then
-			b.hurt(stat"dmg",atkdir)
+			b.hurt(throwdmg or stat"dmg",atkdir)
 		else
 			aggro(ntl.pos)
 		end
@@ -1749,9 +1766,7 @@ end
 
 orbeffect=function(tl,used)
  --_g.waitforanim=true
- if not used or orbfx!=55 then
  	sfx(orbfx,-1,fxoffset,fxlength)
- end
  if used then
 	 if orbis"light" then
 			player.setstatus"LIGHT:160,160,2,13"
@@ -1759,10 +1774,9 @@ orbeffect=function(tl,used)
 			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL:160,160,2,3"
-		elseif orbis"ench" then
-			
-		elseif orbis"id" then
-			
+		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
+			_g.uimode=orb
+			dialog(inv,true)
 		elseif orbis"life" then
 		 player.maxhp+=5
 		 player.hp=player.maxhp
@@ -1772,10 +1786,10 @@ orbeffect=function(tl,used)
 		if orbis"light" then
 			tl.lflash=8
 			
-		elseif orbis"ench" then
-		
-		elseif orbis"id" then
-			
+		elseif orbis"eMPOWER" or 
+		       orbis"iDENTIFY" and 
+		       tl.ent or tl.item then
+			(tl.ent or tl.item)[orb]()
 		elseif orbis"life" then
 			tl.sporeburst(12)
 		end
@@ -1807,12 +1821,42 @@ eXTINGUISH=function()
 	typ+=1
 end
 
-getname=function()
-	return isid() and nid or n
+eMPOWER=function(test,nosnd)
+	for estat in all(enchstats) do
+		if _ENV[estat] then
+		 local val=estat=="charges"and
+		           maxcharges+1 or
+		           _ENV[estat]+1
+			if test then
+			 if test==estat then
+			 	return val
+			 end
+			else
+				_ENV[estat]=val
+			end
+		end
+	end
+	if (nosnd)return
+	sfx(usplit"55,-1,0,16")
+	if (tl) animtext"+LVL"
 end
 
-isid=function()
- return ided[typ]
+iDENTIFY=function()
+	id()
+	sfx(usplit"55,-1,16,16")
+	dialog(info)
+	_g.selitem=_ENV
+	_g.uimode="dISMISS"
+end
+
+dISMISS=function()
+	popdiag()
+end
+
+getname=function()
+ return isid() and 
+  (nid or n)..
+  (lvl>0 and "+"..lvl or "")or n
 end
 
 id=function()
@@ -1820,6 +1864,10 @@ id=function()
 		ided[typ]=true
 		log("\-g☉ "..getname())
 	end
+end
+
+isid=function()
+ return ided[typ]
 end
 
 pickup=function()
@@ -1954,9 +2002,13 @@ end
 		setpos(pos,true)	
 	end
 	
+	while rndlvl and rndp(0.33)do
+		eMPOWER(nil,true)
+	end
+	
 	name=ai and 
-		rnd(split"jeffr,jenn,fluff,glarb,greeb,plort,rust,mell,grimb")..
-		rnd(split"y,o,us,ox,erbee,elia")
+		rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..
+		rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n")
 	add(ents,_ENV)
 	maxhp=hp
 	if (flippable or ai)
@@ -2570,22 +2622,22 @@ pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,wpnfrms:16,idleanim:flash
-129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash
-145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash
-161=n:eBONY STAFF,var:item,throw:4,idleanim:flash
-177=n:pUPLEHEART STAFF,var:item,throw:4,idleanim:flash
-140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash
-141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash
-142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash
-143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash
-156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash
-157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash
-158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash
-159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash
+132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:
+134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash,rndlvl:
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:
+129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash,rndlvl:
+145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:
+161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:
+177=n:pUPLEHEART STAFF,var:item,throw:4,idleanim:flash,rndlvl:
+140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
+141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
+142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
+143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
+156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
+157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
+158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
+159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
 172=n:cYAN ORB,var:item,light:2,throw:6,idleanim:flash
 173=n:yELLOW ORB,var:item,light:2,throw:6,idleanim:flash
 174=n:rED ORB,var:item,light:2,throw:6,idleanim:flash
@@ -2596,8 +2648,8 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash
 300=,nid:oRB OF lIGHT,orb:light,orbfx:53
 301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54
-302=,nid:oRB OF pOWER,orb:ench,orbfx:55,fxlength:16
-303=,nid:oRB OF dATA,orb:id,orbfx:55,fxoffset:16,fxlength:16
+302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55,fxlength:16
+303=,nid:oRB OF dATA,orb:iDENTIFY,orbfx:55,fxoffset:16,fxlength:16
 304=,nid:oRB OF rENEWAL,orb:life,orbfx:17
 305=,nid:oRB OF fIRE,orb:fire,orbfx:36
 306=,nid:oRB OF iCE,orb:ice,orbfx:28
@@ -2616,7 +2668,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink,usefx:29
 ]],nil,"\n","=")
 
-adj,fowpals,frozepal,ided,counts=
+adj,fowpals,frozepal,ided,counts,enchstats=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2624,7 +2676,8 @@ split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:",--ided
-assigntable"300:1,301:-1"
+assigntable"300:1,301:-1",--counts
+split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges"--enchstats
 
 for s in all(
 split([[16
@@ -2696,11 +2749,11 @@ genmap(vec2s"10,13")
 srand(rseed)
 
 create(130).addtoinventory().eQUIP(true)
-create(129).addtoinventory()
+--[[create(129).addtoinventory()
 create(145).addtoinventory()
 create(161).addtoinventory()
 create(177).addtoinventory()
---[[create(172).addtoinventory()
+create(172).addtoinventory()
 create(173).addtoinventory()
 create(174).addtoinventory()
 create(175).addtoinventory()
@@ -2710,8 +2763,8 @@ create(190).addtoinventory()
 create(191).addtoinventory()]]
 calclight()
 
-poke(0x5f5c,9)--key repeat
-poke(0x5f5d,6)
+?"\^!5f5c\9\6"--key repeat poke
+
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffff0100000fffffffff0000000ffffff0000000fffffffffffffffffffffffff155111551ffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -2973,7 +3026,7 @@ __label__
 
 __gff__
 000000000000000000000000000000004000800880082c000000ee00be00ee007a016301ba016b03f32109096b15b321b32173217321730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
-0000000000000000008000000000000000000000000000000000000000000000040000000000000300000000000000000400000000000003000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070400040904003000
+0000000001010101008000000000000000000000010101010000000000000000040000000101010300000000000000000400000001010103000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070400040904003000
 __map__
 000000000000000000000000000000001011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000046004646004600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003200cb0000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000046004646004700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -3011,8 +3064,8 @@ __sfx__
 38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900200000062403630036000062000610006000060000600056000060005600016000060000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
-c5281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
-48030c1c0862024524240242404124051240412403124021240212402124021240212403124031240412404124031240312402124021240312403124041240412403124031240212402124011240112401123011
+c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
+48030c1c0862424524240242404124051240412403124021240212402124021240212403124031240412404124031240312402124021240312403124041240412403124031240212402124011240112401123011
 480800000a05301030010210102101015010000100001000010000100000000000000800301000010000905301030010210102101015006450051300503050050000000000000000000000000000000000000000
 520a100000605006053a6053a6053b615000053b6253a6053b6150000000000000003d6103d615000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 9203002000661026510c6710267008661016310866001661106710366009641026610567006651016710b640066610167103670046510267109640016610a671026400466103671076310b650036610667103631
