@@ -251,7 +251,7 @@ function listitem(str,sel,dis)
   curindex+=1
   sel=curindex==menuindex
  end
- ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
+ ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 1 or sel and 7 or 13
 	return sel and focus and 
 	 not (inputblocked or dis)
 	 and btnp"5" 
@@ -1353,7 +1353,7 @@ update=function()
 				renderpos=nil
 			elseif case"h" then
 				hurt((hp>maxhp\20) and 
-					min(maxhp\4,hp-1) or
+					min(maxhp\3,hp-1) or
 					1000)
 		 end
 			animt+=1
@@ -2228,7 +2228,7 @@ function genroom(pos)
 	local crumble = rnd"0.25"
 	if entropy>=0 then
 		doroom()
-		if rndp(0.15) then
+		if rndp(0.3-depth*0.01875) then
 			gencave(rndpos())				 
 		end
 		genroom(rndpos())	
@@ -2248,7 +2248,7 @@ function gencave(pos)
 							rndp(entropy) then
 					gentile(tl.typ,ntl)
 					if ntl.genable() then
-						if rndp(0.01) then
+						if rndp(0.005+depth*0.001) then
 							genroom(rndpos())
 						end
 					 gencave(npos)
