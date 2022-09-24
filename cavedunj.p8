@@ -251,7 +251,7 @@ function listitem(str,sel,dis)
   curindex+=1
   sel=curindex==menuindex
  end
- ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 1 or sel and 7 or 13
+ ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
 	return sel and focus and 
 	 not (inputblocked or dis)
 	 and btnp"5" 
@@ -1515,11 +1515,8 @@ taketurn=function()
 		end
 	elseif ai and canact and behav!="dead" then
 		if behav=="hunt" then
-			if packatk then
-				pdist=rndp() and 0 or -2
-			end
 			checkseesplayer()
-			findmove("pdist",pdist,movandatk and "noatk")
+			findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
 				checkseesplayer()
 			if movandatk then
 				findmove("pdist",0,"atkonly")
@@ -1555,7 +1552,7 @@ taketurn=function()
 				checkaggro(0.29)
 			elseif behav=="search" 
 			then
-				local goal=packatk and 0 or pdist
+				local goal=pdist
 				findmove("search",goal,"aggro")
 				if not checkaggro(1.0) and
 					tl.search == goal
@@ -2228,7 +2225,7 @@ function genroom(pos)
 	local crumble = rnd"0.25"
 	if entropy>=0 then
 		doroom()
-		if rndp(0.3-depth*0.01875) then
+		if rndp(0.4-depth*0.025) then
 			gencave(rndpos())				 
 		end
 		genroom(rndpos())	
@@ -2577,7 +2574,7 @@ _ENV)
 entdata=assigntable(
 [[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,packatk:,movandatk:,alert:20,hurtfx:21
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
 66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangetyp:summon|heal
 67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:throw,atksfx:26
@@ -2587,8 +2584,8 @@ entdata=assigntable(
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-3,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,packatk:,light:3,alert:49,hurtfx:50
+76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
+77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,altpdist:3,light:3,alert:49,hurtfx:50
 78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangetyp:fire,alert:51,hurtfx:52
 137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
@@ -2630,14 +2627,14 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 177=n:pUPLEHEART STAFF,var:item,throw:4,idleanim:flash,rndlvl:
-140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
-141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
-142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
-143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash,rndlvl:
-156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
-157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
-158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
-159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash,rndlvl:
+140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash
+141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash
+142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash
+143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash
+156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash
+157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash
+158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash
+159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash
 172=n:cYAN ORB,var:item,light:2,throw:6,idleanim:flash
 173=n:yELLOW ORB,var:item,light:2,throw:6,idleanim:flash
 174=n:rED ORB,var:item,light:2,throw:6,idleanim:flash
@@ -2654,13 +2651,13 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 305=,nid:oRB OF fIRE,orb:fire,orbfx:36
 306=,nid:oRB OF iCE,orb:ice,orbfx:28
 307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29
-308=,nid:aMULET OF dEFNSE,armor:1
-309=,nid:dARKSIGHT aMULET,darksight:1
-310=,nid:aMULET OF wISDOM,recharge:1
+308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
+309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
+310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
 311=,nid:pACIFIST aMULET,pac:,hpdmg:-1,falldamp:,cursed:
-312=,nid:cLOAK OF dEFENSE,armor:1
-313=,nid:dARKSIGHT cLOAK,darksight:1
-314=,nid:cLOAK OF wISDOM,recharge:1
+312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
+313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
+314=,nid:cLOAK OF wISDOM,recharge:1,rndlvl:
 315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
 316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36
 317=,nid:sTAFF OF lYTNING,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning,usefx:9
@@ -2676,7 +2673,7 @@ split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:",--ided
-assigntable"300:1,301:-1",--counts
+assigntable"301:-1",--counts
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges"--enchstats
 
 for s in all(
