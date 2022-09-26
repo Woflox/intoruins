@@ -24,7 +24,7 @@ function _update()
 	elseif modeis"reset" and
 	 statet>0.3 
 	then
-	 load"intoruins.p8"
+	 load"intoruins"
 	end
 	
 	statet+=0.033
@@ -1728,9 +1728,9 @@ orbeffect=function(tl,used)
 			_g.uimode=orb
 			dialog(inv,true)
 		elseif orbis"life" then
-		 player.maxhp+=5
+		 player.maxhp+=3
 		 player.hp=player.maxhp
- 		player.animtext"+"
+ 		player.animtext"+max hp,speed:0.5,offset:-6"
 		end
 	else
 		if orbis"light" then
