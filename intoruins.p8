@@ -8,25 +8,8 @@ function modeis(m)
 	return mode==m
 end
 
-function getbtn(b)
-	b&=btns
-	btns&=~b
-	return b!=0
-end
-
 function _update()
-	btns|=btnp()
 
-	if modeis"play" then
-		updateturn()
-	elseif modeis"aim" then
-		updateaim(unpack(aimparams))
-	elseif modeis"reset" and
-	 statet>0.3 
-	then
-	 run()
-	end
-	
 	statet+=0.033
 	
 	if mode!="ui" then
@@ -43,17 +26,15 @@ function _update()
  							mode=="gameover" and
  							max(0.36-statet*2) or
  							0.36))
-	smoothb=lerp(smoothb,camtarget,0.5)
-	smooth=lerp(smooth,smoothb,0.25)
+	smoothb=lerp(smoothb,camtarget,modeis"play"and 0.5 or 0.25)
+	smooth=lerp(smooth,smoothb,modeis"play"and 0.25 or 0.125)
 	
 	function getcampos(val)
-	 return flr(rnd(shake*2)-
-	            shake+val-63.5)
+	 return flr(val-63.5)
 	end
 	
 	campos=vec2(getcampos(smooth.x),
 													getcampos(smooth.y))
-	shake*=0.66
 end
 
 function _draw()
@@ -62,17 +43,12 @@ function _draw()
 	lfillp=localfillp(0xbfd6.4,
 								-campos)
 
- anyfire=false
 	for i,drawcall in 
 					ipairs(drawcalls) do
 		drawcall[1](
 			unpack(drawcall[2]))
 	end
-	if anyfire != fireplaying then
-		fireplaying=anyfire
-		music(anyfire and 32 or -1, 500, 3)
-	end
-	
+
 	for atk in all(rangedatks) do
 	 atk[2][1]+=1 --counter
 		if atk[1](unpack(atk[2])) then
@@ -86,30 +62,22 @@ function _draw()
 	pal(usplit"11,131,1")
 	fillp()
 	
-	--if fadetoblack then
- -- textanims={}
- --end
- if modeis"play" then
-		for _ENV in all(textanims) do
-		 local t=speed*(time()-start)
-		 if t>0.5 then
-				del(textanims,_ENV)
-			else
-				y-=0.5-t
-				print(text,
-										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
-										(wavy and cos(t*2) or 0),
-										y+offset-6,
-										t>0.433 and 5 or col)
+	if modeis"title" then
+		camera(0,-campos.y)
+		if statet>0.1 then
+			if statet<0.15 then
+				pal{[6]=1,[13]=0,[5]=0}
+			elseif statet<0.2 then
+				pal{[6]=5,[13]=1,[5]=0}
+			elseif statet<0.25 then
+				pal{[6]=13,[13]=5,[5]=1}
 			end
+			spr(65,29,-50,9,1)
 		end
-	elseif modeis"aim" then
-		?"\+fe⁙",aimscrpos.x,aimscrpos.y,7
 	end
 	camera()
  
-	if modeis"play" or
-	   modeis"ui" then
+	if modeis"play" then
 		local x=drawbar(player.hp/player.maxhp,
 		        "HP",2,2,8)
 		for k,v in 
@@ -117,21 +85,8 @@ function _draw()
 		do
 			x=drawbar(v[1]/v[2],k,x,v[3],v[4])	
 		end
-	elseif modeis"aim" then
-		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
-	end
-	if modeis"ui" then
-		if btnp"4" then
-			if (popdiag())	return
-		end
-		uitrans*=0.33
-		for i,d in ipairs(diags) do
-		 focus=i==#diags
-		 curindex=0
-		 d()
-	 end
 	elseif textcrawl(
-"\^x5\-hiNTO rUINS\^x4\
+"                  \
 			                \
 \
 \
@@ -175,37 +130,9 @@ OF THE FABLED wINGS OF yENDOR?    \
 	 else
 	 	statet=5.75
 	 end
-	elseif textcrawl(
-"\^x5\-dgAME oVER\^x4                                        \
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\-kdEPTH:"..depth.. 
-"            \n\n\-a❎:tRY AGAIN",
- usplit"47,29,1.3,13,gameover,16")
- then
- 	fadetoblack=true
- 	music(-1,300)
- 	setmode"reset"
 	end
 	inputblocked=false
 	
-	--print("memory: "..stat(0),0,0)
-end
-
-function popdiag()
-	deli(diags)
-	if #diags==0 then
-		setmode"play"
-		uimode=nil
-		return true
-	end
 end
 
 function drawbar(ratio,label,x,col1,col2)
@@ -232,173 +159,6 @@ function textcrawl(str,x,y,fadet,col,m,mus,xtra)
  	print(sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1)	
 	 return btnp"5"
 	end
-end
-
-function log(text)
- player.animtext(text..",col:7,speed:0.5")
-end
-
-function frame(x,y,x2,y2,func)
- clip()
- func(x-1,y-1,x2+1,y2+1,0)
-	rect(x,y,x2,y2,1)
-	cursor(x-3,y+4)
-	clip(0,0,x2-1,y2)
-end
-
-function listitem(str,sel,dis)
- if sel==nil then
-  curindex+=1
-  sel=curindex==menuindex
- end
- ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
-	return sel and focus and 
-	 not (inputblocked or dis)
-	 and btnp"5" 
-end
-
-function getindex(maxind,cur)
- cur=cur or menuindex
-	return focus and not inputblocked and
-												(cur+tonum(btnp"3")-
-													tonum(btnp"2")+
-												maxind-1)%maxind+1
-												or cur
-end
-
-function gettrans(a,b)
-	return lerp(b,a,focus and uitrans or 0.56*(1-uitrans))
-end
-
-function inv()
- frame(gettrans(126,40),6,126,111,rect)
- local i=0
- local sely=0
-	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
-	?"\f1 ……………… EQUIPPED"
-	
-	invindex=getindex(#inventory,invindex)
-	
-	function listitems(eqpd)
-		for item in all(inventory) do
-			if item.equipped==eqpd then
-			 i+=1
-				if listitem(item.getname(),
-								i==invindex,
-								(uimode=="iDENTIFY"and
-								 item.isid()) or
-								(uimode=="eMPOWER"and
-								 item.orb))
-				then
-					dialog(info)
-					selitem=item
-				end
-			end
-		end
-	end
-	
-	listitems(true)
-	?"\n\f1 ………………… STOWED"
-	listitems()
-end
-
-function info()
- local eqpd = selitem.equipped
- local x=gettrans(42,4)
- frame(x,6,gettrans(42,93.5),111,rectfill)
- menuindex=getindex(uimode and 1 or 2)
-
- spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
- ?"\fd    "..selitem.getname()
- local statstr="\f1 ……………………………\fd\|j"
- if selitem.isid() then
- 	for str in all(split(
-"\
-  nAME: ,name|\
-  cASTS LIGHT\
-,lit|\
-  aTTACK SHAPE:   \|k^\+3c❎\+fd❎\+fj❎\
-,arc|\
-  aTTACK SHAPE:   \|p^\+aa❎\+8a❎\|o\
-,pierce|\
-  lUNGE ATTACK\
-,lunge|\
-  kNOCKBACK:   1,knockback|\
-  sTUN:        ,stun|\
-  hEALTH:    ,hp|/,maxhp|\
-  aCCURACY:   +,atk|\
-  dAMAGE:      ,dmg|\
-  rANGE:       ,range|\
-  aRMOR:      +,armor|\
-  dARKSIGHT:  +,darksight|\
-  tHROW RANGE: ,throw|\
-  tHROW ACC:  +,throwatk|\
-  tHROW DAMAGE:,throwdmg|\
-\
-  cHARGES: ,charges|/,maxcharges",
-  "|"))
-  do
-  	k,v=usplit(str)
-	  local val,enchval=
-	  selitem[v],
-	  selitem.eMPOWER(v,true)
-	  if val then
-	   statstr..=k..val
-	   if uimode=="eMPOWER" and
-	    		enchval
-	   then
-	   	statstr..="\fc▶"..enchval.."\fd"
-	   end
-	  end
-	 end
-	else
-		statstr..="\n  ????"
-	end
- ?statstr
- 
- --menu
- ?"\f1 ……………………………",x-3,86
-                             
- for action in all(
- uimode and{uimode}or
- {selitem.slot and
-  (eqpd and 
-   (selitem.lit and"eXTINGUISH" or "sTOW") 
-   or"eQUIP")or "uSE",
-  "tHROW"})
- do
- 	if listitem(action,nil,
-				 	action=="uSE" and
-				 	selitem.charges==0)
-  then
- 	 popdiag()popdiag()
- 	 skipturn=true
- 		selitem[action]()
- 		sfx"25"
- 	end
- end
-end
-
-function confirmjump()
-	frame(32,gettrans(33,38.5),96,gettrans(33,82.5),rect)
-	menuindex=getindex(2)
-	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
-	
-	if listitem" jUMP DOWN" then
-	 popdiag()
-	 player.move(playerdst)
-	elseif listitem" dON'\-fT JUMP" then
-	 popdiag()
-	end
-end
-
-function dialog(func,nosnd)
-	uitrans,menuindex=
-	mode=="ui" and 0.33 or 1,1
-	     
- setmode"ui"
- add(diags,func)
- if (not nosnd)sfx"39"
 end
 
 function setmode(m)
@@ -504,38 +264,6 @@ initpal=function(fadefow)
  end
 end
 
-checkeffects=function()
-
- function checkeffect(_typ,has)
- 	local effect=effect
- 	if effect then
-		 if	effect.typ==_typ then
-		  if not effect.dead and
-		 	not has then
-			 	effect.setanim(effect.deathanim)
-			 	effect.dead,effect.light=true
-		 	end
-		 elseif has then
-		 	destroy(effect)
-		 end
-		end
-		if not effect and has then
-		 create(_typ,pos)
-		end
-	end
-	
-	local hasfire=fire>0 or
- 						ent and 
- 						ent.statuses.BURN
- local hasspores=spores>0
-
-	_g.anyfire=_g.anyfire or hasfire and mode!="ui"
-
- checkeffect(138,hasfire)
- checkeffect(139,hasspores)
-end
-
-
 tileflag=function(i)
 	return fget(typ+flr(i/8),i%8)
 end
@@ -564,37 +292,6 @@ flatten=function()
  end
 end
 
-setfire=function()
- fire,spores,newspores,frozen=
- max(fire,1),0,0
- entfire()
-end
-
-sporeburst=function(val)
-	spores+=val
-	sfx"17"
-end
-
-entfire=function()
-	if ent and 
-		  not ent.nofire then
-		 ent.burn()
-	end
-end
-
-freeze=function()
-	frozen,fire=true,0
-	flatten()
-	if ent then
-	 if ent.hitfire then
-	 	ent.setanim"brazierdeath"
-	 end
-		ent.statuses.BURN=--nil
-		ent.setstatus"FROZEN:8,8,13,6"
-		ent.animtext"○"
-		_g.aggro(pos)
-	end
-end
 --end tile member functions
 	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",_ENV)
 end
@@ -603,14 +300,6 @@ function drawcall(func,args)
 	add(drawcalls, {func,args})
 end
 
---[[function onscreenpos(pos,pad)
- local scrpos=screenpos(pos)
- local scrposrel=scrpos-smooth
-	return max(abs(scrposrel.x),
-        abs(scrposrel.y))<=pad and
-        scrpos
-end]]
-
 function drawents(tl)
 	function drawent(var)
 		if (tl[var]) tl[var].draw()
@@ -618,7 +307,6 @@ function drawents(tl)
 
 	drawent"item"
 	drawent"ent"
-	tl.checkeffects()
 	drawent"effect"
 end
 
@@ -884,105 +572,6 @@ function calclight(clearflash)
 	dijkstra("light",tovisit,1)
 end
 
-function trysetfire(_ENV,pos,nop)
-	frozen=nil
-	if tileflag"10" or
-    spores>0 or
-    (rndp() or nop) and
-   	(tileflag"9" or
-    	ent and
-					ent.flammable)
-	then
- 	setfire()
- end
-end
-
-function updateenv()
-	alltiles(
-	function(_ENV)
-		if spores>0 then
-			spores=max(spores-rnd"0.25")
-			if spores>1 then
-				adjtls={}
-				visitadjrnd(pos,
-				function(ntl)
-					if ntl.tileflag"8" and
-						ntl.fire==0
-					then
-							add(adjtls,ntl)
-					end
-				end)
-				local portion=spores/(#adjtls+1)
-				newspores-=spores-portion
-				for ntl in all(adjtls) do
-					ntl.newspores+=portion
-				end
-			end
-		end
-		if fire>=2 then
-			entfire(_ENV)
-			visitadjrnd(pos,trysetfire)
-			if tileflag"9" then
-				if rndp(0.2) then
-					fire=0
-					typ=34
-				end
-			else
-				fire=0
-				if tileflag"10" then
-					typ=thole
-					if ent then
-						ent.checkfall()
-					end
-				end
-			end
-		end
-	end)
-	alltiles(
-	function(_ENV)
-		spores+=newspores
-		newspores=0
-		if ent and
-		 ent.statuses.BURN then
-		 trysetfire(_ENV,nil,true)
-		end
-		if fire>=1 then
-			fire+=1
-		 setfire()
-		end
-		checkeffects()
-	end)
-	calclight(true)
-	
-	for _ENV in all(ents) do
-		if hp and 
-		   stat"burnlight" and 
-		   tl.light>=2 and
-		   not statuses.BURN
-		then
-			burn()
-		 trysetfire(tl,nil,true)
-			sfx"36"
-		end
-	end
-end
-
-function findfree(_pos,var,distlimit)
- calcdist(_pos,"free",distlimit)
- local bestd,bestpos=distlimit or-1000
- alltiles(
- function(_ENV)
-  local d=free+rnd()
- 	if navigable() and
- 	   not _ENV[var] and
- 	   d>bestd then
- 		bestd,bestpos=
- 		d,pos
- 	end
- end)
- return bestpos
-end
-
 -->8
 --utility
 
@@ -1206,24 +795,6 @@ checkfall=function()
 	end
 end
 
-setbehav=function(name)
-	if behav!=name then
-		if behav=="sleep" then
-			checkidle()
-		end
-		
-		behav=name
-		if name=="hunt" and not statuses.FROZEN then
-			animtext"!"
-			sfx(alert)
-		elseif name=="search" then
-			animtext"?"
-		end
-		canact=false 
-	end
-end
-
-
 setpos=function(npos,setrender)
 	if npos then
 		pos=npos
@@ -1262,29 +833,13 @@ setstatus=function(str)
 end
 
 tickstatuses=function()
- if (isplayer or ai)
-    and tl.spores>0
- then
- 	hp=min(hp+2, maxhp)
- 	if tl.vistoplayer() then
- 		animtext"+"
- 	end
- 	if isplayer then
- 		sfx(usplit"17,-1,6")
- 	end
- end
 	for k,v in next,statuses do
 		v[1]-=1
 		if v[1]<=0 then
 			statuses[k]=nil
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
-			elseif k=="LIGHT" then
-				light=nil
 			end
-		end
-		if k=="BURN" then
-		 hurt(1,nil,true)
 		end
 	end
 end
@@ -1326,8 +881,7 @@ update=function()
 				destroy(_ENV)
 				if isplayer then
 					--next level
-					_g.depth+=1
-					genmap(pos,tl.manmade)
+					load"intoruins_main"
 				end
 			elseif case"m" then
 				log("\-i◆ dEPTH "..depth.." ◆")
@@ -1396,268 +950,6 @@ canmove=function(npos,special)
 	  ntl.navigable(flying))
 end
 
-seesplayer=function()
-	return tl.vis and
-	       (tl.pdist>=-1 or
-				    player.tl.light>=2 or
-				    darksight)				 
-end
-
-findmove=function(var,goal,special)
-	local bestscore=-2
-	visitadjrnd(pos,
-	function(ntl,npos)
-		if canmove(npos,special) and
-		   ntl.fire==0
-		then
-		 local score=
-		 							abs(tl[var]-goal)-
-		 							abs(ntl[var]-goal)
-		 if ntl.ent and 
-		 	ntl.ent.blocking then
-		 	score-=flying and 10 or 1
-		 end
-		 if burnlight and 
-		    tl.light>-1 and 
-		    tl.pdist<-1 then
-		 	score-=3*(ntl.light-tl.light)
-		 end
-			if score>bestscore then
-				bestscore=score
-				bestpos=npos
-			end
-		end
-	end)
-	if bestscore>-2 then
-			if special=="aggro" and
-			gettile(bestpos).pdist==0
-			then
-				aggro(pos)
-			else
-				return move(bestpos)
-		end
- 	end
-end
-
-taketurn=function()
- function checkseesplayer()
-		if seesplayer() then
-			_g.pseen=true
-			_g.lastpseenpos=player.pos
-		end
-	end
- if statuses.FROZEN or
-    statuses.STUN then
-  if (ai) checkseesplayer()
-  return true
- end
-	if isplayer then
-		if _g.skipturn then
-			_g.skipturn=false
-			return true
-		end
-		
-		if getbtn(32) then
-			dialog(inv)
-			return
-		end
-		
-		if getbtn(16) then
-			_g.tock=not _g.tock
-			sfx(40,-1,not tock and 16 or 0, 8)
-			return true --wait 1 turn
-		end
-		
-		function turn(btnid,i)
-			if getbtn(btnid) then
-				diri=(diri+i+5)%6+1
-				setanim"turn"
-			end
-		end
-		
-		turn(1,-1)
-		turn(2,1)
-		turn(8,3)
-		
-		function updst()
-			_g.playerdst,_g.aimitem=
-			pos+adj[player.diri]
-			dsttile=gettile(playerdst)
-		end
-		updst()
-		lookat(playerdst)
-		if dsttile.typ!=tywall or
-		playerdst.x<=pos.x
-		then
-			dsttile.hilight=2
-		end
-		if getbtn(4) then
-			dsttile.hilight=0
-			if canmove(playerdst) then
-				move(playerdst,true)
-				if tl==dsttile then
-					if dsttile.item then
-						dsttile.item.pickup()
-					end
-				updst()
-				if stat"lunge" and
-					dsttile.vistoplayer() and
-					dsttile.ent
-				then
-					interact(dsttile.ent)
-				end
-			end
-					
-			return true
-			elseif dsttile.typ==thole then
-				dialog(confirmjump)
-			end
-		end
-	elseif ai and canact and behav!="dead" then
-		if behav=="hunt" then
-			checkseesplayer()
-			findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
-				checkseesplayer()
-			if movandatk then
-				findmove("pdist",0,"atkonly")
-			end
-		else
-			--notice player
-			function checkaggro(p)
-				if seesplayer()
-				and rndp(p)
-				--and onscreenpos(ent.pos,62)
-				then
-				aggro(pos)
-				return true
-				end
-			end
-			checkaggro(behav=="search"
-					and 1.0 or 0.29)
-			if behav=="wander" then
-				if not wanderdsts[group]
-				or pos==wanderdsts[group]
-				or rndp(0.025)
-				then
-					repeat
-						wanderdsts[group]=rndpos()
-						local tl = gettile(
-													wanderdsts[group])
-					until tl.navigable() and
-											tl.pdist>-1000
-					calcdist(wanderdsts[group],
-														group)
-				end
-				findmove(group,0,"aggro")
-				checkaggro(0.29)
-			elseif behav=="search" 
-			then
-				local goal=pdist
-				findmove("search",goal,"aggro")
-				if not checkaggro(1.0) and
-					tl.search == goal
-				then
-					setbehav"wander"
-				end
-			end
-		end
-	end
-end
-
-hurt=function(dmg,atkdir,nosplit)
-	hp-=dmg
-	flash=true
-	if isplayer then
-		shake=1
-	end
-	if hp<=0 then
-	 sfx(death or 41)
-		setbehav"dead"
-		setanim(deathanim)
-		if isplayer then
-			setmode"gameover"
-			?"\^!5f40\31"--slow audio poke
-			calclight()
-		elseif sporedeath then
-			tl.sporeburst(sporedeath)
-		end
-	else 
-		sfx"34"
-		if hurtsplit and 
-		not (statuses.FROZEN or nosplit) 
-		then
-			local splitpos=findfree(pos,"ent",-2)
-			if splitpos then
-				hp/=2
-				local newent=create(typ,splitpos,behav,group)
-				for k,v in next,statuses do
-					newent.statuses[k]={unpack(v)}
-				end
-				newent.renderpos,newent.hp=
-				renderpos,hp
-				newent.setanim"esplit"
-			end
-		end
-	end
-	if statuses.FROZEN then
-	 sfx(27)
-	 statuses.FROZEN[1]-=dmg
-	elseif hurtfx then
-		sfx(hurtfx)	
-	end
-	if hitfire then
-		local firepos=pos
-		if atkdir then
-			local dirpos=firepos+atkdir
-			if gettile(dirpos).navigable() then
-				firepos=dirpos
-			end
-		end
-		sfx"36"
-		light=nil
-		gettile(firepos).setfire()
-	end
-	aggro(pos)
-end
-
-burn=function()
-	statuses.FROZEN=--nil
-	setstatus"BURN:6,6,8,9"
-end
-
-doatk=function(ntl,pat)
- local b=ntl.ent
- local atkdir,atkdiri=hexdir(pos,ntl.pos)
- 
- for p in all(split(pat,"|")) do
- 	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
- 	if nntl.vistoplayer() then
- 		doatk(nntl)
- 	end
- end
- 
- if b then
- 	local hitp=1
-		if b.stat"armor" then
-		 local diff=(throwatk or stat"atk")-b.stat"armor"
-		 hitp=(max(diff)+1)/
-		      (abs(diff)+2)
-		end
-		if rndp(hitp) then
-			b.hurt(throwdmg or stat"dmg",atkdir)
-		else
-			aggro(ntl.pos)
-		end
- end
-end
-
-interact=function (b)
- setanim(atkanim)
-	sfx"33"
- _g.waitforanim=true
- atktl=b.tl
-end
-
 move=function(dst,playsfx)
 	local dsttile=gettile(dst)
 	lasttl=tl
@@ -1703,290 +995,16 @@ lookat=function(dst)
  end
 end
 
-tele=function(dst)
-	if not	dst then
-		repeat 
-		 dst=gettile(rndpos())
-		until dst.navigable() and
-		      not dst.ent
-	end
-	tl.ent=--nil
-	setanim"tele"
-	setpos(dst.pos,true)
-end
-
 eQUIP=function()
-	if player[slot] then
-		player[slot].sTOW()
-	end
 	player[slot]=_ENV
 	equipped=true
 	if lit then
 		player.setstatus"TORCH:160,160,2,9"
 	end
-	id()
-end
-
-sTOW=function(staylit)
-	if equipped then
-		equipped,player[slot]=nil
-		if lit then
-		 if staylit then
-				player.statuses.TORCH=nil
-		 else
-		 	eXTINGUISH()
-			end
-		end
-	end
-end
-
-tHROW=function()
- aim{_ENV,{throw},"throw"}
-end
-
-function orbis(str)
-	return orb==str
-end
-
-uSE=function()
-	if orb then
-		orbeffect(player.tl,true)
-		
-		id()
-		del(inventory,_ENV)
-		destroy(_ENV)
-	else
-		--staffs
-		aim{_ENV,{range,pass,block,true},rangetyp}
-	end
-end
-
-orbeffect=function(tl,used)
- --_g.waitforanim=true
- 	sfx(orbfx,-1,fxoffset,fxlength)
- if used then
-	 if orbis"light" then
-			player.setstatus"LIGHT:160,160,2,13"
-			player.light,player.lcool=4,true
-			calclight()
-		elseif orbis"slofall" then
-			player.setstatus"SLOFALL:160,160,2,3"
-		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
-			_g.uimode=orb
-			dialog(inv,true)
-		elseif orbis"life" then
-		 player.maxhp+=5
-		 player.hp=player.maxhp
- 		player.animtext"+"
-		end
-	else
-		if orbis"light" then
-			tl.lflash=8
-			
-		elseif orbis"eMPOWER" or 
-		       orbis"iDENTIFY" and 
-		       tl.ent or tl.item then
-			(tl.ent or tl.item)[orb]()
-		elseif orbis"life" then
-			tl.sporeburst(12)
-		end
-	end
-	
-	if orbis"tele" and tl.ent then
-		tl.ent.tele()
-	end
-	
-	for i in all(split"1,2,3,4,5,6,0") do
-		local ntl=getadjtl(tl.pos,i)
-		if orbis"slofall" and 
-		   not used then
-		elseif ntl.tileflag"8" and
-		  ntl.typ!=thole
-		then
-		 if orbis"fire" then
-				ntl.setfire()
-			elseif orbis"ice" then
-			 ntl.freeze()
-		 end
-		end
-	end
-end
-
-eXTINGUISH=function()
-	throwln,lit,light,
-	player.statuses.TORCH=0.125
-	typ+=1
-end
-
-eMPOWER=function(test,nosnd)
-	for estat in all(enchstats) do
-		if _ENV[estat] then
-		 local val=estat=="charges"and
-		           maxcharges+1 or
-		           _ENV[estat]+1
-			if test then
-			 if test==estat then
-			 	return val
-			 end
-			else
-				_ENV[estat]=val
-			end
-		end
-	end
-	if (nosnd)return
-	sfx(usplit"55,-1,0,16")
-	if (tl) animtext"+LVL"
-end
-
-iDENTIFY=function()
-	id()
-	sfx(usplit"55,-1,16,16")
-	dialog(info)
-	_g.selitem=_ENV
-	_g.uimode="dISMISS"
-end
-
-dISMISS=function()
-	popdiag()
-end
-
-getname=function()
- return isid() and 
-  (nid or n)..
-  (lvl>0 and "+"..lvl or "")or n
-end
-
-id=function()
-	if not isid() then
-		ided[typ]=true
-		log("\-g☉ "..getname())
-	end
-end
-
-isid=function()
- return ided[typ]
-end
-
-pickup=function()
- if #inventory<10 then
-		sfx"25"
-		addtoinventory()
-		tl,tl.item=--nil
-		log("+"..getname())
-	else
-	 log"INVENTORY FULL"
-	end
 end
 
 addtoinventory=function()
  return add(inventory,_ENV)
-end
-
-rangedatk=function(i,ln,atktype)
-	function atkis(str)
-	 return atktype==str
-	end
-	
-	local spd=atkis"throw" and throw/12 or 0.999
- 
-	local tl = ln[min(flr(i*spd)+1,#ln)]
-
- if atkis"lightning" then
-	drawln=function(_pos)
-		line(_pos.x+rnd(6)-3,
-				_pos.y-2.5-rnd(3))
-	end	
-	fillp()
-	line(i%2*5+7)
-	drawln(0.5*(screenpos(pos)+ln[1].tlscrpos))
-	for i=1,min(i,#ln) do
-		drawln(ln[i].tlscrpos)
-		ln[i].lflashl=6
-	end
-end
-
- if (i*spd>=#ln) then
-  if atkis"throw" then
-		 if tl.typ==thole then
-		 	sfx"24"
-		 elseif lit then
-		 	tl.setfire()
-		 	sfx"36"
-		 elseif orb then
-		  orbeffect(tl)
-		  tl.initpal()
-		  spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
-		  id()
-		 	sfx"27"
-		 else
-		  if atk then
-		  	doatk(tl)
-		  end
-			 if throw then
-			 	setpos(findfree(tl.pos,"item"),true)
-			 end
-		 end
-		end
-		return true
-	end
- 
-	if atkis"blink" then
-	 (ai and _ENV or player).tele(ln[#ln])
-		return true
-	elseif atkis"throw" then
-		tl.flatten()
-		tl.initpal()
-		
-		function getpos(i,offs)
-			local t,airtime=
-			spd*i/#ln, #ln/spd
-			local arcy,_pos=
-			(t*t-t)*airtime*airtime/4,
-			lerp(pos,ln[#ln].pos,t)
-			local scrpos=screenpos(_pos)+offs
-			return scrpos.x,scrpos.y+arcy,1,1,xface<0
-		end
-		
-		if throwln then
-			local x1,y1=getpos(i-1,vec2s"0,-2")
-		 local x2,y2=getpos(i,vec2s"0,-2")
-		 tline(x2,y2,x1,y1,18,throwln)
-		else
-		 xface*=throwflp		 
-			spr(typ,getpos(i,vec2s"-3,-6"))
-		end
-	elseif atkis"ice" then
-		tl.freeze()
-		tl.initpal()
-		spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
- else
-	 if i==1 then
-		 gettile(pos).lflash=2
-		 aggro(pos)
-	 end
-	 if atkis"fire" then
-			trysetfire(tl,nil,true)
-			if tl.fire==0 then
-				create(138,tl.pos)
-			end
-			calclight()
-			if tl.ent then
-				tl.ent.burn()
-			 tl.ent.hurt(dmg)
-			end
-		 gettile(pos).lflash=2
-		elseif atkis"lightning" then
-		 if tl.ent then
-		 	tl.ent.hurt(dmg)
-		 end
-		 calclight()
-		end
-	end
-end
-
-animtext=function(str)
- local scrpos=entscreenpos()
- add(textanims,setmetatable(assigntable("speed:1,col:7,offset:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()),{__index=_ENV}))
 end
 
 entscreenpos=function()
@@ -1999,96 +1017,19 @@ end
 		setpos(pos,true)	
 	end
 	
-	while rndlvl and rndp(0.33)do
-		eMPOWER(nil,true)
-	end
-	
-	name=ai and 
-		rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..
-		rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n")
 	add(ents,_ENV)
 	maxhp=hp
-	if (flippable or ai)
+	if flippable
 	   and rndp() then
 		xface*=-1
 	end
-	if ai and rndp() then
-		yface*=-1
-	end
 	checkidle()
-	if behav=="sleep" then
-		setanim"sleep"
-	end
 
 	return _ENV
 end
 
 -->8
 --entity management
-function updateturn()
- if (waitforanim) return
-	
-	if turnorder==0 then
-		pseen=false
-	 if not player.taketurn() then
-	 	return
-	 end
-	 player.tickstatuses()
-	 calcdist(player.pos,"pdist")
-	elseif turnorder==1 then
-		calcvis()
-		calclight()
-	 for _ENV in all(ents) do
-			if not isplayer then
-				taketurn()
-				tickstatuses()
-			end
-		end
-	elseif turnorder==2 then
-		for _ENV in all(ents) do
-			if ai then
-				if behav=="hunt" and not
-				_g.pseen then
-					setbehav"search"
-					setsearchpos(lastpseenpos)
-				end
-			canact=true
-			end
-		end
-	else
-		updateenv()
-		turnorder=0
-		return
-	end
-	turnorder+=1
-	--updateturn()
-end
-
-function setsearchpos(pos)
-	if searchpos!=pos then
-		lastpseenpos,searchpos=pos,pos
-		calcdist(pos,"search")
-	end
-end
-
-function aggro(pos)
-	setsearchpos(player.pos)
-	calcdist(pos,"aggro",-4)
-	for _ENV in all(ents) do
-		if ai and
-		   behav!="dead" and
-					tl.aggro>=-3
-		then
-			if seesplayer() then
-				setbehav"hunt"
-				_g.pseen=true
-			elseif behav!="hunt"
-			then
-				setbehav"search"
-			end
-		end
-	end
-end
 
 function destroy(_ENV)
  if _ENV then
@@ -2463,104 +1404,12 @@ function postproc()
 	end
 	calcdist(player.pos,"pdist")
 	calclight()
-	
-	if depth>0 then
-		player.animoffset.y=-21
-		player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
-	 
-		--spawn entities										
-		wanderdsts={}
-		for n=1,6 do
-			local spawnpos=rndpos()
-			local spawndepth=depth
-		 while rndp(0.45) do
-			 spawndepth+=1
-			end
-			local spawn,behav,spawnedany
-			=rnd(spawns[min(spawndepth,20)]),
-			rnd{"sleep","wander"}
-			for typ in all(spawn) do
-				local found=false
-				visitadjrnd(spawnpos,
-				function(_ENV)
-					if not found and
-				 	checkspawn(_ENV,nil,-4,typ==72)
-				 then
-				  create(typ,pos,behav,n)
-						found=true
-						spawnpos=pos
-					end
-				end)
-			end
-			--spawn items
-			checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
-		end
-		--rubberbanding important orbs
-		for orb=300,304 do
-			for i=counts[mapping[orb]],depth/2.001 do
-				checkspawn(gettile(rndpos()),mapping[orb],-3)
-			end
-		end
-	end
-	
 	calcvis()
 	calclight()
 end
 
 -->8
---aiming
-
-function aim(params)
-	aimparams,aimpos=params,playerdst
-	setmode"aim"
-end
-
-function updateaim(item,lineparams,atktype)
- aimitem,aimscrpos=item,
-  screenpos(aimpos)+1.5*
-  vec2(1.5*(tonum(btn"1")
-           -tonum(btn"0")),
-       tonum(btn"3")
-      -tonum(btn"2"))
-	
- aimscrpos.x,aimscrpos.y=
- mid(campos.x,aimscrpos.x,campos.x+127),
- mid(campos.y,aimscrpos.y,campos.y+127)
-	aimpos=vec2(aimscrpos.x/12,
-	            aimscrpos.y/8-aimscrpos.x/24)
- 
- local aimline=hexline(player.pos,aimpos,unpack(lineparams))
-	for tl in all(aimline) do
-	 if (tl==player.tl) return
-	 tl.hilight=2
-	end
-	player.lookat(aimpos)
-	item.xface=player.xface
-	if #aimline>0 and btn"5" and
-	   statet>0.2 then
-		setmode"play"
-		item.pos=player.pos
-		if atktype=="throw" then
-			sfx"12"
-			aimitem=--nil
-			item.sTOW(true)
-			del(inventory,item)
-		else
-			item.id()
-			item.charges-=1
-			sfx(item.usefx)
-		end
-		player.setanim"throw"
-		add(rangedatks,{item.rangedatk,{0,aimline,atktype}})
-	elseif btnp"4" then
-	 skipturn=false
-	 setmode"play"
-	end
-end
-
--->8
 --game data / init
-
 
 _g=assigntable(
 [[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
@@ -2571,8 +1420,7 @@ _g=assigntable(
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
-entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
+entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
@@ -2663,7 +1511,12 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 317=,nid:sTAFF OF lYTNING,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning,usefx:9
 318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangetyp:ice,usefx:28
 319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink,usefx:29
-]],nil,"\n","=")
+]]
+entdata=assigntable(
+									entstr,nil,"\n","=")
+
+poke2(0x8000,#entstr)
+?"\^!8002"..entstr
 
 adj,fowpals,frozepal,ided,counts,enchstats=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
@@ -2745,19 +1598,9 @@ srand"0x5b04.17cb"
 genmap(vec2s"10,13")
 srand(rseed)
 
+smoothb=vec2s"120,115"
+
 create(130).addtoinventory().eQUIP(true)
---[[create(129).addtoinventory()
-create(145).addtoinventory()
-create(161).addtoinventory()
-create(177).addtoinventory()
-create(172).addtoinventory()
-create(173).addtoinventory()
-create(174).addtoinventory()
-create(175).addtoinventory()
-create(188).addtoinventory()
-create(189).addtoinventory()
-create(190).addtoinventory()
-create(191).addtoinventory()]]
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
@@ -2790,43 +1633,43 @@ fffffffffffffffffffffffffffffffffff00100001000fffffffffbfffffffffff00150110005ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffffffff555565555fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
 fff000110111fffffff01111111110fffff01111111110fffffffffffbfffffffff5000d000005ffffff3f3ff3bf3ffffffffff5502202ffffff5055d11000ff
 ff0111000111f10fff0111111111110fff0111111111110ffffffffffff3ffffff5011d01111106fffff3f3ff3b03fffffff05502202202fffff1000000055ff
-f011110110001110f011100111111110f011111111111110fffff3fffffbfffff5011d0111111d05ffff3ff3f3ffbffff505202202205504fff15500d00555ff
-000000111101000001111111111111110101111111111111fffff3ff3ffffffffd1110111111d01dfffff3f3fbffbfff022022022055044fff00555dd00500f1
-f011000010111100f011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005d10d11100
-ff0011110001100fff0111111111110fff0111111111100ffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffff001111055d100f
-fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffff0ddddd6ddd0fffffffffbfffffffffff44ffffffffffffff00510111000ff
-fff67ffffffffffffffffffffffffffffff11fffff999fffffffffffffffffffff11f1ffffffffffff8888fffffffffffff7fffffffcfcffffffffffffffffff
-fff62ffffffffffffff22fffffffffffff1001ff333333fffffffffffffffffff100101ffffffffff828228ffffcffffffc77fffffffcfcfffffffffffffffff
-ff888ffffff3f3fffff223fffff3f3ffff1003ffb3333344ffffffffffff4f4f10000001ffffffff2f88fff2ffc7cffffcc777ffffffcdcfffffff8f9989ffff
-ff88dfffffbbb3f6ff22234fff44439ff100038fb3333b42ffffffffffff444f05000550fffeeefff8288228ffc7cfffffdccfffffffdddffffff88988888fff
-ff88d6ffffbbbf6fff222f4fff4445f9f100014f4bbbb92ffff4f4ffff44422f11101111ffe227eff8f28288fccdccffffdccfffcffccdff889f8598855588ff
-ff882fffffbbb3ffff22234fff222366f100034ffbbbb4ffffff55fff44422fffff1ffffffe222eff2f28f2ffffcfffffffcfffffccdddffff899988888f8fff
-ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eeff288822ffffffffffffdfffff22d02ffff2888882086ffff
-ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222ef2828882ffffffffffffffffff202fffffff262226fffffff
-fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffff88d8fffffffffffff7fffffffcfcffffffffffffffffff
-fff22ffffffffffffff22fffffffffffff1001ff333993fffffffffffffffffff100101ffffffffff822828ffffcffffffc77fffffffcfcfffffffffffffffff
-ff882ffffff3f3fffff323fffff3f3ffff13031f99333bffffffffffffffffff10500001ffffffff2f88fffeffc7cffffcc777ffffffcfcfffffff8fffffffff
-ff8d9fffffb333ffff2333ffff4333fff103331f99b33b44ffffffff4fffffff05580850fffeeefff8288228ffc7cfffffdccfffcfff6c6f889ff888f99fffff
-ff86dfffffbbbff6ff222f4fff44299ff1000181499bbf42ffffffff24424f4f11101111ffe227effef28282fccdccffffdccffffccfdcffff898558888a8fff
-ff826fffffbbbf6fff222f4fff2445f9f1000141f449942ffef4f4fff422444ffff1ffffffe222eff2f28f2ffffcfffffffcfffffddcddffff289855588888ff
-ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eeff288822ffffffffffffdfffff20d22fffff228888822ffff
-ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222ef2882822ffffffffffffffffffff202fffffff22226006fff
-ffffffffffffffffffffc4cfffffffffff11ff8fffffff6fffffffffff6fff6f11ffff11ffffffffffffffffffcccffffff7ffffffffffffffff8fff98ffffff
-fff67fffffffffffff2ec4cffffffffff1051878fffffff6fffffffffff64f460011f100fffffffff628ff28ffffccffffc77efffffffffffff888f9888fffff
-fff88fffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005ffffffffff6f8868fffffccfecc777eeff2c7c7fff85588982ff88ff
-ff8886fff763f36fff22223cff4443fff1000531ff333336ff4f46fff4f4442615000051ffffffffff628286fffcfccfffdccffffff2c7c7ffff65888888858f
-ff88dffff3bbb3f6ff222ec4f4444f9ff100001ff33333b6ff6556ffff444226f100051fffffffffff688286fffcc77cffdccfffcf2cddd7ffff6f8988855fff
-f8822fffffbbbfffff22efc4ff224f9ff10001fff333bb94ff5555fff4244f2fff1011ffffeeeeeff2882f86ffcd7ccffffcfffffccdd2dfff89ff89882f6fff
-ff2f2fffff444fffff22effcffddd9fff10001fff2222942ff544fffffff4ffffff1fffffe22227e28882288fffccffffffdffffd2dfdffffff8999882ff6fff
-fd00dffff4004fffff222fffffd0dffff10001ff200002fffe5fffffff00ffffffffffffe222002e8888822efffcffffffffffffffffffffffff88888066ffff
-fffffffffffffffffffffcffffffffffff11ff8fffffffffffffffffffffffff11ffff11ffffffffffffffffffffcffffff7ffffffffffffffff8fff9a8fffff
-fff67fffffffffffff2ec4cffffffffff1051878ffffff6fffffffffffffffff0011f100ffffffffff28ff28fffffcffffc7effffffffffffff888f98888ffff
-fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005ffffffffffff88d8fffffccfeeee7eeeff2d7c7fff85588982fff8ff
-ff822ffffff3f36fffbb3c4cff4333fff1bb3141ff333976ffffffff4f624f4615000051fffffffff8682262ffccfccfffdcefffcff2c7c7ff8ff6588888858f
-ff6d9fffffb333f6ff222e3cff44499ff1000531f3333336ff64f6fff4464446f158081ffffffffffff68226fcdccccfffdccffffccdc7c7fffff69888556f8f
-f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeff2862f26fcc7ccfffffcffffddd26c6fff896f98882f6fff
-ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227e28862226fffc7cfffffdfffffffd2cfffff8998888f6ffff
-fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002e888e822effffcfffffffffffffdfdfffffff8868286fffff
+f01111011000111ff011100111111110f011111111111110fffff3fffffbfffff5011d0111111d05ffff3ff3f3ffbffff505202202205504fff15500d00555ff
+000000111101fffff1111111111111110101111111111111fffff3ff3ffffffffd1110111111d01dfffff3f3fbffbfff022022022055044fff00555dd00500f1
+f0110000101111fff011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005d10d111ff
+ff00111100011fffff0111111111110fff01111111111ffffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffffff1111055d1fff
+fff00110111fffffffff111111111fffffff111111111fffffffffffffffffffffffddddd6dddffffffffffbfffffffffff44ffffffffffffffff51f111fffff
+fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff62fff00d6000000000000000000000000000000d6566600000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff888fff0006000d6666500566666000666d000000066005600d6005600d600d6666500006666000000000000000000000000000000000000000000000000000
+ff88dfff000600006000650006000006500600000006000560006000600060006000650060000000000000000000000000000000000000000000000000000000
+ff88d6ff00060000605006000600000600060000000600d600006000600060006050060056665000000000000000000000000000000000000000000000000000
+ff882fff000600006000060006000006000600000006056500006000600060006000060000006000000000000000000000000000000000000000000000000000
+ff2f2fff000600006000d50006500006005600000006000650006500600060006000d50060056000000000000000000000000000000000000000000000000000
+ffd0dfff00d6000d60006600006d000d6660000000d6000d60000666d000600d60006600d6660000000000000000000000000000000000000000000000000000
+fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff22fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff882fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff8d9fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff86dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff826fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff2f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffd0dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff88fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff8886ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff88dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+f8822fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff2f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fd00dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fff22fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff822fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff6d9fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+f86226ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff6f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fd00dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ff888fffffffff3fffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffffffffffffffffffff40ffffff50ffffff94ffffff65fff

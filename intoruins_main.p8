@@ -24,7 +24,7 @@ function _update()
 	elseif modeis"reset" and
 	 statet>0.3 
 	then
-	 run()
+	 load"intoruins.p8"
 	end
 	
 	statet+=0.033
@@ -121,59 +121,14 @@ function _draw()
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
 	end
 	if modeis"ui" then
-		if btnp"4" then
-			if (popdiag())	return
+		if btnp"4" and popdiag() then
+			return
 		end
 		uitrans*=0.33
 		for i,d in ipairs(diags) do
 		 focus=i==#diags
 		 curindex=0
 		 d()
-	 end
-	elseif textcrawl(
-"\^x5\-hiNTO rUINS\^x4\
-			                \
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-  press ❎",
-  usplit"41,24,0.1,6,title,0,9")
-	then
-	 setmode"intro"
-	elseif	textcrawl(
-" tHE CAVE OPENING CALLS TO YOU.      \
-cOULD THIS BE THE RESTING PLACE\
-OF THE FABLED wINGS OF yENDOR?    \
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-   \-jtHERE'\-eS NO TURNING BACK\-f.\-e.\-e.    \
-\
-         ❎:jump down",
-  usplit"2,18,0,6,intro")
- then
-  if statet > 5.75 then
-	  setmode"play"
-	  music(-1,300)
-	  musicplayed=false
-	  player.move(vec2s"10,12")
-	 else
-	 	statet=5.75
 	 end
 	elseif textcrawl(
 "\^x5\-dgAME oVER\^x4                                        \
@@ -229,7 +184,7 @@ function textcrawl(str,x,y,fadet,col,m,mus,xtra)
 		 music(mus)
 		 musicplayed=true
 		end
- 	print(sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1)	
+ 	?sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1	
 	 return btnp"5"
 	end
 end
@@ -325,13 +280,13 @@ function info()
 ,lunge|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
-  hEALTH:    ,hp|/,maxhp|\
+  hEALTH:      ,hp|/,maxhp|\
   aCCURACY:   +,atk|\
   dAMAGE:      ,dmg|\
   rANGE:       ,range|\
   aRMOR:      +,armor|\
   dARKSIGHT:  +,darksight|\
-  tHROW RANGE: ,throw|\
+  tHROW RANGE: ,throw|11\
   tHROW ACC:  +,throwatk|\
   tHROW DAMAGE:,throwdmg|\
 \
@@ -759,9 +714,7 @@ end
 function visitadjrnd(pos,func)
 	local indices=split"1,2,3,4,5,6"
 	for i=1,6 do
-		local n=i+rndint(7-i)
-		local tl=getadjtl(pos,indices[n])
-		indices[n]=indices[i]
+		local tl=getadjtl(pos,del(indices,rnd(indices)))
 		func(tl,tl.pos)
 	end
 end
@@ -2146,7 +2099,6 @@ function genmap(startpos,manmade)
 	end
 	postproc()
 	setupdrawcalls()
-	btns=0
 end
 
 function genroom(pos)
@@ -2464,42 +2416,40 @@ function postproc()
 	calcdist(player.pos,"pdist")
 	calclight()
 	
-	if depth>0 then
-		player.animoffset.y=-21
-		player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
-	 
-		--spawn entities										
-		wanderdsts={}
-		for n=1,6 do
-			local spawnpos=rndpos()
-			local spawndepth=depth
-		 while rndp(0.45) do
-			 spawndepth+=1
-			end
-			local spawn,behav,spawnedany
-			=rnd(spawns[min(spawndepth,20)]),
-			rnd{"sleep","wander"}
-			for typ in all(spawn) do
-				local found=false
-				visitadjrnd(spawnpos,
-				function(_ENV)
-					if not found and
-				 	checkspawn(_ENV,nil,-4,typ==72)
-				 then
-				  create(typ,pos,behav,n)
-						found=true
-						spawnpos=pos
-					end
-				end)
-			end
-			--spawn items
-			checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
+	player.animoffset.y=-21
+	player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
+ 
+	--spawn entities										
+	wanderdsts={}
+	for n=1,6 do
+		local spawnpos=rndpos()
+		local spawndepth=depth
+	 while rndp(0.45) do
+		 spawndepth+=1
 		end
-		--rubberbanding important orbs
-		for orb=300,304 do
-			for i=counts[mapping[orb]],depth/2.001 do
-				checkspawn(gettile(rndpos()),mapping[orb],-3)
-			end
+		local spawn,behav,spawnedany
+		=rnd(spawns[min(spawndepth,20)]),
+		rnd{"sleep","wander"}
+		for typ in all(spawn) do
+			local found=false
+			visitadjrnd(spawnpos,
+			function(_ENV)
+				if not found and
+			 	checkspawn(_ENV,nil,-4,typ==72)
+			 then
+			  create(typ,pos,behav,n)
+					found=true
+					spawnpos=pos
+				end
+			end)
+		end
+		--spawn items
+		checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
+	end
+	--rubberbanding important orbs
+	for orb=300,304 do
+		for i=counts[mapping[orb]],depth/2.001 do
+			checkspawn(gettile(rndpos()),mapping[orb],-3)
 		end
 	end
 	
@@ -2563,7 +2513,7 @@ end
 
 
 _g=assigntable(
-[[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2572,98 +2522,8 @@ _g=assigntable(
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
-[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
-70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangetyp:summon|heal
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:throw,atksfx:26
-68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:fire
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
-74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
-75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:12,armor:0,ai:,altpdist:3,light:3,alert:49,hurtfx:50
-78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangetyp:fire,alert:51,hurtfx:52
-137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
-136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
-169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,stun:1,flippable:,deathanim:propdeath,animspeed:0.3,death:23
-200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,stun:1,flammable:,deathanim:propdeath,animspeed:0.3,death:23
-138=n:fIRE,var:effect,light:4,idleanim:fire,deathanim:firedeath,animspeed:0.33,flippable:
-139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
-idle3=l012
-fire=01f0l.1.2.3f1f2f3
-firedeath=20_
-sporeidle=0l112233
-batidle=l0022
-move=044
-turn=44
-throw=a444
-emove=022
-esplit=02022
-sleep=lz000000000000000000000
-flash=l!0000000000000000000000000000000000000000000
-patk=wa22d22r
-eatk=wa22dr22
-batatk=wa20dr22
-death=wb0cv50v500v50r_
-pdeath=w444l6
-mushdeath=w01r_
-brazierdeath=w33r_
-propdeath=w11r_
-tele=rst0!0
-fall=w0v50v50v60cv70v80v8or_
-pfall=w0v54v54v64cv74v84v84e444r_
-fallin=wsv90v90v94v94sv5h4m6666666sv54v3440r
-slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
-132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:
-134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash,rndlvl:
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:
-129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash,rndlvl:
-145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:
-161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:
-177=n:pUPLEHEART STAFF,var:item,throw:4,idleanim:flash,rndlvl:
-140=n:bRONZE AMULET,acol:9,var:item,slot:amulet,throw:4,idleanim:flash
-141=n:pEWTER AMULET,acol:5,var:item,slot:amulet,throw:4,idleanim:flash
-142=n:gOLDEN AMULET,acol:10,var:item,slot:amulet,throw:4,idleanim:flash
-143=n:sILVER AMULET,acol:6,var:item,slot:amulet,throw:4,idleanim:flash
-156=n:oCHRE CLOAK,ccol:9,var:item,slot:cloak,throw:2,idleanim:flash
-157=n:gREY CLOAK,ccol:5,var:item,slot:cloak,throw:2,idleanim:flash
-158=n:gREEN CLOAK,ccol:3,var:item,slot:cloak,throw:2,idleanim:flash
-159=n:cYAN CLOAK,ccol:12,var:item,slot:cloak,throw:2,idleanim:flash
-172=n:cYAN ORB,var:item,light:2,throw:6,idleanim:flash
-173=n:yELLOW ORB,var:item,light:2,throw:6,idleanim:flash
-174=n:rED ORB,var:item,light:2,throw:6,idleanim:flash
-175=n:bLACK ORB,var:item,light:2,throw:6,idleanim:flash
-188=n:gREEN ORB,var:item,light:2,throw:6,idleanim:flash
-189=n:oRANGE ORB,var:item,light:2,throw:6,idleanim:flash
-190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash
-191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash
-300=,nid:oRB OF lIGHT,orb:light,orbfx:53
-301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54
-302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55,fxlength:16
-303=,nid:oRB OF dATA,orb:iDENTIFY,orbfx:55,fxoffset:16,fxlength:16
-304=,nid:oRB OF rENEWAL,orb:life,orbfx:17
-305=,nid:oRB OF fIRE,orb:fire,orbfx:36
-306=,nid:oRB OF iCE,orb:ice,orbfx:28
-307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29
-308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
-309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
-310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
-311=,nid:pACIFIST aMULET,pac:,hpdmg:-1,falldamp:,cursed:
-312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
-313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
-314=,nid:cLOAK OF wISDOM,recharge:1,rndlvl:
-315=,nid:vAMPIRE cLOAK,burnlight:,hpdmg:1,cursed:
-316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36
-317=,nid:sTAFF OF lYTNING,dmg:4,charges:3,maxcharges:3,range:3,pass:,rangetyp:lightning,usefx:9
-318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,pass:,rangetyp:ice,usefx:28
-319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,block:,rangetyp:blink,usefx:29
-]],nil,"\n","=")
+	chr(peek(0x8002,%0x8000)),
+	nil,"\n","=")
 
 adj,fowpals,frozepal,ided,counts,enchstats=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
@@ -2740,10 +2600,7 @@ for str in all(split([[
 	end
 end
 
-local rseed=rnd"0xffff.ffff"
-srand"0x5b04.17cb"
-genmap(vec2s"10,13")
-srand(rseed)
+genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 --[[create(129).addtoinventory()
@@ -2790,43 +2647,43 @@ fffffffffffffffffffffffffffffffffff00100001000fffffffffbfffffffffff00150110005ff
 fffffffffffffffffffffffffffffffffffffffffffffffffffffffff3ffffffffff555565555fffffff3f3f3f3ff3ffffffffffff505ffffffffff5ffffffff
 fff000110111fffffff01111111110fffff01111111110fffffffffffbfffffffff5000d000005ffffff3f3ff3bf3ffffffffff5502202ffffff5055d11000ff
 ff0111000111f10fff0111111111110fff0111111111110ffffffffffff3ffffff5011d01111106fffff3f3ff3b03fffffff05502202202fffff1000000055ff
-f01111011000111ff011100111111110f011111111111110fffff3fffffbfffff5011d0111111d05ffff3ff3f3ffbffff505202202205504fff15500d00555ff
-000000111101fffff1111111111111110101111111111111fffff3ff3ffffffffd1110111111d01dfffff3f3fbffbfff022022022055044fff00555dd00500f1
-f0110000101111fff011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005d10d111ff
-ff00111100011fffff0111111111110fff01111111111ffffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffffff1111055d1fff
-fff00110111fffffffff111111111fffffff111111111fffffffffffffffffffffffddddd6dddffffffffffbfffffffffff44ffffffffffffffff51f111fffff
-fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff62fff00d6000000000000000000000000000000d6566600000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff888fff0006000d6666500566666000666d000000066005600d6005600d600d6666500006666000000000000000000000000000000000000000000000000000
-ff88dfff000600006000650006000006500600000006000560006000600060006000650060000000000000000000000000000000000000000000000000000000
-ff88d6ff00060000605006000600000600060000000600d600006000600060006050060056665000000000000000000000000000000000000000000000000000
-ff882fff000600006000060006000006000600000006056500006000600060006000060000006000000000000000000000000000000000000000000000000000
-ff2f2fff000600006000d50006500006005600000006000650006500600060006000d50060056000000000000000000000000000000000000000000000000000
-ffd0dfff00d6000d60006600006d000d6660000000d6000d60000666d000600d60006600d6660000000000000000000000000000000000000000000000000000
-fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff22fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff882fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff8d9fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff86dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff826fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff2f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffd0dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff88fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff8886ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff88dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-f8822fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff2f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fd00dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff67fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff22fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff822fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff6d9fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-f86226ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff6f2fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-fd00dfff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+f011110110001110f011100111111110f011111111111110fffff3fffffbfffff5011d0111111d05ffff3ff3f3ffbffff505202202205504fff15500d00555ff
+000000111101000001111111111111110101111111111111fffff3ff3ffffffffd1110111111d01dfffff3f3fbffbfff022022022055044fff00555dd00500f1
+f011000010111100f011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005d10d11100
+ff0011110001100fff0111111111110fff0111111111100ffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffff001111055d100f
+fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffff0ddddd6ddd0fffffffffbfffffffffff44ffffffffffffff00510111000ff
+fff67ffffffffffffffffffffffffffffff11fffff999fffffffffffffffffffff11f1ffffffffffff8888fffffffffffff7fffffffcfcffffffffffffffffff
+fff62ffffffffffffff22fffffffffffff1001ff333333fffffffffffffffffff100101ffffffffff828228ffffcffffffc77fffffffcfcfffffffffffffffff
+ff888ffffff3f3fffff223fffff3f3ffff1003ffb3333344ffffffffffff4f4f10000001ffffffff2f88fff2ffc7cffffcc777ffffffcdcfffffff8f9989ffff
+ff88dfffffbbb3f6ff22234fff44439ff100038fb3333b42ffffffffffff444f05000550fffeeefff8288228ffc7cfffffdccfffffffdddffffff88988888fff
+ff88d6ffffbbbf6fff222f4fff4445f9f100014f4bbbb92ffff4f4ffff44422f11101111ffe227eff8f28288fccdccffffdccfffcffccdff889f8598855588ff
+ff882fffffbbb3ffff22234fff222366f100034ffbbbb4ffffff55fff44422fffff1ffffffe222eff2f28f2ffffcfffffffcfffffccdddffff899988888f8fff
+ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eeff288822ffffffffffffdfffff22d02ffff2888882086ffff
+ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222ef2828882ffffffffffffffffff202fffffff262226fffffff
+fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffff88d8fffffffffffff7fffffffcfcffffffffffffffffff
+fff22ffffffffffffff22fffffffffffff1001ff333993fffffffffffffffffff100101ffffffffff822828ffffcffffffc77fffffffcfcfffffffffffffffff
+ff882ffffff3f3fffff323fffff3f3ffff13031f99333bffffffffffffffffff10500001ffffffff2f88fffeffc7cffffcc777ffffffcfcfffffff8fffffffff
+ff8d9fffffb333ffff2333ffff4333fff103331f99b33b44ffffffff4fffffff05580850fffeeefff8288228ffc7cfffffdccfffcfff6c6f889ff888f99fffff
+ff86dfffffbbbff6ff222f4fff44299ff1000181499bbf42ffffffff24424f4f11101111ffe227effef28282fccdccffffdccffffccfdcffff898558888a8fff
+ff826fffffbbbf6fff222f4fff2445f9f1000141f449942ffef4f4fff422444ffff1ffffffe222eff2f28f2ffffcfffffffcfffffddcddffff289855588888ff
+ff2f2fffff44b3ffff22234fffdd4366f1000341f2244fffff5555fff204240fffffffffffe20eeff288822ffffffffffffdfffff20d22fffff228888822ffff
+ffd0dfffff202fffff222f4fffd0d99ff100011ff2002fffff0555fffff202fffffffffffe2222ef2882822ffffffffffffffffffff202fffffff22226006fff
+ffffffffffffffffffffc4cfffffffffff11ff8fffffff6fffffffffff6fff6f11ffff11ffffffffffffffffffcccffffff7ffffffffffffffff8fff98ffffff
+fff67fffffffffffff2ec4cffffffffff1051878fffffff6fffffffffff64f460011f100fffffffff628ff28ffffccffffc77efffffffffffff888f9888fffff
+fff88fffff7666ffff223c4cfff3f3fff1003184ffff9996f6ff6ffffff6444650001005ffffffffff6f8868fffffccfecc777eeff2c7c7fff85588982ff88ff
+ff8886fff763f36fff22223cff4443fff1000531ff333336ff4f46fff4f4442615000051ffffffffff628286fffcfccfffdccffffff2c7c7ffff65888888858f
+ff88dffff3bbb3f6ff222ec4f4444f9ff100001ff33333b6ff6556ffff444226f100051fffffffffff688286fffcc77cffdccfffcf2cddd7ffff6f8988855fff
+f8822fffffbbbfffff22efc4ff224f9ff10001fff333bb94ff5555fff4244f2fff1011ffffeeeeeff2882f86ffcd7ccffffcfffffccdd2dfff89ff89882f6fff
+ff2f2fffff444fffff22effcffddd9fff10001fff2222942ff544fffffff4ffffff1fffffe22227e28882288fffccffffffdffffd2dfdffffff8999882ff6fff
+fd00dffff4004fffff222fffffd0dffff10001ff200002fffe5fffffff00ffffffffffffe222002e8888822efffcffffffffffffffffffffffff88888066ffff
+fffffffffffffffffffffcffffffffffff11ff8fffffffffffffffffffffffff11ffff11ffffffffffffffffffffcffffff7ffffffffffffffff8fff9a8fffff
+fff67fffffffffffff2ec4cffffffffff1051878ffffff6fffffffffffffffff0011f100ffffffffff28ff28fffffcffffc7effffffffffffff888f98888ffff
+fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005ffffffffffff88d8fffffccfeeee7eeeff2d7c7fff85588982fff8ff
+ff822ffffff3f36fffbb3c4cff4333fff1bb3141ff333976ffffffff4f624f4615000051fffffffff8682262ffccfccfffdcefffcff2c7c7ff8ff6588888858f
+ff6d9fffffb333f6ff222e3cff44499ff1000531f3333336ff64f6fff4464446f158081ffffffffffff68226fcdccccfffdccffffccdc7c7fffff69888556f8f
+f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeff2862f26fcc7ccfffffcffffddd26c6fff896f98882f6fff
+ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227e28862226fffc7cfffffdfffffffd2cfffff8998888f6ffff
+fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002e888e822effffcfffffffffffffdfdfffffff8868286fffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ff888fffffffff3fffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffffffffffffffffffff40ffffff50ffffff94ffffff65fff
