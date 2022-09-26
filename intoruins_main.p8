@@ -550,6 +550,13 @@ freeze=function()
 		_g.aggro(pos)
 	end
 end
+
+visitadjrnd=function(func)
+	local neighbors={unpack(adjtl)}
+	for i=1,6 do
+		func(del(neighbors,rnd(neighbors)))
+	end
+end
 --end tile member functions
 	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",_ENV)
 end
@@ -711,16 +718,8 @@ function getadjtl(pos,i)
 	               pos+adj[i])
 end
 
-function visitadjrnd(pos,func)
-	local indices=split"1,2,3,4,5,6"
-	for i=1,6 do
-		local tl=getadjtl(pos,del(indices,rnd(indices)))
-		func(tl,tl.pos)
-	end
-end
-
-function rndpos()
-	return rnd(inboundposes)
+function rndtl()
+	return gettile(rnd(inboundposes))
 end
 
 function alltiles(func)
@@ -837,7 +836,7 @@ function calclight(clearflash)
 	dijkstra("light",tovisit,1)
 end
 
-function trysetfire(_ENV,pos,nop)
+function trysetfire(_ENV,nop)
 	frozen=nil
 	if tileflag"10" or
     spores>0 or
@@ -857,7 +856,7 @@ function updateenv()
 			spores=max(spores-rnd"0.25")
 			if spores>1 then
 				adjtls={}
-				visitadjrnd(pos,
+				visitadjrnd(
 				function(ntl)
 					if ntl.tileflag"8" and
 						ntl.fire==0
@@ -874,7 +873,7 @@ function updateenv()
 		end
 		if fire>=2 then
 			entfire(_ENV)
-			visitadjrnd(pos,trysetfire)
+			visitadjrnd(trysetfire)
 			if tileflag"9" then
 				if rndp(0.2) then
 					fire=0
@@ -897,7 +896,7 @@ function updateenv()
 		newspores=0
 		if ent and
 		 ent.statuses.BURN then
-		 trysetfire(_ENV,nil,true)
+		 trysetfire(_ENV,true)
 		end
 		if fire>=1 then
 			fire+=1
@@ -914,7 +913,7 @@ function updateenv()
 		   not statuses.BURN
 		then
 			burn()
-		 trysetfire(tl,nil,true)
+		 trysetfire(tl,true)
 			sfx"36"
 		end
 	end
@@ -1358,9 +1357,9 @@ end
 
 findmove=function(var,goal,special)
 	local bestscore=-2
-	visitadjrnd(pos,
-	function(ntl,npos)
-		if canmove(npos,special) and
+	tl.visitadjrnd(
+	function(ntl)
+		if canmove(ntl.pos,special) and
 		   ntl.fire==0
 		then
 		 local score=
@@ -1377,17 +1376,17 @@ findmove=function(var,goal,special)
 		 end
 			if score>bestscore then
 				bestscore=score
-				bestpos=npos
+				besttl=ntl
 			end
 		end
 	end)
 	if bestscore>-2 then
 			if special=="aggro" and
-			gettile(bestpos).pdist==0
+			besttl.pdist==0
 			then
 				aggro(pos)
 			else
-				return move(bestpos)
+				return move(besttl.pos)
 		end
  	end
 end
@@ -1493,7 +1492,7 @@ taketurn=function()
 				or rndp(0.025)
 				then
 					repeat
-						wanderdsts[group]=rndpos()
+						wanderdsts[group]=rnd(inboundposes)
 						local tl = gettile(
 													wanderdsts[group])
 					until tl.navigable() and
@@ -1659,7 +1658,7 @@ end
 tele=function(dst)
 	if not	dst then
 		repeat 
-		 dst=gettile(rndpos())
+		 dst=rndtl()
 		until dst.navigable() and
 		      not dst.ent
 	end
@@ -1730,7 +1729,7 @@ orbeffect=function(tl,used)
 		elseif orbis"life" then
 		 player.maxhp+=3
 		 player.hp=player.maxhp
- 		player.animtext"+max hp,speed:0.5,offset:-6"
+ 		player.animtext"+MAX HP,speed:0.5,offset:-6"
 		end
 	else
 		if orbis"light" then
@@ -1918,7 +1917,7 @@ end
 		 aggro(pos)
 	 end
 	 if atkis"fire" then
-			trysetfire(tl,nil,true)
+			trysetfire(tl,true)
 			if tl.fire==0 then
 				create(138,tl.pos)
 			end
@@ -2170,7 +2169,7 @@ function genroom(pos)
 	end
 	
 	if entropy<1.5 and doroom(true) then
-		return genroom(rndpos())
+		return genroom(rnd(inboundposes))
 	end
 		
 	entropy-=0.15+rnd"0.1"
@@ -2178,9 +2177,9 @@ function genroom(pos)
 	if entropy>=0 then
 		doroom()
 		if rndp(0.4-depth*0.025) then
-			gencave(rndpos())				 
+			gencave(rnd(inboundposes))				 
 		end
-		genroom(rndpos())	
+		genroom(rnd(inboundposes))	
 	end
 end
 
@@ -2190,17 +2189,17 @@ function gencave(pos)
 	
 	entropy -= 0.013
 	if tl then
-		visitadjrnd(pos,
-		function(ntl,npos)
+		tl.visitadjrnd(
+		function(ntl)
 			if not ntl.genable() then
-				if inbounds(npos) and 
+				if inbounds(ntl.pos) and 
 							rndp(entropy) then
 					gentile(tl.typ,ntl)
 					if ntl.genable() then
 						if rndp(0.005+depth*0.001) then
-							genroom(rndpos())
+							genroom(rnd(inboundposes))
 						end
-					 gencave(npos)
+					 gencave(ntl.pos)
 					end
 				end
 			end
@@ -2224,16 +2223,16 @@ function gentile(typ,_ENV)
  end									
 end
 
-function postgen(_pos,tl,prevtl)
+function postgen(tl,prevtl)
 	tl.postgenned=true
-	visitadjrnd(_pos,
+	tl.visitadjrnd(
 	function(_ENV)
 		if genable() and not
 					postgenned then
 			if not genned then
 				gentile(tl.typ,_ENV)
 			end
-			postgen(pos,_ENV,tl.genable() and tl or prevtl)
+			postgen(_ENV,tl.genable() and tl or prevtl)
 		end
 	end)
 end
@@ -2324,9 +2323,7 @@ function postproc()
 	end)
 	
 	--fill out manmade area tiles
-	postgen(genpos, 
-									gettile(genpos),
-									gettile(genpos))
+	postgen(gettile(genpos),gettile(genpos))
 	
 	connectareas()
 	
@@ -2422,7 +2419,7 @@ function postproc()
 	--spawn entities										
 	wanderdsts={}
 	for n=1,6 do
-		local spawnpos=rndpos()
+		local spawntl=rndtl()
 		local spawndepth=depth
 	 while rndp(0.45) do
 		 spawndepth+=1
@@ -2432,24 +2429,24 @@ function postproc()
 		rnd{"sleep","wander"}
 		for typ in all(spawn) do
 			local found=false
-			visitadjrnd(spawnpos,
+			spawntl.visitadjrnd(
 			function(_ENV)
 				if not found and
 			 	checkspawn(_ENV,nil,-4,typ==72)
 			 then
 			  create(typ,pos,behav,n)
 					found=true
-					spawnpos=pos
+					spawntl=_ENV
 				end
 			end)
 		end
 		--spawn items
-		checkspawn(gettile(rndpos()),mget(64+rndint(56),24),-3)
+		checkspawn(rndtl(),mget(64+rndint(56),24),-3)
 	end
 	--rubberbanding important orbs
 	for orb=300,304 do
 		for i=counts[mapping[orb]],depth/2.001 do
-			checkspawn(gettile(rndpos()),mapping[orb],-3)
+			checkspawn(rndtl(),mapping[orb],-3)
 		end
 	end
 	
