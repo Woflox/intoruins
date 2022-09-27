@@ -221,12 +221,13 @@ function getindex(maxind,cur)
 												or cur
 end
 
-function gettrans(a,b)
+function gettrans(str)
+ local a,b=usplit(str)
 	return lerp(b,a,focus and uitrans or 0.56*(1-uitrans))
 end
 
 function inv()
- frame(gettrans(126,40),6,126,111,rect)
+ frame(gettrans"126,40",6,126,111,rect)
  local i=0
  local sely=0
 	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
@@ -258,15 +259,15 @@ function inv()
 end
 
 function info()
- local eqpd = selitem.equipped
- local x=gettrans(42,4)
- frame(x,6,gettrans(42,93.5),111,rectfill)
  menuindex=getindex(uimode and 1 or 2)
 
- spr(selitem.typ+(selitem.ai and 16 or 0),x+3,8)
- ?"\fd    "..selitem.getname()
+ local _ENV,x=selitem,gettrans"42,4"
+ frame(x,6,gettrans"42,93.5",111,rectfill)
+
+ spr(typ+(ai and 16 or 0),x+3,8)
+ ?"\fd    "..getname()
  local statstr="\f1 ……………………………\fd\|j"
- if selitem.isid() then
+ if isid() then
  	for str in all(split(
 "\
   nAME: ,name|\
@@ -296,7 +297,7 @@ function info()
   	k,v=usplit(str)
 	  local val,enchval=
 	  selitem[v],
-	  selitem.eMPOWER(v,true)
+	  eMPOWER(v,true)
 	  if val then
 	   statstr..=k..val
 	   if uimode=="eMPOWER" and
@@ -316,18 +317,20 @@ function info()
                              
  for action in all(
  uimode and{uimode}or
- {selitem.slot and
-  (eqpd and 
-   (selitem.lit and"eXTINGUISH" or "sTOW") 
+ {slot and
+  (equipped and 
+   (lit and"eXTINGUISH" or "sTOW") 
    or"eQUIP")or "uSE",
   "tHROW"})
  do
  	if listitem(action,nil,
-				 	action=="uSE" and
-				 	selitem.charges==0)
+				 	(cursed and equipped and not _g.uimode) or 
+					 action=="uSE" and charges==0 or
+					 (action=="eQUIP" and player[slot] 
+					  and player[slot].cursed))
   then
  	 popdiag()popdiag()
- 	 skipturn=true
+ 	 _g.skipturn=true
  		selitem[action]()
  		sfx"25"
  	end
@@ -335,7 +338,7 @@ function info()
 end
 
 function confirmjump()
-	frame(32,gettrans(33,38.5),96,gettrans(33,82.5),rect)
+	frame(32,gettrans"33,38.5",96,gettrans"33,82.5",rect)
 	menuindex=getindex(2)
 	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
 	
@@ -406,7 +409,7 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 	for i=0,6 do
 		if not _bg and fow==4 and 
 		   fget(litsprite,i) then
-			local adjtile=i==0 and postl or postl.adjtl[i]
+			local adjtile=postl.adjtl[i]
 			if adjtile and
 						adjtile.lightsrc then
 				dtyp=litsprite
@@ -713,11 +716,6 @@ function passlight(tl)
 	return tl.tileflag"1"
 end
 
-function getadjtl(pos,i)
-	return gettile(i==0 and pos or
-	               pos+adj[i])
-end
-
 function rndtl()
 	return gettile(rnd(inboundposes))
 end
@@ -800,7 +798,7 @@ function calcvis()
 	end
 end
 
-function calclight(clearflash)
+function calclight(checkburn,clearflash)
  local tovisit={}
 
  alltiles(
@@ -834,6 +832,19 @@ function calclight(clearflash)
 		end
 	end)
 	dijkstra("light",tovisit,1)
+	if checkburn then
+		for _ENV in all(ents) do
+			if hp and 
+			   stat"burnlight" and 
+			   tl.light>=2 and
+			   not statuses.BURN
+			then
+				burn()
+			 trysetfire(tl,true)
+				sfx"36"
+			end
+		end
+	end
 end
 
 function trysetfire(_ENV,nop)
@@ -904,19 +915,7 @@ function updateenv()
 		end
 		checkeffects()
 	end)
-	calclight(true)
-	
-	for _ENV in all(ents) do
-		if hp and 
-		   stat"burnlight" and 
-		   tl.light>=2 and
-		   not statuses.BURN
-		then
-			burn()
-		 trysetfire(tl,true)
-			sfx"36"
-		end
-	end
+	calclight(true,true)
 end
 
 function findfree(_pos,var,distlimit)
@@ -1749,7 +1748,7 @@ orbeffect=function(tl,used)
 	end
 	
 	for i in all(split"1,2,3,4,5,6,0") do
-		local ntl=getadjtl(tl.pos,i)
+		local ntl=tl.adjtl[i]
 		if orbis"slofall" and 
 		   not used then
 		elseif ntl.tileflag"8" and
@@ -1785,9 +1784,14 @@ eMPOWER=function(test,nosnd)
 			end
 		end
 	end
+	if cursed and not test then
+		sTOW()
+		del(inventory,_ENV)
+		destroy(_ENV)
+	end
 	if (nosnd)return
 	sfx(usplit"55,-1,0,16")
-	if (tl) animtext"+LVL"
+	if (tl and not cursed) animtext"+LVL"
 end
 
 iDENTIFY=function()
@@ -1921,7 +1925,7 @@ end
 			if tl.fire==0 then
 				create(138,tl.pos)
 			end
-			calclight()
+			calclight(true)
 			if tl.ent then
 				tl.ent.burn()
 			 tl.ent.hurt(dmg)
@@ -1931,7 +1935,7 @@ end
 		 if tl.ent then
 		 	tl.ent.hurt(dmg)
 		 end
-		 calclight()
+		 calclight(true)
 		end
 	end
 end
@@ -2086,8 +2090,9 @@ function genmap(startpos,manmade)
 	alltiles(
 	function(_ENV)
 		for i=1,6 do
-			adjtl[i]=getadjtl(pos,i)
+			adjtl[i]=gettile(pos+adj[i])
 		end
+		adjtl[0]=_ENV
 	end)
 	
 	entropy=1.5
@@ -2356,8 +2361,6 @@ function postproc()
 	
 	alltiles(
 	function(_ENV)
-		--local uptl,uprighttl,righttl=
-		--		getadjtl(pos,2),getadjtl(pos,3),getadjtl(pos,4)
 		if typ==tempty then
 			--add cavewalls
 			for k,ntl in next,adjtl do
@@ -2366,16 +2369,6 @@ function postproc()
 					 typ=tcavewall
 				end
 			end
-		--[[elseif tl.typ==txwall then
-			--swap x walls for y
-			if uptl and righttl and
-			 uprighttl and
-				uptl.typ==tywall and
-				genable(uprighttl) and
-				genable(righttl) 
-			then
-				tl.typ=tywall
-			end]]
 		elseif typ==tywall and
 		  adjtl[4].typ==txwall
 		then
@@ -2451,7 +2444,7 @@ function postproc()
 	end
 	
 	calcvis()
-	calclight()
+	calclight(true)
 end
 
 -->8
@@ -2603,8 +2596,8 @@ create(130).addtoinventory().eQUIP(true)
 --[[create(129).addtoinventory()
 create(145).addtoinventory()
 create(161).addtoinventory()
-create(177).addtoinventory()
-create(172).addtoinventory()
+create(177).addtoinventory()]]
+--[[create(172).addtoinventory()
 create(173).addtoinventory()
 create(174).addtoinventory()
 create(175).addtoinventory()
@@ -2612,6 +2605,14 @@ create(188).addtoinventory()
 create(189).addtoinventory()
 create(190).addtoinventory()
 create(191).addtoinventory()]]
+--[[create(140).addtoinventory()
+create(141).addtoinventory()
+create(142).addtoinventory()
+create(143).addtoinventory()
+create(156).addtoinventory()
+create(157).addtoinventory()
+create(158).addtoinventory()
+create(159).addtoinventory()]]
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke

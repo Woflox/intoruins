@@ -885,7 +885,7 @@ update=function()
 				destroy(_ENV)
 				if isplayer then
 					--next level
-					load"intoruins_main"
+					load("intoruins_main","new game")
 				end
 			elseif case"m" then
 				log("\-i◆ dEPTH "..depth.." ◆")
