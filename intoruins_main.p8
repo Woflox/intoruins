@@ -98,8 +98,8 @@ function _draw()
 				y-=0.5-t
 				print(text,
 										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
-										(wavy and cos(t*2) or 0),
-										y+offset-6,
+										wavy*cos(t*2),
+										y+offset,
 										t>0.433 and 5 or col)
 			end
 		end
@@ -178,13 +178,13 @@ function drawbar(ratio,label,x,col1,col2)
  return x+w+4
 end
 
-function textcrawl(str,x,y,fadet,col,m,mus,xtra)
+function textcrawl(str,x,y,fadet,col,m,mus)
  if modeis(m) and statet>fadet then
 	 if mus and not musicplayed then
 		 music(mus)
 		 musicplayed=true
 		end
- 	?sub(str,0,statet*30+(xtra or 0)),x,y,statet>fadet+0.1and col or 1	
+ 	?sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1	
 	 return btnp"5"
 	end
 end
@@ -264,7 +264,7 @@ function info()
  local _ENV,x=selitem,gettrans"42,4"
  frame(x,6,gettrans"42,93.5",111,rectfill)
 
- spr(typ+(ai and 16 or 0),x+3,8)
+ spr(ai and typ+16 or typ,x+3,8)
  ?"\fd    "..getname()
  local statstr="\f1 ……………………………\fd\|j"
  if isid() then
@@ -287,7 +287,7 @@ function info()
   rANGE:       ,range|\
   aRMOR:      +,armor|\
   dARKSIGHT:  +,darksight|\
-  tHROW RANGE: ,throw|11\
+  tHROW RANGE: ,throw|\
   tHROW ACC:  +,throwatk|\
   tHROW DAMAGE:,throwdmg|\
 \
@@ -1212,11 +1212,15 @@ setstatus=function(str)
 	statuses[k]=split(v)
 end
 
+heal=function(val)
+ 	hp=min(hp+val, maxhp)
+end
+
 tickstatuses=function()
  if (isplayer or ai)
     and tl.spores>0
  then
- 	hp=min(hp+2, maxhp)
+	heal(2)
  	if tl.vistoplayer() then
  		animtext"+"
  	end
@@ -1272,7 +1276,7 @@ update=function()
 			elseif case"z" and
 			tl.vistoplayer() 
 			then
-				animtext"z,wavy:"
+				animtext"z,wavy:1"
 			elseif case"_" then
 				destroy(_ENV)
 				if isplayer then
@@ -1282,6 +1286,19 @@ update=function()
 				end
 			elseif case"m" then
 				log("\-i◆ dEPTH "..depth.." ◆")
+				if stat"fallheal" then
+					heal(3)
+					sfx(usplit"17,-1,6")
+				end
+				if stat"recharge" then
+					for item in all(inventory) do
+						if item.charges then
+							item.charges = min(
+								item.maxcharges,item.charges+stat"recharge")
+						end
+					end
+					sfx(usplit"55,-1,6,10")
+				end
 			elseif case"v" then
 				animt+=1
 				animoffset.y+=anim[index+1]-4
@@ -1293,7 +1310,7 @@ update=function()
 				flash=true
 			elseif case"b" then
 				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext".,col:8,speed:3,offset:6"
+				animtext".,col:8,speed:3,offset:0"
 			elseif case"a" then
 				animoffset=
 				movratio*
@@ -1595,7 +1612,17 @@ doatk=function(ntl,pat)
 		      (abs(diff)+2)
 		end
 		if rndp(hitp) then
-			b.hurt(throwdmg or stat"dmg",atkdir)
+			local dmgv=min(stat"dmg",b.hp)
+			b.hurt(throwdmg or dmgv,atkdir)
+			if not b.blocking then
+				if stat"dmgheal" then
+					heal(dmgv)
+					animtext"+,col:8"
+				end
+				if stat "dmghurt" then
+					hurt(dmgv)
+				end
+			end
 		else
 			aggro(ntl.pos)
 		end
@@ -1728,7 +1755,7 @@ orbeffect=function(tl,used)
 		elseif orbis"life" then
 		 player.maxhp+=3
 		 player.hp=player.maxhp
- 		player.animtext"+MAX HP,speed:0.5,offset:-6"
+ 		player.animtext"+MAX HP,speed:0.5,offset:-12"
 		end
 	else
 		if orbis"light" then
@@ -1788,6 +1815,8 @@ eMPOWER=function(test,nosnd)
 		sTOW()
 		del(inventory,_ENV)
 		destroy(_ENV)
+		ided[typ]=true
+		log"CURSED ITEM DESTROYED"
 	end
 	if (nosnd)return
 	sfx(usplit"55,-1,0,16")
@@ -1942,7 +1971,7 @@ end
 
 animtext=function(str)
  local scrpos=entscreenpos()
- add(textanims,setmetatable(assigntable("speed:1,col:7,offset:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()),{__index=_ENV}))
+ add(textanims,setmetatable(assigntable("speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()),{__index=_ENV}))
 end
 
 entscreenpos=function()
@@ -2593,8 +2622,8 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---[[create(129).addtoinventory()
-create(145).addtoinventory()
+create(129).addtoinventory()
+--[[create(145).addtoinventory()
 create(161).addtoinventory()
 create(177).addtoinventory()]]
 --[[create(172).addtoinventory()
@@ -2605,14 +2634,14 @@ create(188).addtoinventory()
 create(189).addtoinventory()
 create(190).addtoinventory()
 create(191).addtoinventory()]]
---[[create(140).addtoinventory()
-create(141).addtoinventory()
+create(mapping[310]).addtoinventory()
+--[[create(141).addtoinventory()
 create(142).addtoinventory()
 create(143).addtoinventory()
 create(156).addtoinventory()
 create(157).addtoinventory()
 create(158).addtoinventory()
-create(159).addtoinventory()]]
+create(159).addtoinventory()]]	
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
