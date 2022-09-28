@@ -31,7 +31,7 @@ function _update()
 	
 	if mode!="ui" then
  	waitforanim=#rangedatks>0
-		for ent in all(ents) do
+		for i,ent in inext,ents do
 			ent.update()
 		end
  end
@@ -64,7 +64,7 @@ function _draw()
 
  anyfire=false
 	for i,drawcall in 
-					ipairs(drawcalls) do
+					inext,drawcalls do
 		drawcall[1](
 			unpack(drawcall[2]))
 	end
@@ -73,7 +73,7 @@ function _draw()
 		music(anyfire and 32 or -1, 500, 3)
 	end
 	
-	for atk in all(rangedatks) do
+	for i,atk in inext,rangedatks do
 	 atk[2][1]+=1 --counter
 		if atk[1](unpack(atk[2])) then
 		 del(rangedatks,atk)
@@ -90,7 +90,7 @@ fillp(]]
  -- textanims={}
  --end
  if modeis"play" then
-		for _ENV in all(textanims) do
+		for i,_ENV in inext,textanims do
 		 local t=speed*(time()-start)
 		 if t>0.5 then
 				del(textanims,_ENV)
@@ -125,7 +125,7 @@ fillp(]]
 			return
 		end
 		uitrans*=0.33
-		for i,d in ipairs(diags) do
+		for i,d in inext,diags do
 		 focus=i==#diags
 		 curindex=0
 		 d()
@@ -157,8 +157,8 @@ end
 function popdiag()
 	deli(diags)
 	if #diags==0 then
+		uimode=--nil
 		setmode"play"
-		uimode=nil
 		return true
 	end
 end
@@ -229,14 +229,13 @@ end
 function inv()
  frame(gettrans"126,40",6,126,111,rect)
  local i=0
- local sely=0
 	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
 	?"\f1 ……………… EQUIPPED"
 	
 	invindex=getindex(#inventory,invindex)
 	
 	function listitems(eqpd)
-		for item in all(inventory) do
+		for j,item in inext,inventory do
 			if item.equipped==eqpd then
 			 i+=1
 				if listitem(item.getname(),
@@ -268,7 +267,7 @@ function info()
  ?"\fd    "..getname()
  local statstr="\f1 ……………………………\fd\|j"
  if isid() then
- 	for str in all(split(
+ 	for i,str in inext,split(
 "\
   nAME: ,name|\
   cASTS LIGHT\
@@ -294,7 +293,7 @@ function info()
   tHROW DAMAGE:,throwdmg|\
 \
   cHARGES: ,charges|/,maxcharges",
-  "|"))
+  "|")
   do
   	k,v=usplit(str)
 	  local val,enchval=
@@ -317,13 +316,13 @@ function info()
  --menu
  ?"\f1 ……………………………",x-3,86
                              
- for action in all(
+ for i,action in inext,
  uimode and{uimode}or
  {slot and
   (equipped and 
    (lit and"eXTINGUISH" or "sTOW") 
    or"eQUIP")or "uSE",
-  "tHROW"})
+  "tHROW"}
  do
  	if listitem(action,nil,
 				 	(cursed and equipped and not _g.uimode) or 
@@ -724,7 +723,7 @@ function dijkstra(var,tovisit,flag)
 	while #tovisit>0 do
 		local tl=deli(tovisit,1)
 		local d=tl[var]-1
-		for k,ntl in ipairs(tl.adjtl) do
+		for k,ntl in inext,tl.adjtl do
 			if ntl[var]<d then
 				ntl[var]=d
 				if fget(ntl.typ,flag) then
@@ -827,7 +826,7 @@ function calclight(checkburn,clearflash)
 	end)
 	dijkstra("light",tovisit,1)
 	if checkburn then
-		for _ENV in all(ents) do
+		for i,_ENV in inext,ents do
 			if hp and 
 			   stat"burnlight" and 
 			   tl.light>=2 and
@@ -871,7 +870,7 @@ function updateenv()
 				end)
 				local portion=spores/(#adjtls+1)
 				newspores-=spores-portion
-				for ntl in all(adjtls) do
+				for i,ntl in inext,adjtls do
 					ntl.newspores+=portion
 				end
 			end
@@ -997,7 +996,7 @@ end
 
 function vec2list(str)
 	local ret={}
-	for vec in all(split(str,"|")) do
+	for i,vec in inext,split(str,"|") do
 		add(ret,vec2s(vec))
 	end
 	return ret
@@ -1005,8 +1004,8 @@ end
 
 function assigntable(str,table,delim1,delim2)
  table = table or {}
- for var in 
-		all(split(str,delim1))
+ for i,var in 
+		inext,split(str,delim1)
 	do
 		local k,v=usplit(var,delim2 or ":")
 		table[k]=v=="{}"and {} or v
@@ -1019,7 +1018,7 @@ function objtable(str)
 end
 
 function call(str)
-	for s in all(split(str,"\n"))do
+	for i,s in inext,split(str,"\n")do
 		local func,args=unpack(split(s,"(",false))
 		_ENV[func](usplit(args))
 	end
@@ -1229,7 +1228,7 @@ tickstatuses=function()
  		animtext"+"
  	end
  	if isplayer then
- 		sfx(usplit"17,-1,6")
+ 		call"sfx(17,-1,6"
  	end
  end
 	for k,v in next,statuses do
@@ -1295,7 +1294,7 @@ update=function()
 					call"sfx(17,-1,6"
 				end
 				if stat"recharge" then
-					for item in all(inventory) do
+					for i,item in inext,inventory do
 						if item.charges then
 							item.charges = min(
 								item.maxcharges,item.charges+stat"recharge")
@@ -1652,7 +1651,7 @@ move=function(dst,playsfx)
 		
 		if playsfx then
 		 if dsttile.frozen then
-	  	sfx(usplit"28,-1,12,3")
+	  	call"sfx(28,-1,12,3"
 	  else
 		  local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
 		  sfx(snd or 35)
@@ -1775,7 +1774,7 @@ orbeffect=function(tl,used)
 		tl.ent.tele()
 	end
 	
-	for i in all(split"1,2,3,4,5,6,0") do
+	for j,i in inext,split"1,2,3,4,5,6,0" do
 		local ntl=tl.adjtl[i]
 		if orbis"slofall" and 
 		   not used then
@@ -1798,7 +1797,7 @@ eXTINGUISH=function()
 end
 
 eMPOWER=function(test,nosnd)
-	for estat in all(enchstats) do
+	for i,estat in inext,enchstats do
 		if _ENV[estat] then
 		 local val=estat=="charges"and
 		           maxcharges+1 or
@@ -2031,14 +2030,14 @@ function updateturn()
 	elseif turnorder==1 then
 		call[[calcvis(
 calclight(]]
-	 for _ENV in all(ents) do
+	 for i,_ENV in inext,ents do
 			if not isplayer then
 				taketurn()
 				tickstatuses()
 			end
 		end
 	elseif turnorder==2 then
-		for _ENV in all(ents) do
+		for i,_ENV in inext,ents do
 			if ai then
 				if behav=="hunt" and not
 				_g.pseen then
@@ -2067,7 +2066,7 @@ end
 function aggro(pos)
 	setsearchpos(player.pos)
 	calcdist(pos,"aggro",-4)
-	for _ENV in all(ents) do
+	for i,_ENV in inext,ents do
 		if ai and
 		   behav!="dead" and
 					tl.aggro>=-3
@@ -2461,7 +2460,7 @@ function postproc()
 		local spawn,behav,spawnedany
 		=rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
-		for typ in all(spawn) do
+		for i,typ in inext,spawn do
 			local found=false
 			spawntl.visitadjrnd(
 			function(_ENV)
@@ -2511,7 +2510,7 @@ function updateaim(item,lineparams,atktype)
 	            aimscrpos.y/8-aimscrpos.x/24)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
-	for tl in all(aimline) do
+	for i,tl in inext,aimline do
 	 if (tl==player.tl) return
 	 tl.hilight=2
 	end
@@ -2567,7 +2566,7 @@ assigntable"130:,131:,132:,133:,134:,135:",--ided
 assigntable"301:-1",--counts
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges"--enchstats
 
-for s in all(
+for i,s in inext,
 split([[16
 -9,-4
 0,-8|5,-8|13,-8|13,4|4,4|2,4
@@ -2591,7 +2590,7 @@ split([[16
 ◆default
 -8,-4
 1,0
-15,8]],"◆")) do
+15,8]],"◆") do
 	local typ,baseoffset,offset,size=usplit(s,"\n")
 	specialtiles[typ]=
 	{vec2s(baseoffset),
@@ -2616,15 +2615,15 @@ for i=0,19 do
 end
 
 --shuffle item colors
-for str in all(split([[
+for j,str in inext,split([[
 172,173,174,175,188,189,190,191|300,301,302,303,304,305,306,307
 140,141,142,143|308,309,310,311
 156,157,158,159|312,313,314,315
 129,145,161,177|316,317,318,319]]
-,"\n")) do
+,"\n") do
  local grps=split(str,"|")
 	local items=split(grps[1])
-	for s in all(split(grps[2])) do
+	for k,s in inext,split(grps[2]) do
 		local i=del(items,rnd(items))
 		entdata[i]..=entdata[s]
 		mapping[s]=i
