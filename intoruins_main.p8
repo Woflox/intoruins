@@ -279,6 +279,8 @@ function info()
 ,pierce|\
   lUNGE ATTACK\
 ,lunge|\
+  aTTACKS SLOWLY\
+,slow|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
   hEALTH:      ,hp|/,maxhp|\
@@ -1613,11 +1615,17 @@ doatk=function(ntl,pat)
 				if stat "dmghurt" then
 					hurt(dmgv)
 				end
+				if  stat"stun" and var=="ent" and b.hp>0 then
+					b.setstatus"STUN:3,3,11,3"
+					b.animtext"○,wavy:1"
+				end
 			end
 		else
 			aggro(ntl.pos)
 		end
  end
+
+ skipturn=stat"slow"
 end
 
 interact=function (b)
@@ -2624,6 +2632,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
+--create(135).addtoinventory()
 --[[create(129).addtoinventory()
 create(145).addtoinventory()
 create(161).addtoinventory()

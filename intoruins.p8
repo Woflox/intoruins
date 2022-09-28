@@ -1431,7 +1431,7 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,rangetyp:summon|heal
 67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:throw,atksfx:26
 68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:fire
-69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
+69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:3,ai:,alert:31,hurtfx:16
 72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
@@ -1474,7 +1474,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash,rndlvl:
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:2,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:3,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:
 129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:
