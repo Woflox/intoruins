@@ -1437,7 +1437,7 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
 76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
-77=n:gLOWHORN,hp:7,atk:2,dmg:3,knockback:,sporedeath:5,armor:0,ai:,altpdist:3,light:3,alert:49,hurtfx:50
+77=n:gLOWHORN,hp:7,atk:3,dmg:3,knockback:,sporedeath:5,armor:0,ai:,altpdist:3,light:3,alert:49,hurtfx:50
 78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangetyp:fire,alert:51,hurtfx:52
 137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:idle3,deathanim:brazierdeath,animspeed:0.3,death:23
