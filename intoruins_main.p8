@@ -27,7 +27,7 @@ function _update()
 	 load"intoruins"
 	end
 	
-	statet+=0.033
+	statet+=0.03333
 	
 	if mode!="ui" then
  	waitforanim=#rangedatks>0
@@ -330,7 +330,7 @@ function info()
 					  and player[slot].cursed))
   then
  	 popdiag()popdiag()
- 	 _g.skipturn=true
+ 	 player.skipturn=true
  		selitem[action]()
  		sfx"25"
  	end
@@ -465,7 +465,6 @@ end
 checkeffects=function()
 
  function checkeffect(_typ,has)
- 	local effect=effect
  	if effect then
 		 if	effect.typ==_typ then
 		  if not effect.dead and
@@ -1415,15 +1414,13 @@ taketurn=function()
 		end
 	end
  if statuses.FROZEN or
-    statuses.STUN then
+    statuses.STUN or
+	skipturn then
   if (ai) checkseesplayer()
+  skipturn = false
   return true
  end
 	if isplayer then
-		if _g.skipturn then
-			_g.skipturn=false
-			return true
-		end
 		
 		if getbtn(32) then
 			dialog(inv)
@@ -1536,7 +1533,7 @@ hurt=function(dmg,atkdir,nosplit)
 	hp-=dmg
 	flash=true
 	if isplayer then
-		shake=1
+		_g.shake=1
 	end
 	if hp<=0 then
 	 sfx(death or 41)
@@ -2173,30 +2170,31 @@ function genroom(pos)
 				 	return true
 				 end
 				elseif tl then
-					destroy(tl.ent)
+					local _ENV=tl
+					destroy(ent)
 					
 					if (xwall or ywall) and
-							 not (tl.typ==tdunjfloor 
+							 not (typ==tdunjfloor 
 							 					and openplan) 
 					then
 					 if rndp(crumble) and
 					    alt!=1 and not
 					    (xwall and ywall) then				   
-						 tl.typ=tdunjfloor --needs manmade flag
+						 typ=tdunjfloor --needs manmade flag
 							gentile(txwall,tl)
-							if not tl.ent then
-								tl.genned=false
+							if not ent then
+								genned=false
 								--still want eg. grass
 								--to spread here
 							end
 						else
-							tl.set(
+							set(
 								xwall and txwall or tywall)
 						end
 					else
-						tl.set(tdunjfloor)
+						set(tdunjfloor)
 					end
-					tl.manmade=true
+					manmade=true
 				end
 			end
 	 end
@@ -2282,8 +2280,8 @@ function postproc()
 			function(_ENV)
 				if navigable() and
 							pdist==-1000 and
-							((permissive or
-							  not ismanmade()) or
+							(permissive or
+							 not ismanmade() or
 								pos.y%2==1)
 				then
 					add(unreach,pos)
@@ -2324,24 +2322,24 @@ function postproc()
 			if bestdist<100 then
 				repeat
 					bestp1+=bestdir
-					local tl=gettile(bestp1)
-					local nav=tl.navigable()
+					local _ENV=gettile(bestp1)
+					local nav=navigable()
 					if not nav then
-					 if tl.ismanmade() then
-					 	tl.typ=tdunjfloor
-					 elseif tl.typ == thole then
+					 if ismanmade() then
+					 	typ=tdunjfloor
+					 elseif typ == thole then
 					 	if bestdiri%3==2 then
-					 		tl.typ=tybridge
+					 		typ=tybridge
 					 	else
-					 		tl.typ=txbridge
-					 		tl.flip=bestdiri%3==1
+					 		typ=txbridge
+					 		flip=bestdiri%3==1
 					 	end
-					 	tl.bg=thole
+					 	bg=thole
 					 else
-					 	tl.typ=tcavefloor
+					 	typ=tcavefloor
 						end
 					end
-				until nav and tl.pdist>-1000
+				until nav and _ENV.pdist>-1000
 			end
 		end
 	end
@@ -2427,19 +2425,22 @@ function postproc()
 	if not player then
 		player=create(64,genpos)
 	else
-	 player.tl=gettile(genpos)
-  player.tl.ent,player.animheight,player.animclip,fadetoblack
-  =player,1
-  add(ents,player)
+  		add(ents,player)
 	end
-	calcdist(player.pos,"pdist")
-	calclight()
 	
-	player.animoffset.y=-21
-	player.setanim(player.statuses.SLOFALL and "slofall" or "fallin")
- 
+	do
+		local _ENV=player
+		tl=gettile(genpos)
+		tl.ent,animheight,animclip
+		=player,1
+		calcdist(pos,"pdist")
+		calclight()
+		
+		animoffset.y=-21
+		setanim(statuses.SLOFALL and "slofall" or "fallin")
+	end
 	--spawn entities										
-	wanderdsts={}
+	wanderdsts,fadetoblack={}
 	for n=1,6 do
 		local spawntl=rndtl()
 		local spawndepth=depth
@@ -2522,7 +2523,7 @@ function updateaim(item,lineparams,atktype)
 		player.setanim"throw"
 		add(rangedatks,{item.rangedatk,{0,aimline,atktype}})
 	elseif btnp"4" then
-	 skipturn=false
+	 player.skipturn=false
 	 setmode"play"
 	end
 end
@@ -2622,8 +2623,8 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
-create(129).addtoinventory()
---[[create(145).addtoinventory()
+--[[create(129).addtoinventory()
+create(145).addtoinventory()
 create(161).addtoinventory()
 create(177).addtoinventory()]]
 --[[create(172).addtoinventory()
