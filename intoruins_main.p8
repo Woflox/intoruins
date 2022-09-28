@@ -112,10 +112,10 @@ fillp(]]
 	   modeis"ui" then
 		local x=drawbar(player.hp/player.maxhp,
 		        "HP",2,2,8)
-		for k,v in 
+		for k,_ENV in 
 			pairs(player.statuses)
 		do
-			x=drawbar(v[1]/v[2],k,x,v[3],v[4])	
+			x=drawbar(t/maxt,k,x,col1,col2)	
 		end
 	elseif modeis"aim" then
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
@@ -180,7 +180,7 @@ end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
  if modeis(m) and statet>fadet then
-	 if mus and not musicplayed then
+	 if not musicplayed then
 		 music(mus)
 		 musicplayed=true
 		end
@@ -388,7 +388,7 @@ flags:
 ]]
 
 function tile(_typ,_pos)
-	local _ENV=setmetatable({},{__index=_ENV})
+	local _ENV=objtable"fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}"
 	typ,pos,tlscrpos=
 	_typ,_pos,screenpos(_pos)
 --tile member functions)
@@ -550,7 +550,7 @@ freeze=function()
 	 	ent.setanim"brazierdeath"
 	 end
 		ent.statuses.BURN=--nil
-		ent.setstatus"FROZEN:8,8,13,6"
+		ent.setstatus"FROZEN|t:8,maxt:8,col1:13,col2:6"
 		ent.animtext"○"
 		_g.aggro(pos)
 	end
@@ -563,7 +563,7 @@ visitadjrnd=function(func)
 	end
 end
 --end tile member functions
-	return assigntable("fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}",_ENV)
+	return _ENV
 end
 
 function drawcall(func,args)
@@ -1013,11 +1013,14 @@ function assigntable(str,table,delim1,delim2)
 	end
 	return table
 end
---8143
+
+function objtable(str)
+	return setmetatable(assigntable(str),{__index=_ENV})
+end
+
 function call(str)
 	for s in all(split(str,"\n"))do
 		local func,args=unpack(split(s,"(",false))
-		--printh(s)
 		_ENV[func](usplit(args))
 	end
 end
@@ -1068,11 +1071,10 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=setmetatable({},{__index=_ENV})
+	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,statuses:{}"
 	typ,pos,behav,group=
 	_typ,_pos,_behav,_group
 	
-	assigntable("var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,statuses:{}",_ENV)
 	assigntable(entdata[_typ],_ENV)						
 
 	animoffset=vec2(0,var=="ent"and 0or 2)
@@ -1210,8 +1212,8 @@ stat=function(name)
 end
 
 setstatus=function(str)
-	local k,v=usplit(str,":")
-	statuses[k]=split(v)
+	local k,v=usplit(str,"|")
+	statuses[k]=objtable(v)
 end
 
 heal=function(val)
@@ -1231,8 +1233,8 @@ tickstatuses=function()
  	end
  end
 	for k,v in next,statuses do
-		v[1]-=1
-		if v[1]<=0 then
+		v.t-=1
+		if v.t<=0 then
 			statuses[k]=nil
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
@@ -1562,7 +1564,7 @@ hurt=function(dmg,atkdir,nosplit)
 	end
 	if statuses.FROZEN then
 	 sfx"27"
-	 statuses.FROZEN[1]-=dmg
+	 statuses.FROZEN.t-=dmg
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
@@ -1583,7 +1585,7 @@ end
 
 burn=function()
 	statuses.FROZEN=--nil
-	setstatus"BURN:6,6,8,9"
+	setstatus"BURN|t:6,maxt:6,col1:8,col2:9"
 end
 
 doatk=function(ntl,pat)
@@ -1616,7 +1618,7 @@ doatk=function(ntl,pat)
 					hurt(dmgv)
 				end
 				if  stat"stun" and var=="ent" and b.hp>0 then
-					b.setstatus"STUN:3,3,11,3"
+					b.setstatus"STUN|t:3,maxt:3,col1:11,col2:3"
 					b.animtext"○,wavy:1"
 				end
 			end
@@ -1699,7 +1701,7 @@ eQUIP=function()
 	player[slot]=_ENV
 	equipped=true
 	if lit then
-		player.setstatus"TORCH:160,160,2,9"
+		player.setstatus"TORCH|t:160,maxt:160,col1:2,col2:9"
 	end
 	id()
 end
@@ -1743,11 +1745,11 @@ orbeffect=function(tl,used)
  	sfx(orbfx,-1,fxoffset,fxlength)
  if used then
 	 if orbis"light" then
-			player.setstatus"LIGHT:160,160,2,13"
+			player.setstatus"LIGHT|t:160,maxt:160,col1:2,col2:13"
 			player.light,player.lcool=4,true
 			calclight()
 		elseif orbis"slofall" then
-			player.setstatus"SLOFALL:160,160,2,3"
+			player.setstatus"SLOFALL|t:160,maxt:160,col1:2,col2:3"
 		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
 			_g.uimode=orb
 			dialog(inv,true)
@@ -1889,7 +1891,7 @@ rangedatk=function(i,ln,atktype)
 	end
 end
 
- if (i*spd>=#ln) then
+ if i*spd>=#ln then
   if atkis"throw" then
 		 if tl.typ==thole then
 		 	sfx"24"
@@ -1970,7 +1972,7 @@ end
 
 animtext=function(str)
  local scrpos=entscreenpos()
- add(textanims,setmetatable(assigntable("speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()),{__index=_ENV}))
+ add(textanims,objtable("speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()))
 end
 
 entscreenpos=function()
@@ -2613,6 +2615,7 @@ for i=0,19 do
 	end
 end
 
+--shuffle item colors
 for str in all(split([[
 172,173,174,175,188,189,190,191|300,301,302,303,304,305,306,307
 140,141,142,143|308,309,310,311
@@ -2632,8 +2635,8 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---create(135).addtoinventory()
---[[create(129).addtoinventory()
+--[[create(135).addtoinventory()
+create(129).addtoinventory()
 create(145).addtoinventory()
 create(161).addtoinventory()
 create(177).addtoinventory()]]
