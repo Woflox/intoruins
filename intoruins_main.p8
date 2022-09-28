@@ -80,11 +80,11 @@ function _draw()
 		end
 	end
 	
-	pal()
-	palt(1)
-	pal(usplit"15,129,1")
-	pal(usplit"11,131,1")
-	fillp()
+	call[[pal(
+palt(1
+pal(15,129,1
+pal(11,131,1
+fillp(]]
 	
 	--if fadetoblack then
  -- textanims={}
@@ -164,7 +164,7 @@ function popdiag()
 end
 
 function drawbar(ratio,label,x,col1,col2)
- clip(usplit"0,117,127,127")
+ call"clip(0,117,127,127"
  ?"\#0"..label,x,117,col1
  
  local w=max(#label*4-1,20)
@@ -329,10 +329,11 @@ function info()
 					 (action=="eQUIP" and player[slot] 
 					  and player[slot].cursed))
   then
- 	 popdiag()popdiag()
+ 	 call[[popdiag(
+popdiag(
+sfx(25]]
  	 player.skipturn=true
  		selitem[action]()
- 		sfx"25"
  	end
  end
 end
@@ -429,7 +430,7 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 	 local _ENV=postl
 	 hifade+=mid(-1,hilight-hifade,1)
 	 if hifade>0 then
-	  pal(usplit"2,34,2")
+	  call"pal(2,34,2"
 	 	spr(hifade*16-8,scrpos.x,scrpos.y,2,1)
 	 end
  	hilight=0
@@ -437,7 +438,7 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 end
 
 initpal=function(fadefow)
- pal()	
+	pal()
 	palt(1)
 	local nfow=1
 	if fadefow then
@@ -566,14 +567,6 @@ end
 function drawcall(func,args)
 	add(drawcalls, {func,args})
 end
-
---[[function onscreenpos(pos,pad)
- local scrpos=screenpos(pos)
- local scrposrel=scrpos-smooth
-	return max(abs(scrposrel.x),
-        abs(scrposrel.y))<=pad and
-        scrpos
-end]]
 
 function drawents(tl)
 	function drawent(var)
@@ -1018,6 +1011,14 @@ function assigntable(str,table,delim1,delim2)
 	end
 	return table
 end
+--8143
+function call(str)
+	for s in all(split(str,"\n"))do
+		local func,args=unpack(split(s,"(",false))
+		--printh(s)
+		_ENV[func](usplit(args))
+	end
+end
 
 function rndint(maxval)
 	return flr(rnd(maxval))
@@ -1110,8 +1111,8 @@ draw=function()
 			held and
 			frame<=5 then
 			local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
-			pal(8,8)
-			pal(9,9)
+			call[[pal(8,8
+pal(9,9]]
 			
 			spr(held.typ +
 				frame%4*held.wpnfrms,
@@ -1287,7 +1288,7 @@ update=function()
 				log("\-i◆ dEPTH "..depth.." ◆")
 				if stat"fallheal" then
 					heal(3)
-					sfx(usplit"17,-1,6")
+					call"sfx(17,-1,6"
 				end
 				if stat"recharge" then
 					for item in all(inventory) do
@@ -1296,7 +1297,7 @@ update=function()
 								item.maxcharges,item.charges+stat"recharge")
 						end
 					end
-					sfx(usplit"55,-1,6,10")
+					call"sfx(55,-1,6,10"
 				end
 			elseif case"v" then
 				animt+=1
@@ -1433,16 +1434,9 @@ taketurn=function()
 			return true --wait 1 turn
 		end
 		
-		function turn(btnid,i)
-			if getbtn(btnid) then
-				diri=(diri+i+5)%6+1
-				setanim"turn"
-			end
-		end
-		
-		turn(1,-1)
-		turn(2,1)
-		turn(8,3)
+		call[[turn(1,-1
+turn(2,1
+turn(8,3]]
 		
 		function updst()
 			_g.playerdst,_g.aimitem=
@@ -1565,7 +1559,7 @@ hurt=function(dmg,atkdir,nosplit)
 		end
 	end
 	if statuses.FROZEN then
-	 sfx(27)
+	 sfx"27"
 	 statuses.FROZEN[1]-=dmg
 	elseif hurtfx then
 		sfx(hurtfx)	
@@ -1816,13 +1810,13 @@ eMPOWER=function(test,nosnd)
 		log"CURSED ITEM DESTROYED"
 	end
 	if (nosnd)return
-	sfx(usplit"55,-1,0,16")
+	call"sfx(55,-1,0,16"
 	if (tl and not cursed) animtext"+LVL"
 end
 
 iDENTIFY=function()
 	id()
-	sfx(usplit"55,-1,16,16")
+	call"sfx(55,-1,16,16"
 	dialog(info)
 	_g.selitem=_ENV
 	_g.uimode="dISMISS"
@@ -2005,6 +1999,13 @@ end
 	return _ENV
 end
 
+function turn(btnid,i)
+	if getbtn(btnid) then
+		player.diri=(player.diri+i+5)%6+1
+		player.setanim"turn"
+	end
+end
+
 -->8
 --entity management
 function updateturn()
@@ -2018,8 +2019,8 @@ function updateturn()
 	 player.tickstatuses()
 	 calcdist(player.pos,"pdist")
 	elseif turnorder==1 then
-		calcvis()
-		calclight()
+		call[[calcvis(
+calclight(]]
 	 for _ENV in all(ents) do
 			if not isplayer then
 				taketurn()
@@ -2473,8 +2474,8 @@ function postproc()
 		end
 	end
 	
-	calcvis()
-	calclight(true)
+	call[[calcvis(
+calclight(true]]
 end
 
 -->8
@@ -2635,8 +2636,8 @@ create(188).addtoinventory()
 create(189).addtoinventory()
 create(190).addtoinventory()
 create(191).addtoinventory()]]
-create(mapping[310]).addtoinventory()
---[[create(141).addtoinventory()
+--[[create(mapping[310]).addtoinventory()
+create(141).addtoinventory()
 create(142).addtoinventory()
 create(143).addtoinventory()
 create(156).addtoinventory()
