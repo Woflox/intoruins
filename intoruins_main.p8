@@ -387,7 +387,7 @@ flags:
 ]]
 
 function tile(_typ,_pos)
-	local _ENV=objtable"fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,adjtl:{}"
+	local _ENV=objtable"fow:1,fire:0,spores:0,newspores:0,hilight:0,hifade:0,light:-10,lflash:-10,lflashl:-10,death:41,adjtl:{}"
 	typ,pos,tlscrpos=
 	_typ,_pos,screenpos(_pos)
 --tile member functions)
@@ -950,7 +950,7 @@ function hexdist(p1,p2)
 	return (abs(delta.x)+abs(delta.y)+abs(p1.x+p1.y-p2.x-p2.y))/2
 end
 
-function hexline(p1,p2,range,pass,block,cont)
+function hexline(p1,p2,range,linemode,cont)
 	p2=hexnearest(p2)
 	ln={}
 	local dist,tl=hexdist(p1,p2)
@@ -960,11 +960,11 @@ function hexline(p1,p2,range,pass,block,cont)
 	 local tl=gettile(pos)
 	 if not tl or
 	    not tl.tileflag"8" or
-	    (tl.ent and block) then
+	    (tl.ent and linemode=="block") then
 	  break
 	 end
 		add(ln,tl)
-		if tl.ent and not pass then
+		if tl.ent and linemode!="pass" then
 		 break
 		end
 	end
@@ -1410,8 +1410,7 @@ end
 taketurn=function()
  function checkseesplayer()
 		if seesplayer() then
-			_g.pseen=true
-			_g.lastpseenpos=player.pos
+			_g.pseen,_g.lastpseenpos=true,player.pos
 		end
 	end
  if statuses.FROZEN or
@@ -1475,7 +1474,9 @@ turn(8,3]]
 	elseif ai and canact and behav!="dead" then
 		if behav=="hunt" then
 			checkseesplayer()
-			findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
+			if not (ratks and dorangedatk(rnd(split(ratks,"|")))) then
+				findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
+			end
 				checkseesplayer()
 			if movandatk then
 				findmove("pdist",0,"atkonly")
@@ -1523,6 +1524,24 @@ turn(8,3]]
 	end
 end
 
+dorangedatk=function(atktype)
+	local bestscore,atkdata,bestln=1,assigntable(entdata[atktype])
+	function checktl(tl)
+		ln=hexline(pos,tl.pos,usplit(atkdata.lineparams,"|"))
+	end
+	checktl(player.tl)
+	for i,ntl in iparis,tl.adjtl do
+		local score,ln = checktl(ntl)
+		if score>bestscore then
+			bestscore,bestln=score,ln
+		end
+	end
+	if bestln then
+		add(rangedatks,{rangedatk,{0,bestln,atktype}})
+		return true
+	end
+end
+
 hurt=function(dmg,atkdir,nosplit)
 	hp-=dmg
 	flash=true
@@ -1530,7 +1549,7 @@ hurt=function(dmg,atkdir,nosplit)
 		_g.shake=1
 	end
 	if hp<=0 then
-	 sfx(death or 41)
+	 sfx(death)
 		setbehav"dead"
 		setanim(deathanim)
 		if isplayer then
@@ -1732,7 +1751,7 @@ uSE=function()
 		destroy(_ENV)
 	else
 		--staffs
-		aim{_ENV,{range,pass,block,true},rangetyp}
+		aim{_ENV,{range,linemode,true},rangetyp}
 	end
 end
 
