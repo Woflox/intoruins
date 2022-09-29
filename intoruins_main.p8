@@ -88,18 +88,17 @@ fillp(]]
 	--if fadetoblack then
  -- textanims={}
  --end
- if modeis"play" then
-		for _ENV in all(textanims) do
-		 t+=speed*0.03333
-		 if t>0.5 then
-				del(textanims,_ENV)
-			else
+	if modeis"play" then
+		for i,ent in inext,ents do
+			local _ENV=ent.textanim
+			if _ENV and t<=0.5 then
+				t+=speed
 				y-=0.5-t
 				print(text,
 										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
 										wavy*cos(t*2),
-										y+offset,
-										t>0.433 and 5 or col)
+									y+offset,
+								t>0.433 and 5 or col)
 			end
 		end
 	elseif modeis"aim" then
@@ -190,7 +189,7 @@ function textcrawl(str,x,y,fadet,col,m,mus)
 end
 
 function log(text)
- player.animtext(text..",col:7,speed:0.5")
+ player.animtext(text..",col:7,speed:0.01666")
 end
 
 function frame(x,y,x2,y2,func)
@@ -1225,6 +1224,7 @@ end
 
 setstatus=function(str)
 	local s=split(str)
+	printh(s[1])
 	statuses[s[1]]=s
 end
 
@@ -1326,7 +1326,7 @@ update=function()
 				flash=true
 			elseif case"b" then
 				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext".,col:8,speed:3,offset:0"
+				animtext".,col:8,speed:0.1,offset:0"
 			elseif case"a" then
 				animoffset=
 				movratio*
@@ -1630,7 +1630,7 @@ doatk=function(ntl,pat)
 					hurt(dmgv)
 				end
 				if  stat"stun" and var=="ent" and b.hp>0 then
-					b.setstatus"STUN:3,3,11,3"
+					b.setstatus"STUN,3,3,11,3"
 					b.animtext"○,wavy:1"
 				end
 			end
@@ -1768,7 +1768,7 @@ orbeffect=function(tl,used)
 		elseif orbis"life" then
 		 player.maxhp+=3
 		 player.hp=player.maxhp
- 		player.animtext"+MAX HP,speed:0.5,offset:-12"
+ 		log"+MAX HP"
 		end
 	else
 		if orbis"light" then
@@ -1833,11 +1833,11 @@ eMPOWER=function(test,nosnd)
 	end
 	if (nosnd)return
 	call"sfx(55,-1,0,16"
-	if (tl and not cursed) animtext"+LVL,speed:0.5"
+	if (tl and not cursed) animtext"+LVL,speed:0.01666"
 end
 
 iDENTIFY=function()
-	id(true)
+	id()
 	call"sfx(55,-1,16,16"
 	dialog(info)
 	_g.selitem=_ENV
@@ -1854,12 +1854,10 @@ getname=function()
   (lvl>0 and "+"..lvl or "")or n
 end
 
-id=function(nolog)
+id=function()
 	if not isid() then
 		ided[typ]=true
-		if not nolog then
-			log("\-g☉ "..getname())
-		end
+		log((cursed and "\fe\-i☉ " or "\-g☉ ")..getname())
 	end
 end
 
@@ -1986,7 +1984,7 @@ end
 
 animtext=function(str)
  local scrpos=entscreenpos()
- add(textanims,objtable("t:0,speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y))
+ textanim=objtable("t:0,speed:0.03333,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y)
 end
 
 entscreenpos=function()
@@ -2564,7 +2562,7 @@ _g=assigntable(
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
-,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
+,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
@@ -2649,7 +2647,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---create(mapping[302]).addtoinventory()
+--create(mapping[311]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
