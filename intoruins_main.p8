@@ -59,10 +59,9 @@ end
 function _draw()
 	cls()
 	camera(campos.x,campos.y)
-	lfillp=localfillp(0xbfd6.4,
+	lfillp,anyfire=localfillp(0xbfd6.4,
 								-campos)
 
- anyfire=false
 	for i,drawcall in 
 					inext,drawcalls do
 		drawcall[1](
@@ -90,8 +89,8 @@ fillp(]]
  -- textanims={}
  --end
  if modeis"play" then
-		for i,_ENV in inext,textanims do
-		 local t=speed*(time()-start)
+		for _ENV in all(textanims) do
+		 t+=speed*0.03333
 		 if t>0.5 then
 				del(textanims,_ENV)
 			else
@@ -110,12 +109,13 @@ fillp(]]
  
 	if modeis"play" or
 	   modeis"ui" then
-		local x=drawbar(player.hp/player.maxhp,
-		        "HP",2,2,8)
-		for k,_ENV in 
+		barx=2
+		drawbar("HP",
+			player.hp,player.maxhp,2,8)
+		for k,v in 
 			pairs(player.statuses)
 		do
-			x=drawbar(t/maxt,k,x,col1,col2)	
+			drawbar(unpack(v))	
 		end
 	elseif modeis"aim" then
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
@@ -163,19 +163,19 @@ function popdiag()
 	end
 end
 
-function drawbar(ratio,label,x,col1,col2)
+function drawbar(label,val,maxval,col1,col2)
  call"clip(0,117,127,127"
- ?"\#0"..label,x,117,col1
+ ?"\#0"..label,barx,117,col1
  
  local w=max(#label*4-1,20)
- local barw=ceil(ratio*w)-1
- rect(x-1,122,x+w,126,15)
- rect(x,123,x+barw,125,col2)
+ local barw=ceil(val*w/maxval)-1
+ rect(barx-1,122,barx+w,126,15)
+ rect(barx,123,barx+barw,125,col2)
  if barw>0 then
-	 rectfill(x,124,x+barw-1,
+	 rectfill(barx,124,barx+barw-1,
 	 									125,col1)
 	end
- return x+w+4
+ barx+=w+4
 end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
@@ -213,7 +213,6 @@ function listitem(str,sel,dis)
 end
 
 function getindex(maxind,cur)
- cur=cur or menuindex
 	return focus and not inputblocked and
 												(cur+tonum(btnp"3")-
 													tonum(btnp"2")+
@@ -258,7 +257,7 @@ function inv()
 end
 
 function info()
- menuindex=getindex(uimode and 1 or 2)
+ menuindex=getindex(uimode and 1 or 2,menuindex)
 
  local _ENV,x=selitem,gettrans"42,4"
  frame(x,6,gettrans"42,93.5",111,rectfill)
@@ -285,8 +284,8 @@ function info()
   hEAL FOR MELEE\
   DAMAGE DEALT\
 ,dmgheal|\
-  tAKE 	DAMAGE WHEN\
-  DEALING MELEE DAMAGE\
+  dEALING MELEE DAMAGE\
+  HURTS YOU EQUALLY\
   \
   dESCENDING HEALS +3\
   ,dmghurt|\
@@ -358,7 +357,7 @@ end
 
 function confirmjump()
 	frame(32,gettrans"33,38.5",96,gettrans"33,82.5",rect)
-	menuindex=getindex(2)
+	menuindex=getindex(2,menuindex)
 	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
 	
 	if listitem" jUMP DOWN" then
@@ -566,7 +565,7 @@ freeze=function()
 	 	ent.setanim"brazierdeath"
 	 end
 		ent.statuses.BURN=--nil
-		ent.setstatus"FROZEN|t:8,maxt:8,col1:13,col2:6"
+		ent.setstatus"FROZEN,8,8,13,6"
 		ent.animtext"○"
 		_g.aggro(pos)
 	end
@@ -1225,8 +1224,8 @@ stat=function(name)
 end
 
 setstatus=function(str)
-	local k,v=usplit(str,"|")
-	statuses[k]=objtable(v)
+	local s=split(str)
+	statuses[s[1]]=s
 end
 
 heal=function(val)
@@ -1246,8 +1245,8 @@ tickstatuses=function()
  	end
  end
 	for k,v in next,statuses do
-		v.t-=1
-		if v.t<=0 then
+		v[2]-=1
+		if v[2]<=0 then
 			statuses[k]=nil
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
@@ -1577,7 +1576,7 @@ hurt=function(dmg,atkdir,nosplit)
 	end
 	if statuses.FROZEN then
 	 sfx"27"
-	 statuses.FROZEN.t-=dmg
+	 statuses.FROZEN[2]-=dmg
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
@@ -1598,7 +1597,7 @@ end
 
 burn=function()
 	statuses.FROZEN=--nil
-	setstatus"BURN|t:6,maxt:6,col1:8,col2:9"
+	setstatus"BURN,6,6,8,9"
 end
 
 doatk=function(ntl,pat)
@@ -1631,7 +1630,7 @@ doatk=function(ntl,pat)
 					hurt(dmgv)
 				end
 				if  stat"stun" and var=="ent" and b.hp>0 then
-					b.setstatus"STUN|t:3,maxt:3,col1:11,col2:3"
+					b.setstatus"STUN:3,3,11,3"
 					b.animtext"○,wavy:1"
 				end
 			end
@@ -1714,7 +1713,7 @@ eQUIP=function()
 	player[slot]=_ENV
 	equipped=true
 	if lit then
-		player.setstatus"TORCH|t:160,maxt:160,col1:2,col2:9"
+		player.setstatus"TORCH,160,160,2,9"
 	end
 	id()
 end
@@ -1758,11 +1757,11 @@ orbeffect=function(tl,used)
  	sfx(orbfx,-1,fxoffset,fxlength)
  if used then
 	 if orbis"light" then
-			player.setstatus"LIGHT|t:160,maxt:160,col1:2,col2:13"
+			player.setstatus"LIGHT,160,160,2,13"
 			player.light,player.lcool=4,true
 			calclight()
 		elseif orbis"slofall" then
-			player.setstatus"SLOFALL|t:160,maxt:160,col1:2,col2:3"
+			player.setstatus"SLOFALL,160,160,2,3"
 		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
 			_g.uimode=orb
 			dialog(inv,true)
@@ -1834,11 +1833,11 @@ eMPOWER=function(test,nosnd)
 	end
 	if (nosnd)return
 	call"sfx(55,-1,0,16"
-	if (tl and not cursed) animtext"+LVL"
+	if (tl and not cursed) animtext"+LVL,speed:0.5"
 end
 
 iDENTIFY=function()
-	id()
+	id(true)
 	call"sfx(55,-1,16,16"
 	dialog(info)
 	_g.selitem=_ENV
@@ -1855,10 +1854,12 @@ getname=function()
   (lvl>0 and "+"..lvl or "")or n
 end
 
-id=function()
+id=function(nolog)
 	if not isid() then
 		ided[typ]=true
-		log("\-g☉ "..getname())
+		if not nolog then
+			log("\-g☉ "..getname())
+		end
 	end
 end
 
@@ -1985,7 +1986,7 @@ end
 
 animtext=function(str)
  local scrpos=entscreenpos()
- add(textanims,objtable("speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()))
+ add(textanims,objtable("t:0,speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y))
 end
 
 entscreenpos=function()
@@ -2648,7 +2649,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---create(mapping[311]).addtoinventory()
+--create(mapping[302]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke

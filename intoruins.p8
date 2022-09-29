@@ -1432,8 +1432,8 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:throw,atksfx:26
 68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangetyp:fire
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:3,ai:,alert:31,hurtfx:16
-72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
+72=n:bAT,hp:4,atk:2,dmg:6,armor:0,movratio:0.6,ai:,behav:wander,darksight:20,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,anim:esplit
 74=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,ai:75=n:hORROR,hp:25,atk:4,dmg:8,armor:0,ai:,deathsfx:44
 76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,rangetyp:blink|ice|lightning,alert:47,hurtfx:48
@@ -1499,14 +1499,14 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54
 302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55,fxlength:16
 303=,nid:oRB OF dATA,orb:iDENTIFY,orbfx:55,fxoffset:16,fxlength:16
-304=,nid:oRB OF rENEWAL,orb:life,orbfx:17
+304=,nid:oRB OF lIFE,orb:life,orbfx:17
 305=,nid:oRB OF fIRE,orb:fire,orbfx:36
 306=,nid:oRB OF iCE,orb:ice,orbfx:28
 307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29
 308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
 310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
-311=,nid:aMULET OF pEACE,dmghurt:,fallheal:,cursed:
+311=,nid:aMULET OF pACIFISM,dmghurt:,fallheal:,cursed:
 312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
 313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
 314=,nid:cLOAK OF wISDOM,recharge:1,falleffect:,rndlvl:
