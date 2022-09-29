@@ -59,10 +59,9 @@ end
 function _draw()
 	cls()
 	camera(campos.x,campos.y)
-	lfillp=localfillp(0xbfd6.4,
+	lfillp,anyfire=localfillp(0xbfd6.4,
 								-campos)
 
- anyfire=false
 	for i,drawcall in 
 					inext,drawcalls do
 		drawcall[1](
@@ -89,18 +88,17 @@ fillp(]]
 	--if fadetoblack then
  -- textanims={}
  --end
- if modeis"play" then
-		for i,_ENV in inext,textanims do
-		 local t=speed*(time()-start)
-		 if t>0.5 then
-				del(textanims,_ENV)
-			else
+	if modeis"play" then
+		for i,ent in inext,ents do
+			local _ENV=ent.textanim
+			if _ENV and t<=0.5 then
+				t+=speed
 				y-=0.5-t
 				print(text,
 										mid(campos.x,4+x-#text*2,campos.x+128-#text*4)-
 										wavy*cos(t*2),
-										y+offset,
-										t>0.433 and 5 or col)
+									y+offset,
+								t>0.433 and 5 or col)
 			end
 		end
 	elseif modeis"aim" then
@@ -110,12 +108,13 @@ fillp(]]
  
 	if modeis"play" or
 	   modeis"ui" then
-		local x=drawbar(player.hp/player.maxhp,
-		        "HP",2,2,8)
-		for k,_ENV in 
+		barx=2
+		drawbar("HP",
+			player.hp,player.maxhp,2,8)
+		for k,v in 
 			pairs(player.statuses)
 		do
-			x=drawbar(t/maxt,k,x,col1,col2)	
+			drawbar(unpack(v))	
 		end
 	elseif modeis"aim" then
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
@@ -163,19 +162,19 @@ function popdiag()
 	end
 end
 
-function drawbar(ratio,label,x,col1,col2)
+function drawbar(label,val,maxval,col1,col2)
  call"clip(0,117,127,127"
- ?"\#0"..label,x,117,col1
+ ?"\#0"..label,barx,117,col1
  
  local w=max(#label*4-1,20)
- local barw=ceil(ratio*w)-1
- rect(x-1,122,x+w,126,15)
- rect(x,123,x+barw,125,col2)
+ local barw=ceil(val*w/maxval)-1
+ rect(barx-1,122,barx+w,126,15)
+ rect(barx,123,barx+barw,125,col2)
  if barw>0 then
-	 rectfill(x,124,x+barw-1,
+	 rectfill(barx,124,barx+barw-1,
 	 									125,col1)
 	end
- return x+w+4
+ barx+=w+4
 end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
@@ -190,7 +189,7 @@ function textcrawl(str,x,y,fadet,col,m,mus)
 end
 
 function log(text)
- player.animtext(text..",col:7,speed:0.5")
+ player.animtext(text..",col:7,speed:0.01666")
 end
 
 function frame(x,y,x2,y2,func)
@@ -213,7 +212,6 @@ function listitem(str,sel,dis)
 end
 
 function getindex(maxind,cur)
- cur=cur or menuindex
 	return focus and not inputblocked and
 												(cur+tonum(btnp"3")-
 													tonum(btnp"2")+
@@ -258,7 +256,7 @@ function inv()
 end
 
 function info()
- menuindex=getindex(uimode and 1 or 2)
+ menuindex=getindex(uimode and 1 or 2,menuindex)
 
  local _ENV,x=selitem,gettrans"42,4"
  frame(x,6,gettrans"42,93.5",111,rectfill)
@@ -280,6 +278,16 @@ function info()
 ,lunge|\
   aTTACKS SLOWLY\
 ,slow|\
+  cATCH FIRE IN LIGHT\
+,burnlight|\
+  hEAL FOR MELEE\
+  DAMAGE DEALT\
+,dmgheal|\
+  dEALING MELEE DAMAGE\
+  HURTS YOU EQUALLY\
+  \
+  dESCENDING HEALS +3\
+  ,dmghurt|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
   hEALTH:      ,hp|/,maxhp|\
@@ -292,7 +300,14 @@ function info()
   tHROW ACC:  +,throwatk|\
   tHROW DAMAGE:,throwdmg|\
 \
-  cHARGES: ,charges|/,maxcharges",
+  cHARGES: ,charges|/,maxcharges|\
+  \
+  wHEN DESCENDING\
+  STAFFS RECHARGE ,recharge|\
+  \
+  cANNOT BE REMOVED.\
+  \fceMPOWERING DESTROYS\
+  THIS ITEM,cursed",
   "|")
   do
   	k,v=usplit(str)
@@ -341,7 +356,7 @@ end
 
 function confirmjump()
 	frame(32,gettrans"33,38.5",96,gettrans"33,82.5",rect)
-	menuindex=getindex(2)
+	menuindex=getindex(2,menuindex)
 	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
 	
 	if listitem" jUMP DOWN" then
@@ -549,7 +564,7 @@ freeze=function()
 	 	ent.setanim"brazierdeath"
 	 end
 		ent.statuses.BURN=--nil
-		ent.setstatus"FROZEN|t:8,maxt:8,col1:13,col2:6"
+		ent.setstatus"FROZEN,8,8,13,6"
 		ent.animtext"○"
 		_g.aggro(pos)
 	end
@@ -1208,8 +1223,9 @@ stat=function(name)
 end
 
 setstatus=function(str)
-	local k,v=usplit(str,"|")
-	statuses[k]=objtable(v)
+	local s=split(str)
+	printh(s[1])
+	statuses[s[1]]=s
 end
 
 heal=function(val)
@@ -1229,8 +1245,8 @@ tickstatuses=function()
  	end
  end
 	for k,v in next,statuses do
-		v.t-=1
-		if v.t<=0 then
+		v[2]-=1
+		if v[2]<=0 then
 			statuses[k]=nil
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
@@ -1310,7 +1326,7 @@ update=function()
 				flash=true
 			elseif case"b" then
 				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext".,col:8,speed:3,offset:0"
+				animtext".,col:8,speed:0.1,offset:0"
 			elseif case"a" then
 				animoffset=
 				movratio*
@@ -1579,7 +1595,7 @@ hurt=function(dmg,atkdir,nosplit)
 	end
 	if statuses.FROZEN then
 	 sfx"27"
-	 statuses.FROZEN.t-=dmg
+	 statuses.FROZEN[2]-=dmg
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
@@ -1600,7 +1616,7 @@ end
 
 burn=function()
 	statuses.FROZEN=--nil
-	setstatus"BURN|t:6,maxt:6,col1:8,col2:9"
+	setstatus"BURN,6,6,8,9"
 end
 
 doatk=function(ntl,pat)
@@ -1633,7 +1649,7 @@ doatk=function(ntl,pat)
 					hurt(dmgv)
 				end
 				if  stat"stun" and var=="ent" and b.hp>0 then
-					b.setstatus"STUN|t:3,maxt:3,col1:11,col2:3"
+					b.setstatus"STUN,3,3,11,3"
 					b.animtext"○,wavy:1"
 				end
 			end
@@ -1716,7 +1732,7 @@ eQUIP=function()
 	player[slot]=_ENV
 	equipped=true
 	if lit then
-		player.setstatus"TORCH|t:160,maxt:160,col1:2,col2:9"
+		player.setstatus"TORCH,160,160,2,9"
 	end
 	id()
 end
@@ -1760,18 +1776,18 @@ orbeffect=function(tl,used)
  	sfx(orbfx,-1,fxoffset,fxlength)
  if used then
 	 if orbis"light" then
-			player.setstatus"LIGHT|t:160,maxt:160,col1:2,col2:13"
+			player.setstatus"LIGHT,160,160,2,13"
 			player.light,player.lcool=4,true
 			calclight()
 		elseif orbis"slofall" then
-			player.setstatus"SLOFALL|t:160,maxt:160,col1:2,col2:3"
+			player.setstatus"SLOFALL,160,160,2,3"
 		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
 			_g.uimode=orb
 			dialog(inv,true)
 		elseif orbis"life" then
 		 player.maxhp+=3
 		 player.hp=player.maxhp
- 		player.animtext"+MAX HP,speed:0.5,offset:-12"
+ 		log"+MAX HP"
 		end
 	else
 		if orbis"light" then
@@ -1836,7 +1852,7 @@ eMPOWER=function(test,nosnd)
 	end
 	if (nosnd)return
 	call"sfx(55,-1,0,16"
-	if (tl and not cursed) animtext"+LVL"
+	if (tl and not cursed) animtext"+LVL,speed:0.01666"
 end
 
 iDENTIFY=function()
@@ -1860,7 +1876,7 @@ end
 id=function()
 	if not isid() then
 		ided[typ]=true
-		log("\-g☉ "..getname())
+		log((cursed and "\fe\-i☉ " or "\-g☉ ")..getname())
 	end
 end
 
@@ -1987,7 +2003,7 @@ end
 
 animtext=function(str)
  local scrpos=entscreenpos()
- add(textanims,objtable("speed:1,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y..",start:"..time()))
+ textanim=objtable("t:0,speed:0.03333,col:7,offset:-6,wavy:0,text:"..str..",x:"..scrpos.x..",y:"..scrpos.y)
 end
 
 entscreenpos=function()
@@ -2565,7 +2581,7 @@ _g=assigntable(
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
-,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
+,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
@@ -2650,27 +2666,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---[[create(135).addtoinventory()
-create(129).addtoinventory()
-create(145).addtoinventory()
-create(161).addtoinventory()
-create(177).addtoinventory()]]
---[[create(172).addtoinventory()
-create(173).addtoinventory()
-create(174).addtoinventory()
-create(175).addtoinventory()
-create(188).addtoinventory()
-create(189).addtoinventory()
-create(190).addtoinventory()
-create(191).addtoinventory()]]
---[[create(mapping[310]).addtoinventory()
-create(141).addtoinventory()
-create(142).addtoinventory()
-create(143).addtoinventory()
-create(156).addtoinventory()
-create(157).addtoinventory()
-create(158).addtoinventory()
-create(159).addtoinventory()]]	
+--create(mapping[311]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
