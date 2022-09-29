@@ -280,6 +280,16 @@ function info()
 ,lunge|\
   aTTACKS SLOWLY\
 ,slow|\
+  cATCH FIRE IN LIGHT\
+,burnlight|\
+  hEAL FOR MELEE\
+  DAMAGE DEALT\
+,dmgheal|\
+  tAKE 	DAMAGE WHEN\
+  DEALING MELEE DAMAGE\
+  \
+  dESCENDING HEALS +3\
+  ,dmghurt|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
   hEALTH:      ,hp|/,maxhp|\
@@ -292,7 +302,14 @@ function info()
   tHROW ACC:  +,throwatk|\
   tHROW DAMAGE:,throwdmg|\
 \
-  cHARGES: ,charges|/,maxcharges",
+  cHARGES: ,charges|/,maxcharges|\
+  \
+  wHEN DESCENDING\
+  STAFFS RECHARGE ,recharge|\
+  \
+  cANNOT BE REMOVED.\
+  \fceMPOWERING DESTROYS\
+  THIS ITEM,cursed",
   "|")
   do
   	k,v=usplit(str)
@@ -2631,27 +2648,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---[[create(135).addtoinventory()
-create(129).addtoinventory()
-create(145).addtoinventory()
-create(161).addtoinventory()
-create(177).addtoinventory()]]
---[[create(172).addtoinventory()
-create(173).addtoinventory()
-create(174).addtoinventory()
-create(175).addtoinventory()
-create(188).addtoinventory()
-create(189).addtoinventory()
-create(190).addtoinventory()
-create(191).addtoinventory()]]
---[[create(mapping[310]).addtoinventory()
-create(141).addtoinventory()
-create(142).addtoinventory()
-create(143).addtoinventory()
-create(156).addtoinventory()
-create(157).addtoinventory()
-create(158).addtoinventory()
-create(159).addtoinventory()]]	
+--create(mapping[311]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
