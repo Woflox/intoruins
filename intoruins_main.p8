@@ -280,11 +280,11 @@ function info()
 ,slow|\
   cATCH FIRE IN LIGHT\
 ,burnlight|\
-  hEAL FOR MELEE\
-  DAMAGE DEALT\
+  dEALING MELEE DAMAGE\
+  HEALS WEARER\
 ,dmgheal|\
   dEALING MELEE DAMAGE\
-  HURTS YOU EQUALLY\
+  HURTS WEARER\
   \
   dESCENDING HEALS +3\
   ,dmghurt|\
@@ -983,7 +983,7 @@ function hexline(p1,p2,range,linemode,cont)
 		 break
 		end
 	end
-	return ln
+	return ln,#ln>=dist
 end
 
 --adapted from observablehq.com/@jrus/hexround
@@ -1224,7 +1224,6 @@ end
 
 setstatus=function(str)
 	local s=split(str)
-	printh(s[1])
 	statuses[s[1]]=s
 end
 
@@ -1240,9 +1239,9 @@ tickstatuses=function()
  	if tl.vistoplayer() then
  		animtext"+"
  	end
- 	if isplayer then
+ 	--if isplayer then
  		call"sfx(17,-1,6"
- 	end
+ 	--end
  end
 	for k,v in next,statuses do
 		v[2]-=1
@@ -1388,7 +1387,7 @@ seesplayer=function()
 end
 
 findmove=function(var,goal,special)
-	local bestscore=-2
+	local bestscore,besttl=-2
 	tl.visitadjrnd(
 	function(ntl)
 		if canmove(ntl.pos,special) and
@@ -1397,10 +1396,10 @@ findmove=function(var,goal,special)
 		 local score=
 		 							abs(tl[var]-goal)-
 		 							abs(ntl[var]-goal)
-		 if ntl.ent and 
-		 	ntl.ent.blocking then
-		 	score-=flying and 10 or 1
-		 end
+		 --if ntl.ent and 
+		 --	ntl.ent.blocking then
+		 --	score-=flying and 10 or 1
+		 --end
 		 if burnlight and 
 		    tl.light>-1 and 
 		    tl.pdist<-1 then
@@ -1412,7 +1411,7 @@ findmove=function(var,goal,special)
 			end
 		end
 	end)
-	if bestscore>-2 then
+	if besttl then
 			if special=="aggro" and
 			besttl.pdist==0
 			then
@@ -1490,7 +1489,7 @@ turn(8,3]]
 	elseif ai and canact and behav!="dead" then
 		if behav=="hunt" then
 			checkseesplayer()
-			if not (ratks and dorangedatk(rnd(split(ratks,"|")))) then
+			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
 				findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
 			end
 				checkseesplayer()
@@ -1540,21 +1539,28 @@ turn(8,3]]
 	end
 end
 
-dorangedatk=function(atktype)
-	local bestscore,atkdata,bestln=1,assigntable(entdata[atktype])
-	function checktl(tl)
-		ln=hexline(pos,tl.pos,usplit(atkdata.lineparams,"|"))
-	end
-	checktl(player.tl)
-	for i,ntl in iparis,tl.adjtl do
-		local score,ln = checktl(ntl)
-		if score>bestscore then
-			bestscore,bestln=score,ln
+dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,permissive)
+	local bestscore,bestln=0
+	function checktl(ntl)
+		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
+		if permissive and #ln>0 or hit then
+			local _ENV,score = ntl.ent,ptarg
+			if _ENV and ai and hp<maxhp then
+				score+=etarg
+			end
+			if score>bestscore then
+				bestscore,bestln=score,ln
+			end
 		end
 	end
+	checktl(player.tl)
+	ptarg=btarg --hacky but saves tokenss
+	tl.visitadjrnd(checktl)
 	if bestln then
-		add(rangedatks,{rangedatk,{0,bestln,atktype}})
-		return true
+		sfx(atksfx)
+		setanim"ratk"
+		lookat(bestln[1].pos)
+		return add(rangedatks,{rangedatk,{0,bestln,atktype}})
 	end
 end
 
@@ -1584,8 +1590,8 @@ hurt=function(dmg,atkdir,nosplit)
 			if splitpos then
 				hp/=2
 				local newent=create(typ,splitpos,behav,group)
-				for k,v in next,statuses do
-					newent.statuses[k]={unpack(v)}
+				if statuses.FIRE then
+					newent.burn()
 				end
 				newent.renderpos,newent.hp=
 				renderpos,hp
@@ -1939,7 +1945,7 @@ end
 		  if atk then
 		  	doatk(tl)
 		  end
-			 if throw then
+			 if throw and not ai then
 			 	setpos(findfree(tl.pos,"item"),true)
 			 end
 		 end
@@ -2490,7 +2496,7 @@ function postproc()
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
-		=rnd(spawns[min(spawndepth,20)]),
+		={67}--rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false
@@ -2575,7 +2581,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:play,statet:0,depth:5,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2993,7 +2999,7 @@ c4020b00326103503437061242311d21310231000000000000000000000000000000000000000000
 900409000f65500301000010065006011006013600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900b04003f00438011320212900100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 480606000062507071000000062400620006250000001605006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-940310000165500000206650002106051090210b541095210a5310b5010a5210b5010c5010b5010a5110b50100000000000000000000000000000000000000000000000000000000000000000000000000000000
+940310000165500000206650051106531095110b521095110a5210b5010a5110b5010c5010b5010a5110b50100000000000000000000000000000000000000000000000000000000000000000000000000000000
 c40406003a62532525136003f52500605026010160100505006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 060212000655300003095530000300003115333f5153f5051a533000030000335545206153b515000003b5003f500000000000000000000000000000000000000000000000000000000000000000000000000000
 36030b003d60135211006113e5113e5113a511385013e5003a5013850100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

@@ -969,7 +969,7 @@ move=function(dst,playsfx)
 		
 		if playsfx then
 		 if dsttile.frozen then
-	  	sfx(usplit"28,-1,12,3")
+	  	call"sfx(28,-1,12,3"
 	  else
 		  local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
 		  sfx(snd or 35)
@@ -1428,30 +1428,23 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon|heal,rangep:1
-67=n:gOBLIN ARCHER,hp:7,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:throw,rangep:0.5,atksfx:26
-68=n:gOBLIN WARLOCK,hp:6,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:fire,rangep:0.5
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;1;44;|heal;1;0;1;0;17,rangep:1
+67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,atksfx:26,throw:6,throwln:1.125,ratks:throw;4;1;0;0
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:fire;6__;1;0;0;36,rangep:0.33
 69=n:oGRE,hp:15,atk:2,dmg:8,armor:1,slow:,knockback:,stun:3,ai:,alert:31,hurtfx:16
 72=n:bAT,hp:4,atk:2,dmg:8,armor:0,movratio:0.6,ai:,behav:wander,darksight:20,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,anim:esplit
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
 74=n:hORROR,hp:30,atk:4,dmg:8,armor:0,ai:,alertsfx:45,hurtsfx:46
-75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,deathsfx:44,idleanim:hover,anim:bladesummon,deathanim:bladedeath
-76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,ratks:blink|ice|lightning,alert:47,rangep:0.75,hurtfx:48,idleanim:hover
+75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,deathsfx:44,idleanim:hover,deathanim:bladedeath
+76=n:mIRRORSHARD,hp:7,ai:,pdist:-2,altpdist:-4,armor:3,rangep:0.75,hurtfx:48,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,alert:47
 77=n:gLOWHORN,hp:7,atk:3,dmg:4,knockback:,sporedeath:5,armor:1,ai:,altpdist:3,light:3,alert:49,hurtfx:50
-78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,ratks:fire,rangep:0.5,alert:51,hurtfx:52
+78=n:dRAGON,hp:20,at:5.dmg:8,armor:5,ai:,rangep:0.5,alert:51,hurtfx:52,ratks:fire;6__;1;0;0;36
 137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42
 136=n:bRAZIER,hp:1,nofire:,blocking:,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,animspeed:0.3,death:23
 169=n:cHAIR,hp:2,nofire:,blocking:,hitpush:,dmg:2,flippable:,deathanim:propdeath,animspeed:0.3,death:23
 200=n:bARREL,hp:2,blocking:,hitpush:,dmg:2,flammable:,deathanim:propdeath,animspeed:0.3,death:23
 138=n:fIRE,var:effect,light:4,idleanim:fireidle,deathanim:firedeath,animspeed:0.33,flippable:
 139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
-throw=lineparams:4,ptarg:1,etarg:0,btarg:0,musthit:
-fire=lineparams:6||,ptarg:1,etarg:0,btarg:0,cont:,musthit:,fx:36
-lightning=lineparams:6|pass|,ptarg:1,etarg:0,btarg:0,pass:,cont:,musthit:,fx:9
-ice=lineparams:6|pass|,ptarg:1,etarg:0,btarg:0,pass:,cont:,musthit:,fx:28
-blink=lineparams:3|block|,ptarg:-1,etarg:0,btarg:1,block:,cont:,fx:29
-summon=lineparams:1,ptarg:1,etarg:-1,btarg:0.5,summon:,fx:44
-heal=lineparams:1,ptarg:0,etarg:1,btarg:0.fx:17
 brazieridle=l012
 fireidle=01f0l.1.2.3f1f2f3
 firedeath=20_
@@ -1469,6 +1462,7 @@ sleep=lz000000000000000000000
 flash=l!0000000000000000000000000000000000000000000
 patk=wa22d22r
 eatk=wa22dr22
+ratk=wa2222r
 batatk=wa20dr22
 death=wb0cv50v500v50r_
 pdeath=w444l6
@@ -1516,7 +1510,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
 310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
-311=,nid:aMULET OF rECKONING,dmghurt:,fallheal:,cursed:
+311=,nid:aMULET OF rECKONING,dmghurt:,cursed:
 312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
 313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
 314=,nid:cLOAK OF wISDOM,recharge:1,falleffect:,rndlvl:
