@@ -632,9 +632,7 @@ function setupdrawcalls()
 					 baseoffset+=vec2s"0,1"
 					end
 				end
-				if i%3!=2 then
-				 flp=false
-				end
+				flp=flp and i%3==2
 			end
 			
 			drawcall{draw,
@@ -1243,7 +1241,7 @@ tickstatuses=function()
     and tl.spores>0
  then
 	heal(2)
- 	if tl.vistoplayer() then
+ 	if tl.vistoplayer() and not textanim then
  		animtext"+"
  	end
  	--if isplayer then
@@ -1443,17 +1441,6 @@ taketurn=function()
  end
 	if isplayer then
 		
-		if getbtn(32) then
-			dialog(inv)
-			return
-		end
-		
-		if getbtn(16) then
-			_g.tock=not _g.tock
-			sfx(40,-1,not tock and 16 or 0, 8)
-			return true --wait 1 turn
-		end
-		
 		call[[turn(1,-1
 turn(2,1
 turn(8,3]]
@@ -1470,6 +1457,18 @@ turn(8,3]]
 		then
 			dsttile.hilight=2
 		end
+		
+		if getbtn(32) then
+			dialog(inv)
+			return
+		end
+		
+		if getbtn(16) then
+			_g.tock=not _g.tock
+			sfx(40,-1,not tock and 16 or 0, 8)
+			return true --wait 1 turn
+		end
+		
 		if getbtn(4) then
 			dsttile.hilight=0
 			if canmove(playerdst) then
