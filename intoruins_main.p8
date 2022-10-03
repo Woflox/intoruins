@@ -240,10 +240,10 @@ function inv()
 			 i+=1
 				if listitem(item.getname(),
 								i==invindex,
-								(uimode=="iDENTIFY"and
-								 item.isid()) or
-								(uimode=="eMPOWER"and
-								 item.orb))
+								uimode=="iDENTIFY"and
+								 item.isid() or
+								uimode=="eMPOWER"and
+								 item.orb)
 				then
 					dialog(info)
 					selitem=item
@@ -343,10 +343,10 @@ function info()
   "tHROW"}
  do
  	if listitem(action,nil,
-				 	(cursed and equipped and not _g.uimode) or 
+				 	cursed and equipped and not _g.uimode or 
 					 action=="uSE" and charges==0 or
-					 (action=="eQUIP" and player[slot] 
-					  and player[slot].cursed))
+					 action=="eQUIP" and player[slot] 
+					  and player[slot].cursed)
   then
  	 call[[popdiag(
 popdiag(
@@ -415,7 +415,7 @@ set=function(ntyp)
 end
 
 draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
-	dtyp=_typ or (_bg and bg) or typ
+	dtyp=_typ or _bg and bg or typ
 	if frozen then
 		if fget(dtyp+1,5)	then
 			dtyp,flp=56
@@ -538,7 +538,7 @@ end
 
 ismanmade=function()
 	return tileflag"7" or
-	(bg and fget(bg,7))
+	bg and fget(bg,7)
 end
 
 vistoplayer=function()
@@ -655,8 +655,8 @@ function setupdrawcalls()
 		
 		if not infront and
 					tileflag"5" or
-					(_typ==tywall and
-					(pos.y+genpos.y)%2==1) then
+					_typ==tywall and
+					(pos.y+genpos.y)%2==1 then
 			tdraw(_ENV,_ENV)
 		end
 		
@@ -981,7 +981,7 @@ function hexline(p1,p2,range,linemode,cont)
 	 local tl=gettile(pos)
 	 if not tl or
 	    not tl.tileflag"8" or
-	    (tl.ent and linemode=="block") then
+	    tl.ent and linemode=="block" then
 	  break
 	 end
 		add(ln,tl)
@@ -1329,7 +1329,7 @@ update=function()
 			elseif case"s" then
 				renderpos=nil
 			elseif case"h" then
-				hurt((hp>maxhp\20) and 
+				hurt(hp>maxhp\20 and 
 					min(maxhp\3,hp-1) or
 					1000)
 		 end
@@ -1373,16 +1373,16 @@ end
 canmove=function(npos,special)
 	local ntl=gettile(npos)
 	return
-	 (ntl.ent and atk and
+	 ntl.ent and atk and
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
 	  (not ntl.ent.blocking or
 	   behavis"hunt" or
-	   isplayer))
+	   isplayer)
 	 or
-	 (not ntl.ent and
+	 not ntl.ent and
 	  special != "atkonly" and
-	  ntl.navigable(flying))
+	  ntl.navigable(flying)
 end
 
 seesplayer=function()
@@ -2222,7 +2222,7 @@ function genroom(pos)
 				local tl=inbounds(npos)
 				if test then
 				 if not tl or
-				   (cave and npos==genpos)
+				   cave and npos==genpos
 				 then
 				 	return true
 				 end
