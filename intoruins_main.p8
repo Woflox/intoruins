@@ -624,8 +624,7 @@ function setupdrawcalls()
 			 if _typ==tywall and
 							(postl.pos.y+genpos.y)%2==0 then
 					baseoffset+=vec2s"-6,-2"
-				end
-				if _typ==thole then
+				elseif _typ==thole then
 				 _typ+=192
 					if i>3 then
 					 _typ += 2--brick hole
@@ -633,7 +632,7 @@ function setupdrawcalls()
 					 baseoffset+=vec2s"0,1"
 					end
 				end
-				if i!=1 or i!=5 then
+				if i%3!=2 then
 				 flp=false
 				end
 			end
