@@ -1245,9 +1245,9 @@ tickstatuses=function()
  	if tl.vistoplayer() and not textanim then
  		animtext"+"
  	end
- 	--if isplayer then
+ 	if isplayer then
  		call"sfx(17,-1,6"
- 	--end
+ 	end
  end
 	for k,v in next,statuses do
 		v[2]-=1
