@@ -99,10 +99,12 @@ fillp(]]
 										wavy*cos(t*2),
 									pos.y+offset,
 								t>0.433 and 5 or col)
+			else
+				ent.textanim=nil
 			end
 		end
 	elseif modeis"aim" then
-		?"\+fe⁙",aimscrpos.x,aimscrpos.y,7
+		?"\f7\+fe⁙",aimscrposx,aimscrposy
 	end
 	camera()
  
@@ -145,7 +147,7 @@ fillp(]]
  usplit"47,29,1.3,13,gameover,16")
  then
  	fadetoblack=true
- 	music(-1,300)
+ 	call"music(-1,300"
  	setmode"reset"
 	end
 	inputblocked=false
@@ -400,6 +402,7 @@ flags:
 11:wall
 12:bridge
 13:freezable
+14:ywall
 ]]
 
 function tile(_typ,_pos)
@@ -611,7 +614,7 @@ function setupdrawcalls()
 			i and (bg and tltodraw.bg or
 			              tltodraw.typ),
 			flip
-			if not i and tltodraw.typ==tywall then
+			if not i and tltodraw.tileflag"14" then
 				_typ=tdunjfloor
 			end
 
@@ -621,7 +624,7 @@ function setupdrawcalls()
 		 sizes[i or 1]
 		 --special tiles
 			if i then
-			 if _typ==tywall and
+			 if tileflag"14" and
 							(postl.pos.y+genpos.y)%2==0 then
 					baseoffset+=vec2s"-6,-2"
 				elseif _typ==thole then
@@ -718,8 +721,8 @@ function inbounds(pos)
 	return y and y[pos.x]
 end
 
-function passlight(tl)
-	return tl.tileflag"1"
+function passlight(_ENV)
+	return tileflag"1"
 end
 
 function rndtl()
@@ -760,16 +763,15 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	pos+=dir1
 	local lastvis,notfirst=false
 	for i=ceil(lim1),flr(lim2) do
-	 local tlpos=pos+i*dir2
-		local tl=gettile(tlpos)
-	 if tl then
-			local vis,splitlim=
-			passlight(tl)
-			tl.vis=tl.tileflag"5" or
-											tl.typ==tywall and
+	 local _ENV=gettile(pos+i*dir2)
+	 if _ENV then
+			local _vis,splitlim=
+			passlight(_ENV)
+			vis=tileflag"5" or
+											tileflag"14" and
 											 player.pos.x<
-											 tlpos.x
-			if vis then 
+											 pos.x
+			if _vis then 
 				if notfirst and
 					not lastvis then
 					lim1=i-0.5
@@ -789,7 +791,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 												d+1)
 			end
 			lastvis,notfirst=
-			vis,true
+			_vis,true
 		end
 	end
 end
@@ -895,7 +897,7 @@ function updateenv()
 			entfire()
 			visitadjrnd(trysetfire)
 			if tileflag"9" then
-				if rndp(0.2) then
+				if rndp"0.2" then
 					fire=0
 					typ=34
 				end
@@ -1046,7 +1048,7 @@ function rndint(maxval)
 end
 
 function rndp(p)
-	return rnd()<(p or 0.5)
+	return rnd()<(tonum(p) or 0.5)
 end
 
 function lerp(a,b,t)
@@ -1107,8 +1109,7 @@ draw=function()
 			pal(9,stat"acol") 
 		end
 		if flash then
-			pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
-			flash=false
+			flash=pal(split"7,7,7,7,7,7,7,7,7,7,7,7,7,7")
 		elseif animpal then
 			pal(animpal)
 			fillp(lfillp)
@@ -1183,14 +1184,13 @@ setbehav=function(name)
 			checkidle()
 		end
 		
-		behav=name
+		behav,canact=name
 		if behavis"hunt" and not statuses.FROZEN then
 			animtext"!"
 			sfx(alert)
 		elseif behavis"search" then
 			animtext"?"
 		end
-		canact=false 
 	end
 end
 
@@ -1199,8 +1199,9 @@ behavis=function(name)
 end
 
 setpos=function(npos,setrender)
+	if (tl) tl[var]=nil
+	pos,tl=npos
 	if npos then
-		pos=npos
 		tl=gettile(npos)
 		tl[var]=_ENV
 		if setrender then
@@ -1281,15 +1282,16 @@ update=function()
 			elseif case"r" then
 				animwait=false
 			elseif case"z" and
-			tl.vistoplayer() 
+			tl.vistoplayer()
 			then
 				animtext"z,wavy:1"
 			elseif case"_" then
-				destroy(_ENV)
 				if isplayer then
 					--next level
 					_g.depth+=1
 					genmap(pos,tl.manmade)
+				else
+					destroy(_ENV)
 				end
 			elseif case"m" then
 				log("\-i◆ dEPTH "..depth.." ◆")
@@ -1458,22 +1460,21 @@ turn(8,3]]
 			dsttile.hilight=2
 		end
 		
-		if getbtn(32) then
+		if getbtn"32" then
 			dialog(inv)
 			return
 		end
 		
-		if getbtn(16) then
+		if getbtn"16" then
 			_g.tock=not _g.tock
 			sfx(40,-1,not tock and 16 or 0, 8)
 			return true --wait 1 turn
 		end
 		
-		if getbtn(4) then
+		if getbtn"4" then
 			dsttile.hilight=0
 			if canmove(playerdst) then
-				move(playerdst,true)
-				if tl==dsttile then
+				if move(playerdst,true) then
 					if dsttile.item then
 						dsttile.item.pickup()
 					end
@@ -1517,7 +1518,7 @@ turn(8,3]]
 			if behavis"wander" then
 				if not wanderdsts[group]
 				or pos==wanderdsts[group]
-				or rndp(0.025)
+				or rndp"0.025"
 				then
 					repeat
 						wanderdsts[group]=rnd(inboundposes)
@@ -1691,7 +1692,6 @@ move=function(dst,playsfx)
 		interact(dsttile.ent,
 		         wpn or ent)
 	else
-		tl.ent=nil
 		if moveanim then
 			setanim(moveanim)
 		end
@@ -1710,6 +1710,7 @@ move=function(dst,playsfx)
 		end
 	 
 	 setpos(dst)
+	 return true
 	end
 end
 
@@ -1733,9 +1734,11 @@ tele=function(dst)
 		until dst.navigable() and
 		      not dst.ent
 	end
-	tl.ent=--nil
 	setanim"tele"
 	setpos(dst.pos,true)
+	if isplayer and dst.item then
+		dst.item.pickup()
+	end
 end
 
 eQUIP=function()
@@ -1900,7 +1903,7 @@ pickup=function()
  if #inventory<10 then
 		sfx"25"
 		addtoinventory()
-		tl,tl.item=--nil
+		setpos()
 		log("+"..getname())
 	else
 	 log"INVENTORY FULL"
@@ -2033,7 +2036,7 @@ end
 		setpos(pos,true)	
 	end
 	
-	while rndlvl and rndp(0.33)do
+	while rndlvl and rndp"0.33"do
 		eMPOWER(nil,true)
 	end
 	
@@ -2100,7 +2103,6 @@ calclight(]]
 		turnorder=-1
 	end
 	turnorder+=1
-	--updateturn()
 end
 
 function setsearchpos(pos)
@@ -2132,16 +2134,14 @@ end
 function destroy(_ENV)
  if _ENV then
 		del(ents,_ENV)
-		if tl then
-			tl[var]=nil
-		end
+		setpos()
 	end
 end
 -->8
 --level generation
 
 function genmap(startpos,manmade)
-	genpos,cave=
+	genpos,cave,searchpos=
 	startpos,not manmade
 	
 	alltiles(function(_ENV)
@@ -2453,7 +2453,7 @@ function postproc()
 					 typ=tcavewall
 				end
 			end
-		elseif typ==tywall and
+		elseif tileflag"14" and
 		  adjtl[4].typ==txwall
 		then
 			typ=txwall
@@ -2501,7 +2501,7 @@ function postproc()
 	for n=1,6 do
 		local spawntl=rndtl()
 		local spawndepth=depth
-	 while rndp(0.45) do
+	 while rndp"0.45" do
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
@@ -2543,18 +2543,18 @@ function aim(params)
 end
 
 function updateaim(_ENV,lineparams,atktype)
- _g.aimitem,_g.aimscrpos=_ENV,
+ _g.aimitem,aimscrpos,_g.aimscrposy=_ENV,
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn"1")
            -tonum(btn"0")),
        tonum(btn"3")
       -tonum(btn"2"))
 	
- aimscrpos.x,aimscrpos.y=
+ _g.aimscrposx,_g.aimscrposy=
  mid(campos.x,aimscrpos.x,campos.x+127),
  mid(campos.y,aimscrpos.y,campos.y+127)
-	aimpos=vec2(aimscrpos.x/12,
-	            aimscrpos.y/8-aimscrpos.x/24)
+	aimpos=vec2(aimscrposx/12,
+	            aimscrposy/8-aimscrposx/24)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
 	for i,tl in inext,aimline do
