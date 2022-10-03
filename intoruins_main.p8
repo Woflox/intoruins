@@ -31,8 +31,8 @@ function _update()
 	
 	if mode!="ui" then
  	waitforanim=#rangedatks>0
-		for i,ent in inext,ents do
-			ent.update()
+		for i,_ENV in inext,ents do
+			update()
 		end
  end
 	
@@ -374,7 +374,7 @@ function dialog(func,nosnd)
 	     
  setmode"ui"
  add(diags,func)
- if (not nosnd)sfx"39"
+ return nosnd or sfx"39"
 end
 
 function setmode(m)
@@ -454,6 +454,16 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 	end
 end
 
+drawents = function()
+	function drawent(var)
+		if (_ENV[var]) _ENV[var].draw()
+	end
+
+	drawent"item"
+	drawent"ent"
+	checkeffects()
+	drawent"effect"
+end
 initpal=function(fadefow)
 	pal()
 	palt(1)
@@ -581,20 +591,10 @@ end
 	return _ENV
 end
 
-function drawcall(func,args)
-	add(drawcalls, {func,args})
+function drawcall(dcall)
+	add(drawcalls, dcall)
 end
 
-function drawents(tl)
-	function drawent(var)
-		if (tl[var]) tl[var].draw()
-	end
-
-	drawent"item"
-	drawent"ent"
-	tl.checkeffects()
-	drawent"effect"
-end
 
 function setupdrawcalls()
 	alltiles(
@@ -604,7 +604,7 @@ function setupdrawcalls()
 		
 		function tdraw(tltodraw,postl,i,_bg)
 			if not palready then
-				drawcall(initpal,{true})
+				drawcall{initpal,{true}}
 				palready=true
 			end
 			local _typ,flp=
@@ -633,18 +633,18 @@ function setupdrawcalls()
 					 baseoffset+=vec2s"0,1"
 					end
 				end
-				if (i-2)%3 !=0 then
+				if i!=1 or i!=5 then
 				 flp=false
 				end
 			end
 			
-			drawcall(draw,
+			drawcall{draw,
 							 {_typ,postl,
 							 postl.tlscrpos+offset+baseoffset,
 							  offset,size,
 							 	flp and 
 							 		tltodraw.tileflag"6", _bg, 
-							 	not(i or _bg)})
+							 	not(i or _bg)}}
 		end
 		
 		local infront,uprtl=fget(_typ,3),adjtl[3]
@@ -654,7 +654,7 @@ function setupdrawcalls()
 		end
 		
 		if not infront and
-					fget(typ,5) or
+					tileflag"5" or
 					(_typ==tywall and
 					(pos.y+genpos.y)%2==1) then
 			tdraw(_ENV,_ENV)
@@ -703,7 +703,7 @@ function setupdrawcalls()
 		end
 		if uprtl and 
 					uprtl.tileflag"8" then
-			drawcall(drawents,{uprtl})	
+			drawcall{uprtl.drawents,{}}
 		end
 	end)	
 end
@@ -895,7 +895,7 @@ function updateenv()
 			end
 		end
 		if fire>=2 then
-			entfire(_ENV)
+			entfire()
 			visitadjrnd(trysetfire)
 			if tileflag"9" then
 				if rndp(0.2) then
@@ -906,8 +906,11 @@ function updateenv()
 				fire=0
 				if tileflag"10" then
 					typ=thole
-					if ent then
+					if ent then 
 						ent.checkfall()
+					end
+					if item then
+					 item.checkfall()
 					end
 				end
 			end
@@ -1000,13 +1003,11 @@ function hexnearest(pos)
 end
 
 function hexdir(p1,p2)
- local dist=hexdist(p1,p2)
 	local dir=hexnearest(
-	        lerp(p1,p2,1/dist))-p1
-	for i=1,6 do
-		if (adj[i]==dir) return dir,i
+	        lerp(p1,p2,1/hexdist(p1,p2)))-p1
+	for i,d in inext,adj do
+		if (d==dir) return dir,i
 	end
-	return dir
 end
 
 function vec2s(str)
@@ -1169,7 +1170,7 @@ checkidle=function()
 end
 
 checkfall=function()
-	if var=="ent" and
+	if var!="effect" and
 	not flying and
 				tl.typ==thole
 	then
@@ -1181,21 +1182,24 @@ end
 
 setbehav=function(name)
 	if behav!=name then
-		if behav=="sleep" then
+		if behavis"sleep" then
 			checkidle()
 		end
 		
 		behav=name
-		if name=="hunt" and not statuses.FROZEN then
+		if behavis"hunt" and not statuses.FROZEN then
 			animtext"!"
 			sfx(alert)
-		elseif name=="search" then
+		elseif behavis"search" then
 			animtext"?"
 		end
 		canact=false 
 	end
 end
 
+behavis=function(name)
+	return behav==name
+end
 
 setpos=function(npos,setrender)
 	if npos then
@@ -1374,7 +1378,7 @@ canmove=function(npos,special)
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
 	  (not ntl.ent.blocking or
-	   behav=="hunt" or
+	   behavis"hunt" or
 	   isplayer))
 	 or
 	 (not ntl.ent and
@@ -1490,7 +1494,7 @@ turn(8,3]]
 			end
 		end
 	elseif ai and canact and behav!="dead" then
-		if behav=="hunt" then
+		if behavis"hunt" then
 			checkseesplayer()
 			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
 				findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
@@ -1510,9 +1514,9 @@ turn(8,3]]
 				return true
 				end
 			end
-			checkaggro(behav=="search"
+			checkaggro(behavis"search"
 					and 1.0 or 0.29)
-			if behav=="wander" then
+			if behavis"wander" then
 				if not wanderdsts[group]
 				or pos==wanderdsts[group]
 				or rndp(0.025)
@@ -1528,7 +1532,7 @@ turn(8,3]]
 				end
 				findmove(group,0,"aggro")
 				checkaggro(0.29)
-			elseif behav=="search" 
+			elseif behavis"search" 
 			then
 				local goal=pdist
 				findmove("search",goal,"aggro")
@@ -1547,7 +1551,7 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 	local bestscore,bestln=0
 	function checktl(ntl)
 		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
-		if summon and #ln>0 or hit then
+		if hit and (not summon or not summoned or summoned.behavis"dead") then
 			local _ENV,score = ntl.ent,ptarg
 			if _ENV and ai and hp<maxhp and ntl.spores==0 then
 				score+=etarg
@@ -1569,6 +1573,7 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 end
 
 hurt=function(dmg,atkdir,nosplit)
+	if (behavis"dead") return
 	hp-=dmg
 	flash=true
 	if isplayer then
@@ -1584,6 +1589,8 @@ print(\^!5f40\31\
 calclight("
 		elseif sporedeath then
 			tl.sporeburst(sporedeath)
+		elseif summoned then
+			summoned.hurt(10)
 		end
 	else 
 		sfx"34"
@@ -1709,17 +1716,15 @@ move=function(dst,playsfx)
 end
 
 lookat=function(dst)
-	local deltax,lookdir,lookdiri=
+	deltax,dir,diri=
 	dst.x-pos.x,
 	hexdir(pos,dst)
- dir=lookdir
- diri=lookdiri
  if deltax!=0 then 
 		xface,yface=
 		sgn(deltax),sgn(deltax)
  end
- if lookdir.y!=0 then
- 	yface=sgn(lookdir.y)
+ if dir.y!=0 then
+ 	yface=dir.y
  end
 end
 
@@ -1868,8 +1873,8 @@ iDENTIFY=function()
 	id()
 	call"sfx(55,-1,16,16"
 	dialog(info)
-	_g.selitem=_ENV
-	_g.uimode="dISMISS"
+	_g.selitem,_g.uimode=
+	_ENV,"dISMISS"
 end
 
 dISMISS=function()
@@ -1932,17 +1937,21 @@ rangedatk=function(i,ln,atktype)
 	calclight(true)
 end
 
+	function drawburst()
+		spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
+	end
+ 
  if i*spd>=#ln then
   if atkis"throw" then
 		 if tl.typ==thole then
-		 	sfx"24"
+		 	setpos(tl.pos,true)
 		 elseif lit then
 		 	tl.setfire()
 		 	sfx"36"
 		 elseif orb then
 		  orbeffect(tl)
 		  tl.initpal()
-		  spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
+		  drawburst()
 		  id()
 		 	sfx"27"
 		 elseif throw and not ai then
@@ -1959,7 +1968,7 @@ end
 		end
 		return true
 	end
- 
+
 	if atkis"blink" then
 	 (ai and _ENV or player).tele(ln[#ln])
 		return true
@@ -1988,7 +1997,7 @@ end
 	elseif atkis"ice" then
 		tl.freeze()
 		tl.initpal()
-		spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
+		drawburst()
  else
 	 if i==1 then
 		 gettile(pos).lflash=2
@@ -2043,7 +2052,7 @@ end
 		yface*=-1
 	end
 	checkidle()
-	if behav=="sleep" then
+	if behavis"sleep" then
 		setanim"sleep"
 	end
 
@@ -2080,14 +2089,13 @@ calclight(]]
 		end
 	elseif turnorder==2 then
 		for i,_ENV in inext,ents do
-			if ai then
-				if behav=="hunt" and not
-				_g.pseen then
-					setbehav"search"
-					setsearchpos(lastpseenpos)
-				end
-			canact=true
+			if ai and behavis"hunt" and
+				not _g.pseen and not alwayshunt
+			then
+				setbehav"search"
+				setsearchpos(lastpseenpos)
 			end
+			canact=true
 		end
 	else
 		updateenv()
@@ -2144,8 +2152,8 @@ function genmap(startpos,manmade)
 		adjtl=nil
 	end)
 
-	assigntable("world:{},ents:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
-
+	assigntable("world:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
+	ents={unpack(inventory)}
 	for y=0,20 do
 	 world[y],tileinbounds[y]=
 	 {},{}
@@ -2390,7 +2398,7 @@ function postproc()
 					 	typ=tcavefloor
 						end
 					end
-				until nav and _ENV.pdist>-1000
+				until nav and pdist>-1000
 			end
 		end
 	end
@@ -2499,7 +2507,7 @@ function postproc()
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
-		={66}--rnd(spawns[min(spawndepth,20)]),
+		=rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false
@@ -2584,7 +2592,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:5,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2998,7 +3006,7 @@ d4080a00170033e544345353d5353e525345153d5153e51531507375073a5073d5073a5073250732
 010706000000109071190010000107031200010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 c403110000610022210a631241412c3401a641132310a221066200000001220000000120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 c4020b00326103503437061242311d213102310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-220411002d6210a0530f13104141061620814208162081420e1610813108151071510815107121091510e1210b101071010a1010a105000000000000000000000000000000000000000000000000000000000000
+220411002d6210a0530f12104131061520813208152081320e1510812108141071410814107121091410e1110b101071010a1010a105000000000000000000000000000000000000000000000000000000000000
 900409000f65500301000010065006011006013600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900b04003f00438011320212900100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 480606000062507071000000062400620006250000001605006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
