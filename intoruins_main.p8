@@ -79,11 +79,7 @@ function _draw()
 		end
 	end
 	
-	call[[pal(
-palt(1
-pal(15,129,1
-pal(11,131,1
-fillp(]]
+	call"pal()palt(1)pal(15,129,1)pal(11,131,1)fillp("
 	
 	--if fadetoblack then
  -- textanims={}
@@ -147,8 +143,7 @@ fillp(]]
  usplit"47,29,1.3,13,gameover,16")
  then
  	fadetoblack=true
- 	call"music(-1,300"
- 	setmode"reset"
+ 	call"music(-1,300)setmode(reset"
 	end
 	inputblocked=false
 	
@@ -226,35 +221,34 @@ function gettrans(str)
 	return lerp(b,a,focus and uitrans or 0.56*(1-uitrans))
 end
 
-function inv()
- frame(gettrans"126,40",6,126,111,rect)
- local i=0
-	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
-	?"\f1 ……………… EQUIPPED"
-	
-	invindex=getindex(#inventory,invindex)
-	
-	function listitems(eqpd)
-		for j,item in inext,inventory do
-			if item.equipped==eqpd then
-			 i+=1
-				if listitem(item.getname(),
-								i==invindex,
-								uimode=="iDENTIFY"and
-								 item.isid() or
-								uimode=="eMPOWER"and
-								 item.orb)
-				then
-					dialog(info)
-					selitem=item
-				end
+
+function listitems(nop,eqpd)
+	for j,item in inext,inventory do
+		if item.equipped==eqpd then
+			invi+=1
+			if listitem(item.getname(),
+							invi==invindex,
+							uimode=="iDENTIFY"and
+								item.isid() or
+							uimode=="eMPOWER"and
+								item.orb)
+			then
+				dialog(info)
+				selitem=item
 			end
 		end
 	end
+end
+
+function inv()
+ frame(gettrans"126,40",6,126,111,rect)
+	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
+	?"\f1 ……………… EQUIPPED"
 	
-	listitems(true)
-	?"\n\f1 ………………… STOWED"
-	listitems()
+ 	invi,invindex=
+	0,getindex(#inventory,invindex)
+	
+	call"listitems(t,t)print(\n\f1 ………………… STOWED)listitems("
 end
 
 function info()
@@ -348,9 +342,7 @@ function info()
 					 action=="eQUIP" and player[slot] 
 					  and player[slot].cursed)
   then
- 	 call[[popdiag(
-popdiag(
-sfx(25]]
+ 	 call"popdiag()popdiag()sfx(25"
  	 player.skipturn=true
  		selitem[action]()
  	end
@@ -1029,7 +1021,7 @@ function objtable(str)
 end
 
 function call(str)
-	for i,s in inext,split(str,"\n")do
+	for i,s in inext,split(str,")")do
 		local func,args=unpack(split(s,"(",false))
 		_ENV[func](usplit(args))
 	end
@@ -1081,7 +1073,7 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,statuses:{}"
+	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,statuses:{}"
 	typ,behav,group=
 	_typ,_behav,_group
 	
@@ -1124,8 +1116,7 @@ draw=function()
 			held and
 			frame<=5 then
 			local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
-			call[[pal(8,8
-pal(9,9]]
+			call"pal(8,8)pal(9,9"
 			
 			spr(held.typ +
 				frame%4*held.wpnfrms,
@@ -1324,7 +1315,13 @@ update=function()
 				hurt(hp>maxhp\20 and 
 					min(maxhp\3,hp-1) or
 					1000)
-		 end
+			elseif case"k" then
+				hurt(2)
+				animoffset=vec2s"0,0"
+				if pushtl.ent then
+					pushtl.ent.hurt(2,pushdir)
+				end
+			end
 			animt+=1
 			tickanim()
 		else
@@ -1435,9 +1432,7 @@ taketurn=function()
  end
 	if isplayer then
 		
-		call[[turn(1,-1
-turn(2,1
-turn(8,3]]
+		call"turn(1,-1)turn(2,1)turn(8,3"
 		
 		function updst()
 			_g.playerdst,_g.aimitem=
@@ -1564,7 +1559,6 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 end
 
 hurt=function(dmg,atkdir,nosplit)
-	if (behavis"dead") return
 	hp-=dmg
 	flash=true
 	if isplayer then
@@ -1575,12 +1569,10 @@ hurt=function(dmg,atkdir,nosplit)
 		setbehav"dead"
 		setanim(deathanim)
 		if isplayer then
-			call"setmode(gameover\
-print(\^!5f40\31\
-calclight("
+			call"setmode(gameover)print(\^!5f40\31)calclight("
 		elseif sporedeath then
 			tl.sporeburst(sporedeath)
-		elseif summoned then
+		elseif summoned and not summoned.behavis"dead"then
 			summoned.hurt(10)
 		end
 	else 
@@ -1624,13 +1616,13 @@ end
 
 push=function(dir)
 	local pushpos=pos+dir
-	pushtl=gettile(pushpos)
+	pushdir,pushtl=dir,gettile(pushpos)
 	if (pushtl.navigable(flying) or pushtl.typ==thole) and not pushtl.ent then
 		setpos(pushpos)
-	end 
-
-	--setanim(pushanim)
-	
+	else 
+		setanim(pushanim)
+		animoffset=0.66*screenpos(dir)
+	end
 end
 
 burn=function()
@@ -1751,7 +1743,7 @@ eQUIP=function()
 		player[slot].sTOW()
 	end
 	player[slot]=_ENV
-	equipped=true
+	equipped="t"
 	if lit then
 		player.setstatus"TORCH,160,160,2,9"
 	end
@@ -2083,8 +2075,7 @@ function updateturn()
 	 player.tickstatuses()
 	 calcdist(player.pos,"pdist")
 	elseif turnorder==1 then
-		call[[calcvis(
-calclight(]]
+		call"calcvis()calclight("
 	 for i,_ENV in inext,ents do
 			if not isplayer then
 				taketurn()
@@ -2187,8 +2178,7 @@ function genmap(startpos,manmade)
 	else
 		gencave(startpos)
 	end
-	postproc()
-	setupdrawcalls()
+	call"postproc()setupdrawcalls("
 end
 
 function genroom(pos)
@@ -2529,8 +2519,7 @@ function postproc()
 		end
 	end
 	
-	call[[calcvis(
-calclight(true]]
+	call"calcvis()calclight(t"
 end
 
 -->8
@@ -2678,9 +2667,9 @@ for j,str in inext,split([[
 	end
 end
 
-genmap(vec2s"10,12",true)
+genmap(vec2s"10,12")
 
-create(130).addtoinventory().eQUIP(true)
+create(135).addtoinventory().eQUIP(true)
 --create(mapping[311]).addtoinventory()
 calclight()
 
