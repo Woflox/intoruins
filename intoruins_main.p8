@@ -458,14 +458,11 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 end
 
 drawents = function()
-	function drawent(var)
+
+	checkeffects()
+	for i,var in inext,tlentvars do
 		if (_ENV[var]) _ENV[var].draw()
 	end
-
-	drawent"item"
-	drawent"ent"
-	checkeffects()
-	drawent"effect"
 end
 initpal=function(fadefow)
 	pal()
@@ -525,7 +522,7 @@ end
 
 
 tileflag=function(i)
-	return fget(typ+flr(i/8),i%8)
+	return fget(typ+i\8,i%8)
 end
 
 navigable=function(flying)
@@ -624,8 +621,8 @@ function setupdrawcalls()
 		 sizes[i or 1]
 		 --special tiles
 			if i then
-			 if tileflag"14" and
-							(postl.pos.y+genpos.y)%2==0 then
+			 if _typ==tywall and
+							not postl.altwall then
 					baseoffset+=vec2s"-6,-2"
 				elseif _typ==thole then
 				 _typ+=192
@@ -655,8 +652,8 @@ function setupdrawcalls()
 		
 		if not infront and
 					tileflag"5" or
-					_typ==tywall and
-					(pos.y+genpos.y)%2==1 then
+					tileflag"14" and
+					altwall then
 			tdraw(_ENV,_ENV)
 		end
 		
@@ -682,7 +679,7 @@ function setupdrawcalls()
 				 walltl=adjtl[i]
 					if adjtyp==tywall and
 							 i==1 and
-							 (walltl.pos.y+genpos.y)%2==0 
+							 not walltl.altwall
 					then
 					 tdraw(_adjtl,walltl)
 					end
@@ -810,20 +807,7 @@ function calclight(checkburn,clearflash)
  local tovisit={}
 
  alltiles(
- function(_ENV)
-		function checklight(var)
-		 local nent =_ENV[var]
-			if nent then
-				local tlight=nent.stat"light"
-				if tlight and tlight>light then
-					light=tlight
-					if tlight>=3 then
-						lightsrc=true
-						lcool=nent.lcool
-					end
-				end
-			end	
-		end
+function(_ENV)
 		if vistoplayer() then
 			explored=true
 		end
@@ -833,11 +817,19 @@ function calclight(checkburn,clearflash)
 		else
 			light=max(light,lflashl)
 		end
-		lightsrc,lcool=
-		light>1,light>1
-		checklight"item"
-		checklight"effect"
-		checklight"ent"
+		lcool=light>2
+		for i,var in inext,tlentvars do
+			local nent =_ENV[var]
+			if nent then
+				local tlight=nent.stat"light"
+				if tlight and tlight>light then
+					light=tlight
+					lcool=lcool or nent.lcool
+				end
+			end	
+		end
+
+		lightsrc=light>2
   if light>0 then
 			add(tovisit,_ENV)
 		end
@@ -1090,8 +1082,8 @@ end
 
 function create(_typ,_pos,_behav,_group)
 	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,statuses:{}"
-	typ,pos,behav,group=
-	_typ,_pos,_behav,_group
+	typ,behav,group=
+	_typ,_behav,_group
 	
 	assigntable(entdata[_typ],_ENV)						
 
@@ -1630,6 +1622,17 @@ calclight("
 	aggro(pos)
 end
 
+push=function(dir)
+	local pushpos=pos+dir
+	pushtl=gettile(pushpos)
+	if (pushtl.navigable(flying) or pushtl.typ==thole) and not pushtl.ent then
+		setpos(pushpos)
+	end 
+
+	--setanim(pushanim)
+	
+end
+
 burn=function()
 	statuses.FROZEN=--nil
 	setstatus"BURN,6,6,8,9"
@@ -1648,30 +1651,33 @@ doatk=function(ntl,pat)
  
  if b then
  	local hitp=1
-		if b.stat"armor" then
-		 local diff=(throwatk or stat"atk")-b.stat"armor"
-		 hitp=(max(diff)+1)/
-		      (abs(diff)+2)
-		end
-		if rndp(hitp) then
-			local dmgv=min(stat"dmg",b.hp)
-			b.hurt(throwdmg or dmgv,atkdir)
-			if not b.blocking then
-				if stat"dmgheal" then
-					heal(dmgv)
-					animtext"+,col:8"
-				end
-				if stat "dmghurt" then
-					hurt(dmgv)
-				end
-				if  stat"stun" and var=="ent" and b.hp>0 then
-					b.setstatus"STUN,3,3,11,3"
-					b.animtext"○,wavy:1"
-				end
+	if b.stat"armor" then
+		local diff=(throwatk or stat"atk")-b.stat"armor"
+		hitp=(max(diff)+1)/
+			(abs(diff)+2)
+	end
+	if rndp(hitp) then
+		local dmgv=min(stat"dmg",b.hp)
+		b.hurt(throwdmg or dmgv,atkdir)
+		if not b.blocking then
+			if stat"dmgheal" then
+				heal(dmgv)
+				animtext"+,col:8"
 			end
-		else
-			aggro(ntl.pos)
+			if stat "dmghurt" then
+				hurt(dmgv)
+			end
+			if  stat"stun" and var=="ent" and b.hp>0 then
+				b.setstatus"STUN,3,3,11,3"
+				b.animtext"○,wavy:1"
+			end
 		end
+		if not b.nopush and stat"knockback" or b.hitpush then
+			b.push(atkdir)
+		end
+	else
+		aggro(ntl.pos)
+	end
  end
 
  skipturn=stat"slow"
@@ -1685,12 +1691,11 @@ interact=function (b)
 end
 
 move=function(dst,playsfx)
-	local dsttile=gettile(dst)
-	lasttl=tl
+	local dsttile,lasttl=
+	gettile(dst),tl
 	lookat(dst)
 	if dsttile.ent then
-		interact(dsttile.ent,
-		         wpn or ent)
+		interact(dsttile.ent)
 	else
 		if moveanim then
 			setanim(moveanim)
@@ -1810,7 +1815,7 @@ orbeffect=function(tl,used)
 			
 		elseif orbis"eMPOWER" or 
 		       orbis"iDENTIFY" and 
-		       tl.ent or tl.item then
+		       (tl.ent or tl.item) then
 			(tl.ent or tl.item)[orb]()
 		elseif orbis"life" then
 			tl.sporeburst(12)
@@ -2032,9 +2037,7 @@ entscreenpos=function()
 end
 --end member functions
 
-	if _pos then
-		setpos(pos,true)	
-	end
+	setpos(_pos,true)
 	
 	while rndlvl and rndp"0.33"do
 		eMPOWER(nil,true)
@@ -2228,6 +2231,7 @@ function genroom(pos)
 				 end
 				elseif tl then
 					local _ENV=tl
+					altwall=alt!=0
 					destroy(ent)
 					
 					if (xwall or ywall) and
@@ -2235,7 +2239,7 @@ function genroom(pos)
 							 					and openplan) 
 					then
 					 if rndp(crumble) and
-					    alt!=1 and not
+					    not altwall and not
 					    (xwall and ywall) then				   
 						 typ=tdunjfloor --needs manmade flag
 							gentile(txwall,tl)
@@ -2332,22 +2336,19 @@ function postproc()
 			--what a mess
 		 calcdist(genpos,"pdist")
 		 
-			local unreach,numtls={},0
+			local unreach,numtls,bestdist={},0,100
 			alltiles(
 			function(_ENV)
 				if navigable() and
 							pdist==-1000 and
 							(permissive or
-							 not ismanmade() or
-								pos.y%2==1)
+							 not altwall)
 				then
 					add(unreach,pos)
 				end
 			end)
 			
 			if (#unreach==0) return
-				
-			local bestdist=100
 			
 			for j=1,200 do
 				if #unreach==0 then
@@ -2355,10 +2356,8 @@ function postproc()
 				end
 				local p1=rnd(unreach)
 				local diri=
-		   gettile(p1).ismanmade() and
-		   not permissive and 
-		   rnd(split"1,2,4,5") or
-		   rndint(6)+1
+		   rnd(split(gettile(p1).ismanmade() and
+		   not permissive and "1,2,4,5" or"1,2,3,4,5,6"))
 				local dir=adj[diri]
 				local p2=p1+rndint(18)*dir
 				local tl2=gettile(p2)
@@ -2602,7 +2601,7 @@ entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
-adj,fowpals,frozepal,ided,counts,enchstats=
+adj,fowpals,frozepal,ided,counts,enchstats,tlentvars=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2611,7 +2610,8 @@ split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:",--ided
 assigntable"301:-1",--counts
-split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges"--enchstats
+split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
+split"item,ent,effect"--tlentvars
 
 for i,s in inext,
 split([[16
@@ -2678,7 +2678,7 @@ for j,str in inext,split([[
 	end
 end
 
-genmap(vec2s"10,12")
+genmap(vec2s"10,12",true)
 
 create(130).addtoinventory().eQUIP(true)
 --create(mapping[311]).addtoinventory()
@@ -2946,7 +2946,7 @@ __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 __gff__
-000000000000000000000000000000004000800880082c000000ee00be00ee007a016301ba016b03f32109096b15b321b32173217321730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+000000000000000000000000000000004000804880082c000000ee00be00ee007a016301ba016b03f32109096b15b321b32173217321730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
 0000000001010101008000000000000000000000010101010000000000000000040000000101010300000000000000000400000001010103000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070400040904003000
 __map__
 000000000000000000000000000000001011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000046004646004600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
