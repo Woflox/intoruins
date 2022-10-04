@@ -1321,6 +1321,9 @@ update=function()
 				if pushtl.ent then
 					pushtl.ent.hurt(2,pushdir)
 				end
+				if statuses.BURN then
+					pushtl.entfire()
+				end
 			end
 			animt+=1
 			tickanim()
@@ -1558,7 +1561,7 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 	end
 end
 
-hurt=function(dmg,atkdir,nosplit)
+hurt=function(dmg,atkdir,nosplit,_push)
 	hp-=dmg
 	flash=true
 	if isplayer then
@@ -1599,24 +1602,21 @@ hurt=function(dmg,atkdir,nosplit)
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
-	if hitfire then
-		local firepos=pos
-		if atkdir then
-			local dirpos=firepos+atkdir
-			if gettile(dirpos).navigable() then
-				firepos=dirpos
-			end
-		end
-		sfx"36"
-		light=nil
-		gettile(firepos).setfire()
-	end
 	aggro(pos)
+	if _push or hitpush and atkdir then
+		push(atkdir)
+	end
 end
 
 push=function(dir)
+	if (nopush) return
 	local pushpos=pos+dir
 	pushdir,pushtl=dir,gettile(pushpos)
+	if hitfire then
+		sfx"36"
+		light=nil
+		(pushtl.navigable() and pushtl or tl).setfire()
+	end
 	if (pushtl.navigable(flying) or pushtl.typ==thole) and not pushtl.ent then
 		setpos(pushpos)
 	else 
@@ -1641,7 +1641,7 @@ doatk=function(ntl,pat)
  	end
  end
  
- if b then
+ if atk and b then
  	local hitp=1
 	if b.stat"armor" then
 		local diff=(throwatk or stat"atk")-b.stat"armor"
@@ -1650,7 +1650,7 @@ doatk=function(ntl,pat)
 	end
 	if rndp(hitp) then
 		local dmgv=min(stat"dmg",b.hp)
-		b.hurt(throwdmg or dmgv,atkdir)
+		b.hurt(throwdmg or dmgv,atkdir,nil,stat"knockback")
 		if not b.blocking then
 			if stat"dmgheal" then
 				heal(dmgv)
@@ -1663,9 +1663,6 @@ doatk=function(ntl,pat)
 				b.setstatus"STUN,3,3,11,3"
 				b.animtext"○,wavy:1"
 			end
-		end
-		if not b.nopush and stat"knockback" or b.hitpush then
-			b.push(atkdir)
 		end
 	else
 		aggro(ntl.pos)
@@ -1786,6 +1783,7 @@ end
 
 orbeffect=function(tl,used)
  	sfx(orbfx)
+	local entoritem=tl.ent or tl.item
  if used then
 	 if orbis"light" then
 			player.setstatus"LIGHT,160,160,2,13"
@@ -1793,6 +1791,7 @@ orbeffect=function(tl,used)
 			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL,160,160,2,3"
+			return
 		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
 			_g.uimode=orb
 			dialog(inv,true)
@@ -1804,24 +1803,25 @@ orbeffect=function(tl,used)
 	else
 		if orbis"light" then
 			tl.lflash=8
-			
-		elseif orbis"eMPOWER" or 
-		       orbis"iDENTIFY" and 
-		       (tl.ent or tl.item) then
-			(tl.ent or tl.item)[orb]()
+		elseif (orbis"eMPOWER" or 
+		       orbis"iDENTIFY") and 
+		       entoritem then
+			entoritem[orb]()
 		elseif orbis"life" then
 			tl.sporeburst(12)
 		end
 	end
 	
-	if orbis"tele" and tl.ent then
-		tl.ent.tele()
+	if orbis"tele" and entoritem then
+		entoritem.tele()
 	end
 	
-	for j,i in inext,split"1,2,3,4,5,6,0" do
+	for i=0,6 do
 		local ntl=tl.adjtl[i]
-		if orbis"slofall" and 
-		   not used then
+		if orbis"slofall" and i>0 and 
+		   ntl.ent
+		then
+		   ntl.ent.push(adj[i])
 		elseif ntl.tileflag"8" and
 		  ntl.typ!=thole
 		then
@@ -1941,6 +1941,7 @@ end
  
  if i*spd>=#ln then
   if atkis"throw" then
+		 doatk(tl)
 		 if tl.typ==thole then
 		 	setpos(tl.pos,true)
 		 elseif lit then
@@ -1955,9 +1956,6 @@ end
 		 elseif throw and not ai then
 			 	setpos(findfree(tl.pos,"item"),true)
 		 end
-		  if atk then
-		  	doatk(tl)
-		  end
 		elseif atkis"heal" then
 			tl.sporeburst(0.9)
 		elseif atkis"summon" then
@@ -2669,7 +2667,7 @@ end
 
 genmap(vec2s"10,12")
 
-create(135).addtoinventory().eQUIP(true)
+create(130).addtoinventory().eQUIP(true)
 --create(mapping[311]).addtoinventory()
 calclight()
 
