@@ -1526,6 +1526,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 317=,nid:sTAFF OF lYTNING,dmg:3,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9
 318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:ice,usefx:28
 319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29
+201=n:wINGS OF yENDOR,var:item.light:1,idleanim:flash,victory:
 ]]
 entdata=assigntable(
 									entstr,nil,"\n","=")
