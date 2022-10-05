@@ -945,7 +945,7 @@ canmove=function(npos,special)
 	 (ntl.ent and atk and
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
-	  (not ntl.ent.blocking or
+	  (ntl.ent.armor or
 	   behav=="hunt" or
 	   isplayer))
 	 or
@@ -1424,25 +1424,25 @@ _g=assigntable(
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
-entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
+entstr=[[64=n:yOU,hp:2000,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
 66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1
 67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26
 68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25
-69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:3,ai:,alert:31,hurtfx:16
+69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
 72=n:bAT,hp:4,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
-74=n:hORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46
+74=n:hORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:
 76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9
-77=n:gLOWHORN,hp:7,atk:3,dmg:4,knockback:,sporedeath:5,armor:1,ai:,altpdist:3,light:3,alert:49,hurtfx:50
-78=n:dRAGON,hp:20,at:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,ratks:fire;4__;1;0;0;51
-137=n:mUSHROOM,hp:1,blocking:,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:
-136=n:bRAZIER,hp:1,nofire:,blocking:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23
-169=n:cHAIR,hp:3,nofire:,blocking:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23
-200=n:bARREL,hp:3,blocking:,hitpush:,pushanim:proppush,fallanim:propfall,flammable:,deathanim:propdeath,death:23
+77=n:gLOWHORN,hp:7,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:1,ai:,altpdist:3,light:3,alert:49,hurtfx:50
+78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4__;1;0;0;51,
+137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:
+136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23
+169=n:cHAIR,hp:3,nofire:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23
+200=n:bARREL,hp:3,hitpush:,pushanim:proppush,fallanim:propfall,flammable:,deathanim:propdeath,death:23
 138=n:fIRE,var:effect,light:4,idleanim:fireidle,deathanim:firedeath,animspeed:0.33,flippable:
 139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
 brazieridle=l001122
@@ -1506,6 +1506,7 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 189=n:oRANGE ORB,var:item,light:2,throw:6,idleanim:flash
 190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash
 191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash
+201=n:wINGS OF yENDOR,var:item,light:2,slot:wpn,wpnfrms:8,idleanim:flash,victory:
 300=,nid:oRB OF lIGHT,orb:light,orbfx:53
 301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54
 302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55
@@ -1526,7 +1527,6 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 317=,nid:sTAFF OF lYTNING,dmg:3,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9
 318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:ice,usefx:28
 319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29
-201=n:wINGS OF yENDOR,var:item.light:1,idleanim:flash,victory:
 ]]
 entdata=assigntable(
 									entstr,nil,"\n","=")

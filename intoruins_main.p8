@@ -128,7 +128,7 @@ function _draw()
 		 d()
 	 end
 	elseif textcrawl(
-"\^x5\-dgAME oVER\^x4                                        \
+usplit"\^x5\-dgAME oVER\^x4                                        \
 \
 \
 \
@@ -139,8 +139,8 @@ function _draw()
 \
 \
 \-kdEPTH:"..depth.. 
-"            \n\n\-a❎:tRY AGAIN",
- usplit"47,29,1.3,13,gameover,16")
+"            \n\n\-a❎:tRY AGAIN,\
+47,29,1.3,13,gameover,16")
  then
  	fadetoblack=true
  	call"music(-1,300)setmode(reset"
@@ -532,8 +532,9 @@ ismanmade=function()
 end
 
 vistoplayer=function()
-	return vis and (light>-player.stat"darksight" 
-	    or pdist>-2-player.stat"darksight")
+	local darks=player.stat"darksight"
+	return vis and (light>-darks 
+	    or pdist>-2-darks)
 end
 
 flatten=function()
@@ -923,7 +924,7 @@ function findfree(tl,var,distlimit)
  local bestd,bestpos=distlimit or-1000
  alltiles(
  function(_ENV)
-  local d=free+rnd()
+  local d=free-rnd()
  	if navigable() and
  	   not _ENV[var] and
  	   d>bestd then
@@ -1075,13 +1076,14 @@ end
 
 function create(_typ,_pos,_behav,_group)
 	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,statuses:{}"
+	printh(_typ)
 	typ,behav,group=
 	_typ,_behav,_group
 	
 	assigntable(entdata[_typ],_ENV)						
 
 	animoffset=vec2(0,var=="ent"and 0or 2)
-	counts[_typ]=(counts[_typ]or 0)+1
+	--counts[_typ]=(counts[_typ]or 0)+1
 	
 --member functions
 draw=function()
@@ -1200,7 +1202,7 @@ end
 
 stat=function(name)
 	local val=0
-	for i,slot in inext,split"wpn,cloak,amulet" do
+	for i,slot in inext,itemslots do
 		if _ENV[slot] then
 			local s = _ENV[slot][name]
 			if s then
@@ -1213,8 +1215,7 @@ stat=function(name)
 end
 
 setstatus=function(str)
-	local s=split(str)
-	statuses[s[1]]=s
+	statuses[split(str)[1]]=split(str)
 end
 
 heal=function(val)
@@ -1369,7 +1370,7 @@ canmove=function(npos,special)
 	 ntl.ent and atk and
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
-	  (not ntl.ent.blocking or
+	  (ntl.ent.armor or
 	   behavis"hunt" or
 	   isplayer)
 	 or
@@ -1395,10 +1396,6 @@ findmove=function(var,goal,special)
 		 local score=
 		 							abs(tl[var]-goal)-
 		 							abs(ntl[var]-goal)
-		 --if ntl.ent and 
-		 --	ntl.ent.blocking then
-		 --	score-=flying and 10 or 1
-		 --end
 		 if burnlight and 
 		    tl.light>-1 and 
 		    tl.pdist<-1 then
@@ -1430,8 +1427,8 @@ taketurn=function()
  if statuses.FROZEN or
     statuses.STUN or
 	skipturn then
-  if (ai) checkseesplayer()
-  skipturn = false
+  skipturn=--nil
+  ai and checkseesplayer()
   return true
  end
 	if isplayer then
@@ -1645,15 +1642,15 @@ doatk=function(ntl,pat)
  
  if atk and b then
  	local hitp=1
-	if b.stat"armor" then
+	if b.armor then
 		local diff=(throwatk or stat"atk")-b.stat"armor"
 		hitp=(max(diff)+1)/
 			(abs(diff)+2)
 	end
 	if rndp(hitp) then
-		local dmgv=min(stat"dmg",b.hp)
-		b.hurt(throwdmg or dmgv,atkdir,nil,stat"knockback")
-		if not b.blocking then
+		local dmgv,isent=min(stat"dmg",b.hp),var=="ent"
+		b.hurt(throwdmg or dmgv,atkdir,nil,isent and stat"knockback")
+		if b.armor then
 			if stat"dmgheal" then
 				heal(dmgv)
 				animtext"+,col:8"
@@ -1661,8 +1658,8 @@ doatk=function(ntl,pat)
 			if stat "dmghurt" then
 				hurt(dmgv)
 			end
-			if  stat"stun" and var=="ent" and b.hp>0 then
-				b.setstatus"STUN,3,3,11,3"
+			if  stat"stun" and isent and b.hp>0 then
+				b.setstatus("STUN,"..stat"stun"..",2,11,3")
 				b.animtext"○,wavy:1"
 			end
 		end
@@ -1715,12 +1712,9 @@ lookat=function(dst)
 	dst.x-pos.x,
 	hexdir(pos,dst)
  if deltax!=0 then 
-		xface,yface=
-		sgn(deltax),sgn(deltax)
+		xface=sgn(deltax)
  end
- if dir.y!=0 then
- 	yface=dir.y
- end
+	yface=dir.y==0and xface or dir.y
 end
 
 tele=function(dst)
@@ -2293,6 +2287,9 @@ function gentile(typ,_ENV)
 	local y =	ceil(rnd"15")
 	if (ismanmade()) y+=16
 	set(mget(typ,y))
+	if depth==16 and tileflag"15" then
+		return gentile(typ,_ENV)
+	end
 	local typ2=mget(typ+1,y)
 	flip,genned=
 	rndp(),true
@@ -2424,6 +2421,7 @@ function postproc()
 		if navigable(nolight) and
 		 pdist < mindist and
 			pdist > -1000 and
+			not item and
 			(allowent or not ent) and
 			(not nolight or light<=0) 
 		then	
@@ -2456,7 +2454,10 @@ function postproc()
 	end)
 	
 	--create exit holes if needed
-	if numholes<3 then
+	if depth==16 then
+		repeat until 
+			checkspawn(rndtl(),201,furthestd*0.75)
+	elseif numholes<3 then
 		alltiles(
 		function (_ENV)
 			if checkspawn(_ENV,nil,furthestd+2.5+rnd(),false,true)
@@ -2587,7 +2588,7 @@ entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
-adj,fowpals,frozepal,ided,counts,enchstats,tlentvars=
+adj,fowpals,frozepal,ided,counts,enchstats,tlentvars,itemslots=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2597,7 +2598,8 @@ split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:",--ided
 assigntable"301:-1",--counts
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
-split"item,ent,effect"--tlentvars
+split"item,ent,effect",--tlentvars
+split"wpn,cloak,amulet"--itemslots
 
 for i,s in inext,
 split([[16
@@ -2712,7 +2714,7 @@ ff88dfffffbbb3f6ff22234fff44439ff100038fb3333b42ffffffffffff444f05000550fffeeeff
 ff88d6ffffbbbf6fff222f4fff4445f9f100014f4bbbb92ffff4f4ffff44422f11101111ffe227eff8f28288fccdccffffdccfffcffccdfff89ff9822282ffff
 ff882fffffbbb3ffff22234fff222366f100034ffbbbb4ffffff55fff44422fffff1ffffffe222eff2f28f2ffffcfffffffcfffffccdddffff89982225282fff
 ff2f2fffff444fffff222f4fffddd99ff10001fff2222fffff5555ff442402ffffffffffffe20eef2228822ffffffffffffdfffff22d02fffff8822200528fff
-ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222ef0008882ffffffffffffffffff202ffffffff25025fffffff
+ffd0dfffff202fffff222fffffd0dffff10001fff2002ffffe544ffff202fffffffffffffe2222eff282882ffffffffffffffffff202ffffffff25025fffffff
 fff67ffffffffffffffffffffffffffffff11fffff997fffffffffffffffffffff11f1ffffffffffff88d8fffffffffffff7fffffffcfcffffffffffffffffff
 fff22ffffffffffffff22fffffffffffff1001ff333993fffffffffffffffffff100101ffffffffff822828ffffcffffffc77fffffffcfcffffffffe99ffffff
 ff882ffffff3f3fffff323fffff3f3ffff13031f99333bffffffffffffffffff10500001ffffffff2f88fffeffc7cffffcc777ffffffcfcfffffff988898ffff
@@ -2728,7 +2730,7 @@ ff8886fff763f36fff22223cff4443fff1000531ff333336ff4f46fff4f4442615000051ffffffff
 ff88dffff3bbb3f6ff222ec4f4444f9ff100001ff33333b6ff6556ffff444226f100051fffffffffff688286fffcc77cffdccfffcf2cddd7ffffff8982255fff
 f8822fffffbbbfffff22efc4ff224f9ff10001fff333bb94ff5555fff4244f2fff1011ffffeeeeeff2882f86ffcd7ccffffcfffffccdd2dfff89ff89822fffff
 ff2f2fffff444fffff22effcffddd9fff10001fff2222942ff544fffffff4ffffff1fffffe22227e28882288fffccffffffdffffd2dfdffffff8999822ffffff
-fd00dffff4004fffff222fffffd0dffff10001ff200002fffe5fffffff00ffffffffffffe222002e8888822efffcffffffffffffffffffffffff8882250fffff
+fd00dffff4004fffff222fffffd0dffff10001ff200002fffe5fffffff00ffffffffffffe222002e8288822efffcffffffffffffffffffffffff8882250fffff
 fffffffffffffffffffffcffffffffffff11ff8fffffffffffffffffffffffff11ffff11ffffffffffffffffffffcffffff7ffffffffffffffffffff9a88ffff
 fff67fffffffffffff2ec4cffffffffff1051878ffffff6fffffffffffffffff0011f100ffffffffff28ff28fffffcffffc7efffffffffffffff8ff98e0fffff
 fff22fffffffffffff3234cffff3f3fff1303141ffff9996ffffffffffffff6f50001005ffffffffffff88d8fffffccfeeee7eeeff2d7c7ffff88888828f28ff
@@ -2736,7 +2738,7 @@ ff822ffffff3f36fffbb3c4cff4333fff1bb3141ff333976ffffffff4f624f4615000051ffffffff
 ff6d9fffffb333f6ff222e3cff44499ff1000531f3333336ff64f6fff4464446f158081ffffffffffff68226fcdccccfffdccffffccdc7c7ffffff982255ffff
 f86226ffffbbbff6ff222ec4f4425ff9f100001ff94bbb66fef6556f42462406ff1011ffffeeeeeff2862f26fcc7ccfffffcffffddd26c6fff89ff98222fffff
 ff6f2fffff44bf66ff22efc4ff435ff9f10001fff9924446ff56556fff262f26fff1fffffe22227e28862226fffc7cfffffdfffffffd2cffffff998222ffffff
-fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002e888e822effffcfffffffffffffdfdfffffff2262250fffff
+fd00dffff4002377ff222fffffd0d99ff10001ff29444426ff55ff5ffff4fff4ffffffffe222002e882e822effffcfffffffffffffdfdfffffff2262250fffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ff888fffffffff3fffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffffffffffffffffffff40ffffff50ffffff94ffffff65fff
@@ -2769,22 +2771,22 @@ fffffffffff2200ffffff98fff4ff5fffff446ffff566fffffffff7fff5f66fffffffffffffbbbff
 ff8888fff2200fffff4998fffff4dffffffff46fffff7fff6f4ff6fffff577ffff54f4ffff5550ff8899998fffffffffffb3bfffff898fffff2d2fffff8e8fff
 f826d226f00fffffffa98fffffff5fffffffff67fffff7ff656667ffffff99fffff555fffb51110ff88988ffffffffffffffffffffffffffffffffffffffffff
 d66d9227fffffffffffffffffffffffffffffffffffffffff667ffffffffffffff5505ff555550fff88888ffff7fffffffffffffffffffffffffffffffffffff
-fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffa999888876555555ffffffffffffffffffffffffffffffff
-ffffff0100000fffffffff0000000ffffff0000000ffffffffffffffffffffffffffffffffefefff544fffff76655555ffffffffffffffffffffffffffffffff
-000ff00100011fff00fff0000000000fff00000000000fffffffffffffffffffff222ffffe757eff76d44444ffffffffffffffffffffffffffffffffffffffff
-0010110180018f0000ff0000000000dff000000000000000ffffffff0ffffffff22222fffe656effffffffffffffffffffffffffffffffffffffffffffffffff
-001108018010800000f0000000000d9f000000000000000dfffffff00fffffff022224fffe6564effffff055d5fffffffffffffffffffffffffff0055dffffff
-0019080110100010000000000000191f555000000000001dfffffff0d0fffffff12444fffe5e5effffff0511515ffffffffff000ffffffffffff055511dfffff
+fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffefefffa999888876555555ffffffffffffffffffffffffffffffff
+ffffff0100000fffffffff0000000ffffff0000000fffffffffffffffffffffffffffffffe757eff544fffff76655555ffffffffffffffffffffffffffffffff
+000ff00100011fff00fff0000000000fff00000000000fffffffffffffffffffff222ffffe656eff76d44444ffffffffffffffffffffffffffffffffffffffff
+0010110180018f0000ff0000000000dff000000000000000ffffffff0ffffffff22222fffe6564efffffffffffffffffffffffffffffffffffffffffffffffff
+001108018010800000f0000000000d9f000000000000000dfffffff00fffffff022224fffe5e5efffffff055d5fffffffffffffffffffffffffff0055dffffff
+0019080110100010000000000000191f555000000000001dfffffff0d0fffffff12444ffffefefffffff0511515ffffffffff000ffffffffffff055511dfffff
 011901011010101000550000000d119f1550550000000d11fffffff0900fffff021114fffffffffffff01055000dffffffff0555000fffffffff05115510ffff
 0d010100000010000055505000dd119f000055505000dd11ffffff005d0f0ffff02440ffffffffffffff0511511dfffffff051515550ffffffff01501115d0ff
 090100000f0000000000505551d1911f505000505550d1d1ffff00011d0090ffffffffffffffffffffff05015191ffffff05050151d5ffffffff01550101d0ff
-0d10ffff0ffff00800500005511d919f5055500008801dd1fff000011501d0ffffffffffffffffffffff01011010ffffff5552050d510ffffffff01549150fff
-0110050fffffff0000505550011d19df0005505580001d1dff0800001101d00ff242ffffff757fffffff01118910f1ffff5055559151010ffffff0015500f1ff
-010ffffffffff0f0000015505d111d0f555000158058111dff01100115001d0024224fffff656fffffff01511550111ff050512151511110ffff00100100111f
-0001fffffffffff1005500005d1d100f1550550000581d10f111010111001150222444ffff6564fffff05000000dffff0020505051550000fff05000000dffff
-00001ffff00f80100055505001dd00fffff055505000dd0ff011010110d01010122444fff8a8a8fffff105505850110ff051505050511100fff105505450110f
-ff000811000011000000505551d00fffffff00505880d0ffff0011010050100f012444fff89898ffff0011000001100fff5551519501100fff0011000001100f
-fff0000000000000ffff00055100fffffffffff005500ffffff01111101110fff0122fffff8f8ffffff00110111000fffff00555511000fffff00110111000ff
+0d10ffff0ffff00800500005511d919f5055500008801dd1fff000011501d0ffffffffffff757fffffff01011010ffffff5552050d510ffffffff01549150fff
+0110050fffffff0000505550011d19df0005505580001d1dff0800001101d00ff242ffffff656fffffff01118910f1ffff5055559151010ffffff0015500f1ff
+010ffffffffff0f0000015505d111d0f555000158058111dff01100115001d0024224fffff6564ffffff01511550111ff050512151511110ffff00100100111f
+0001fffffffffff1005500005d1d100f1550550000581d10f111010111001150222444fff8a8a8fffff05000000dffff0020505051550000fff05000000dffff
+00001ffff00f80100055505001dd00fffff055505000dd0ff011010110d01010122444fff89898fffff105505850110ff051505050511100fff105505450110f
+ff000811000011000000505551d00fffffff00505880d0ffff0011010050100f012444ffff8f8fffff0011000001100fff5551519501100fff0011000001100f
+fff0000000000000ffff00055100fffffffffff005500ffffff01111101110fff0122ffffffffffffff00110111000fffff00555511000fffff00110111000ff
 ffff115515150fffffffff0000fffffffffffffff000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff042992242fffffffffffffffffff
 fff11015010105ffffff001500fffffffffff0bbb00fffffffff9ffffffb9f33fff000110111ffffffffffffffffffffffff150000050ffffff000880811ffff
 ffd110111101011ffff10011015ffffffff10bbbbbb8f1fff33ff9fff0b0f3ffff011d005111f10fffffffffffffffffffff005222202fffff0111000111f10f
@@ -2949,8 +2951,8 @@ __map__
 0000000000000000000000000000000016000000000000000000000032000000200000003200000032000000000032003200340034003a32000036320000000041434442004141424200414143430045004545004d4d004249004848480000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000032890000000000000000000032000000200000003200000032000000000032003200340034003a340000363200000000424949004d4d4d004c00454500454200444448484800000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000328900000000000000000000320000001000000032000000320000000000320032003400200032000000363200000000424949004d4d4d004c00454500454200444448484800000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000000003489000000000000000000003200000010000000320000003200000000003200320034003632320000003634000000004545424444004c4d4d4d004444484848480042424949490000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000000003489000000000000000000003200000034000000320000003200000000003200320032003634340000003634000000004a004e004545424444004c4d4d4d0044444848484800424249494900000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000003489000000000000000000003200000010000000320000003200000000003200320034003632320000003634000000004545424444004c4d4d4d004444484848480042424949000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000003489000000000000000000003200000034000000320000003200000000003200320032003634340000003634000000004a004e004545424444004c4d4d4d0044444848484800424249490000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000001011000014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b000000004a004c4d4d4d004e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000000030000000000000002e000000200000002ea900003000000000003000300030003000363000003a30000000004a004c4d4d4d004e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000000030000000000000002e000000200000002ea900003000000000003000300030003000363000003a30000000004a004c4d4d4d004e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
