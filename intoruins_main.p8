@@ -569,7 +569,7 @@ freeze=function()
 		ent.statuses.BURN=--nil
 		ent.setstatus"FROZEN,8,8,13,6"
 		ent.animtext"○"
-		_g.aggro(pos)
+		_g.aggro(_ENV)
 	end
 end
 
@@ -739,13 +739,14 @@ function dijkstra(var,tovisit,flag)
 	end
 end
 
-function calcdist(pos,var,mindist)
+function calcdist(var,tl,mindist)
+	tl,var=tl or player.tl,var
 	alltiles(
 	function(ntl)
 		ntl[var]=mindist or-1000
 	end)
-	gettile(pos)[var]=0
-	dijkstra(var,{gettile(pos)},0)
+	tl[var]=0
+	dijkstra(var,{tl},0)
 end
 
 function viscone(pos,dir1,dir2,lim1,lim2,d)
@@ -916,8 +917,8 @@ function updateenv()
 	calclight(true,true)
 end
 
-function findfree(_pos,var,distlimit)
- calcdist(_pos,"free",distlimit)
+function findfree(tl,var,distlimit)
+ calcdist("free",tl,distlimit)
  local bestd,bestpos=distlimit or-1000
  alltiles(
  function(_ENV)
@@ -960,9 +961,8 @@ function hexline(p1,p2,range,linemode,cont)
 	ln={}
 	local dist,tl=hexdist(p1,p2)
 	for i=1,min(cont and 20 or dist,range) do
-	 local pos=hexnearest(
-							lerp(p1,p2,i/dist))
-	 local tl=gettile(pos)
+	 local tl=gettile(hexnearest(
+							lerp(p1,p2,i/dist)))
 	 if not tl or
 	    not tl.tileflag"8" or
 	    tl.ent and linemode=="block" then
@@ -1413,7 +1413,7 @@ findmove=function(var,goal,special)
 			if special=="aggro" and
 			besttl.pdist==0
 			then
-				aggro(pos)
+				aggro(tl)
 			else
 				return move(besttl.pos)
 		end
@@ -1423,7 +1423,7 @@ end
 taketurn=function()
  function checkseesplayer()
 		if seesplayer() then
-			_g.pseen,_g.lastpseenpos=true,player.pos
+			_g.pseen,_g.lastpseentl=true,player.tl
 		end
 	end
  if statuses.FROZEN or
@@ -1499,7 +1499,7 @@ taketurn=function()
 				and rndp(p)
 				--and onscreenpos(ent.pos,62)
 				then
-				aggro(pos)
+				aggro(tl)
 				return true
 				end
 			end
@@ -1511,13 +1511,11 @@ taketurn=function()
 				or rndp"0.025"
 				then
 					repeat
-						wanderdsts[group]=rnd(inboundposes)
-						local tl = gettile(
-													wanderdsts[group])
-					until tl.navigable() and
-											tl.pdist>-1000
-					calcdist(wanderdsts[group],
-														group)
+						wandertl =rndtl()
+						wanderdsts[group]=wandertl
+					until wandertl.navigable() and
+											wandertl.pdist>-1000
+					calcdist(group,wandertl)
 				end
 				findmove(group,0,"aggro")
 				checkaggro(0.29)
@@ -1583,7 +1581,7 @@ hurt=function(dmg,atkdir,nosplit,_push)
 		if hurtsplit and 
 		not (statuses.FROZEN or nosplit) 
 		then
-			local splitpos=findfree(pos,"ent",-2)
+			local splitpos=findfree(tl,"ent",-2)
 			if splitpos then
 				hp/=2
 				local newent=create(typ,splitpos,behav,group)
@@ -1602,7 +1600,7 @@ hurt=function(dmg,atkdir,nosplit,_push)
 	elseif hurtfx then
 		sfx(hurtfx)	
 	end
-	aggro(pos)
+	aggro(tl)
 	if _push or hitpush and atkdir then
 		push(atkdir)
 	end
@@ -1619,6 +1617,9 @@ push=function(dir)
 	end
 	if (pushtl.navigable(flying) or pushtl.typ==thole) and not pushtl.ent then
 		setpos(pushpos)
+		if isplayer then
+			call"calcdist(pdist)calcvis()calclight("
+		end
 	else 
 		setanim(pushanim)
 		animoffset=0.66*screenpos(dir)
@@ -1665,7 +1666,7 @@ doatk=function(ntl,pat)
 			end
 		end
 	else
-		aggro(ntl.pos)
+		aggro(ntl)
 	end
  end
 
@@ -1698,7 +1699,7 @@ move=function(dst,playsfx)
 		  sfx(snd or 35)
 		  if snd==43 then
 					--bonez
-					aggro(playerdst)	
+					aggro(dsttile)	
 			 end
 			end
 		end
@@ -1954,7 +1955,7 @@ end
 		  id()
 		 	sfx"27"
 		 elseif throw and not ai then
-			 	setpos(findfree(tl.pos,"item"),true)
+			 	setpos(findfree(tl,"item"),true)
 		 end
 		elseif atkis"heal" then
 			tl.sporeburst(0.9)
@@ -1997,7 +1998,7 @@ end
  else
 	 if i==1 then
 		 gettile(pos).lflash=2
-		 aggro(pos)
+		 aggro(gettile(pos))
 	 end
 	 if atkis"fire" then
 			trysetfire(tl,true)
@@ -2071,7 +2072,7 @@ function updateturn()
 	 	return
 	 end
 	 player.tickstatuses()
-	 calcdist(player.pos,"pdist")
+	 calcdist"pdist"
 	elseif turnorder==1 then
 		call"calcvis()calclight("
 	 for i,_ENV in inext,ents do
@@ -2086,7 +2087,7 @@ function updateturn()
 				not _g.pseen and not alwayshunt
 			then
 				setbehav"search"
-				setsearchpos(lastpseenpos)
+				setsearchtl(lastpseentl)
 			end
 			canact=true
 		end
@@ -2097,16 +2098,16 @@ function updateturn()
 	turnorder+=1
 end
 
-function setsearchpos(pos)
-	if searchpos!=pos then
-		lastpseenpos,searchpos=pos,pos
-		calcdist(pos,"search")
+function setsearchtl(tl)
+	if searchtl!=tl then
+		lastpseentl,searchtl=tl,tl
+		calcdist("search",tl)
 	end
 end
 
-function aggro(pos)
-	setsearchpos(player.pos)
-	calcdist(pos,"aggro",-4)
+function aggro(_tl)
+	setsearchtl(player.tl)
+	calcdist("aggro",_tl,-4)
 	for i,_ENV in inext,ents do
 		if ai and
 		   behav!="dead" and
@@ -2133,7 +2134,7 @@ end
 --level generation
 
 function genmap(startpos,manmade)
-	genpos,cave,searchpos=
+	genpos,cave=
 	startpos,not manmade
 	
 	alltiles(function(_ENV)
@@ -2170,11 +2171,11 @@ function genmap(startpos,manmade)
 		adjtl[0]=_ENV
 	end)
 	
-	entropy=1.5
+	entropy,gentl=1.5,gettile(genpos)
 	if manmade then
 		genroom(startpos)
 	else
-		gencave(startpos)
+		gencave(gentl)
 	end
 	call"postproc()setupdrawcalls("
 end
@@ -2258,14 +2259,13 @@ function genroom(pos)
 	if entropy>=0 then
 		doroom()
 		if rndp(0.4-depth*0.025) then
-			gencave(rnd(inboundposes))				 
+			gencave(rndtl())				 
 		end
 		genroom(rnd(inboundposes))	
 	end
 end
 
-function gencave(pos)
-	local tl = inbounds(pos)
+function gencave(tl)
 	if(tl.typ==tempty)tl.typ=tcavefloor
 	
 	entropy -= 0.013
@@ -2280,7 +2280,7 @@ function gencave(pos)
 						if rndp(0.005+depth*0.001) then
 							genroom(rnd(inboundposes))
 						end
-					 gencave(ntl.pos)
+					 gencave(ntl)
 					end
 				end
 			end
@@ -2322,7 +2322,7 @@ function postproc()
 	function connectareas(permissive)
 		for i=1,20 do
 			--what a mess
-		 calcdist(genpos,"pdist")
+		 calcdist("pdist",gentl)
 		 
 			local unreach,numtls,bestdist={},0,100
 			alltiles(
@@ -2343,8 +2343,9 @@ function postproc()
 					return
 				end
 				local p1=rnd(unreach)
+				local tl1=gettile(p1)
 				local diri=
-		   rnd(split(gettile(p1).ismanmade() and
+		   rnd(split(tl1.ismanmade() and
 		   not permissive and "1,2,4,5" or"1,2,3,4,5,6"))
 				local dir=adj[diri]
 				local p2=p1+rndint(18)*dir
@@ -2355,9 +2356,8 @@ function postproc()
 								tl2.pdist>-1000 then
 						d=hexdist(p1,p2)
 						if d<bestdist then
-							bestdist,bestp1,
-							bestdir,bestdiri=
-							d,p1,dir,diri
+							bestdist,besttl1,bestdiri=
+							d,tl1,diri
 						end
 					end
 				end
@@ -2365,8 +2365,8 @@ function postproc()
 			
 			if bestdist<100 then
 				repeat
-					bestp1+=bestdir
-					local _ENV=gettile(bestp1)
+					besttl1=besttl1.adjtl[bestdiri]
+					local _ENV=besttl1
 					local nav=navigable()
 					if not nav then
 					 if ismanmade() then
@@ -2399,7 +2399,7 @@ function postproc()
 	end)
 	
 	--fill out manmade area tiles
-	postgen(gettile(genpos),gettile(genpos))
+	postgen(gentl,gentl)
 	
 	connectareas()
 	
@@ -2474,11 +2474,9 @@ function postproc()
 	
 	do
 		local _ENV=player
-		tl=gettile(genpos)
-		tl.ent,animheight,animclip
-		=player,1
-		calcdist(pos,"pdist")
-		calclight()
+		animheight,animclip=1
+		setpos(genpos)
+		call"calcdist(pdist)calclight("
 		
 		animoffset.y=-21
 		setanim(statuses.SLOFALL and "slofall" or "fallin")
