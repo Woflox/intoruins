@@ -48,13 +48,13 @@ function _update()
 	smooth=lerp(smooth,smoothb,0.25)
 	
 	function getcampos(val)
-	 return flr(rnd(shake*2)-
-	            shake+val-63.5)
+	 return flr(rnd(player.shake*2)-
+	            player.shake+val-63.5)
 	end
 	
 	campos=vec2(getcampos(smooth.x),
 													getcampos(smooth.y))
-	shake*=0.66
+	player.shake*=shakedamp
 end
 
 function _draw()
@@ -70,7 +70,7 @@ function _draw()
 	end
 	if anyfire != fireplaying then
 		fireplaying=anyfire
-		call(anyfire and "music(32,500,3" or "music(-1,500,4")
+		call(anyfire and "music(32,500,3" or "music(-1,500")
 	end
 	
 	for i,atk in inext,rangedatks do
@@ -119,9 +119,7 @@ function _draw()
 		?"\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE",18,118
 	end
 	if modeis"ui" then
-		if btnp"4" and popdiag() then
-			return
-		end
+		if (getbtn"16") popdiag()
 		uitrans*=0.33
 		for i,d in inext,diags do
 		 focus=i==#diags
@@ -129,7 +127,7 @@ function _draw()
 		 d()
 	 end
 	elseif textcrawl(
-usplit"\^x5\-dgAME oVER\^x4                                        \
+"\^x5\-dgAME oVER\^x4                                        \
 \
 \
 \
@@ -140,23 +138,22 @@ usplit"\^x5\-dgAME oVER\^x4                                        \
 \
 \
 \-kdEPTH:"..depth.. 
-"            \n\n\-a❎:tRY AGAIN,\
-47,29,1.3,13,gameover,16")
+"            \n\n\-a❎:tRY AGAIN",
+usplit"47,29,1.3,13,gameover,16")
  then
  	fadetoblack=true
  	call"music(-1,300)setmode(reset"
 	end
-	inputblocked=false
 	
 	--print("memory: "..stat(0),0,0)
 end
 
 function popdiag()
 	deli(diags)
+	uitrans=1
 	if #diags==0 then
 		uimode=--nil
 		setmode"play"
-		return true
 	end
 end
 
@@ -182,7 +179,7 @@ function textcrawl(str,x,y,fadet,col,m,mus)
 		 musicplayed=true
 		end
  	?sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1	
-	 return btnp"5"
+	 return getbtn"32"
 	end
 end
 
@@ -205,14 +202,13 @@ function listitem(str,sel,dis)
  end
  ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
 	return sel and focus and 
-	 not (inputblocked or dis)
-	 and btnp"5" 
+	 getbtn"32" and not dis
 end
 
 function getindex(maxind,cur)
-	return focus and not inputblocked and
-												(cur+tonum(btnp"3")-
-													tonum(btnp"2")+
+	return focus and
+												(cur+tonum(getbtn"8")-
+													tonum(getbtn"4")+
 												maxind-1)%maxind+1
 												or cur
 end
@@ -374,7 +370,7 @@ end
 
 function setmode(m)
 	mode=m
-	assigntable("statet:0,inputblocked:true,btns:0",_ENV)
+	assigntable("statet:0,btns:0",_ENV)
 end
 -->8
 --[[tiles, rendering
@@ -425,8 +421,7 @@ draw=function(_typ,postl,scrpos,offset,size,flp,_bg,_hilight)
 		if not _bg and fow==4 and 
 		   fget(litsprite,i) then
 			local adjtile=postl.adjtl[i]
-			if adjtile and
-						adjtile.lightsrc then
+			if adjtile and adjtile.lightsrc then
 				dtyp=litsprite
 				pal(8,adjtile.lcool and 13 or 4)
 				pal(9,adjtile.lcool and 12 or 9)
@@ -508,7 +503,7 @@ checkeffects=function()
  						ent and 
  						ent.statuses.BURN
 
-	_g.anyfire=_g.anyfire or hasfire and mode!="ui"
+	_g.anyfire=_g.anyfire or hasfire and mode!="ui" and mode!="victory"
 
  checkeffect(138,hasfire)
  checkeffect(139,spores>0)
@@ -800,7 +795,7 @@ function calcvis()
 	end
 end
 
-function calclight(checkburn,clearflash)
+function calclight(nop,checkburn,clearflash)
  local tovisit={}
 
  alltiles(
@@ -847,11 +842,11 @@ function(_ENV)
 	end
 end
 
-function trysetfire(_ENV,nop)
+function trysetfire(_ENV,always)
 	frozen=nil
 	if tileflag"10" or
     spores>0 or
-    (rndp() or nop) and
+    (rndp() or always) and
    	(tileflag"9" or
     	ent and
 					ent.flammable)
@@ -918,7 +913,7 @@ function updateenv()
 		end
 		checkeffects()
 	end)
-	call"calclight(true,true"
+	call"calclight(,t,t"
 end
 
 function findfree(tl,var,distlimit)
@@ -1116,8 +1111,7 @@ draw=function()
 						width,animheight,
 						flp)
 		local held=aimitem or wpn
-		if isplayer and
-			held and
+		if held and
 			frame<=5 then
 			local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
 			if held.victory then
@@ -1144,8 +1138,8 @@ function (name)
 	split(entdata[name],""),1,false
 		
 	if anim[1]=="w" then
-		_g.waitforanim=true
-		animwait=true
+		_g.waitforanim,animwait=
+		true,true
 	end
 end
 
@@ -1332,8 +1326,18 @@ update=function()
 					pushtl.entfire()
 				end
 			elseif case"y" then
-				create(201).eQUIP()
+				inventory[#inventory].eQUIP()
 				sfx"25"
+			elseif case"j" then
+				shake,_g.shakedamp=1,0.985
+				call"music(32,20,3"
+			elseif case"q" then
+				call"sfx(2)music(-1,300"
+			elseif case"u" then
+				animt+=1
+				light,lcool=
+				anim[index+1]-4
+				call"calclight(,t,t"
 			end
 			animt+=1
 			tickanim()
@@ -1444,7 +1448,7 @@ taketurn=function()
 		call"turn(1,-1)turn(2,1)turn(8,3"
 		
 		function updst()
-			_g.playerdst,_g.aimitem=
+			_g.playerdst,aimitem=
 			pos+adj[player.diri]
 			dsttile=gettile(playerdst)
 		end
@@ -1462,8 +1466,7 @@ taketurn=function()
 		end
 		
 		if getbtn"16" then
-			_g.tock=not _g.tock
-			sfx(40,-1,not tock and 16 or 0, 8)
+			sfx"40"
 			return true --wait 1 turn
 		end
 		
@@ -1568,9 +1571,7 @@ end
 hurt=function(dmg,atkdir,nosplit,_push)
 	hp-=dmg
 	flash=true
-	if isplayer then
-		_g.shake=1
-	end
+	shake=1
 	if hp<=0 then
 	 sfx(death)
 		setbehav"dead"
@@ -1656,8 +1657,8 @@ doatk=function(ntl,pat)
 			(abs(diff)+2)
 	end
 	if rndp(hitp) then
-		local dmgv,isent=min(stat"dmg",b.hp),var=="ent"
-		b.hurt(throwdmg or dmgv,atkdir,nil,isent and stat"knockback")
+		local dmgv=min(stat"dmg",b.hp)
+		b.hurt(throwdmg or dmgv,atkdir,nil,amor and stat"knockback")
 		if b.armor then
 			if stat"dmgheal" then
 				heal(dmgv)
@@ -1666,7 +1667,7 @@ doatk=function(ntl,pat)
 			if stat "dmghurt" then
 				hurt(dmgv)
 			end
-			if  stat"stun" and isent and b.hp>0 then
+			if  stat"stun" and amor and b.hp>0 then
 				b.setstatus("STUN,"..stat"stun"..",2,11,3")
 				b.animtext"○,wavy:1"
 			end
@@ -1682,8 +1683,8 @@ end
 interact=function (b)
  setanim(atkanim)
 	sfx"33"
- _g.waitforanim=true
- atktl=b.tl
+ _g.waitforanim,atktl=
+ true,b.tl 
 end
 
 move=function(dst,playsfx)
@@ -1846,9 +1847,9 @@ end
 eMPOWER=function(test,nosnd)
 	for i,estat in inext,enchstats do
 		if _ENV[estat] then
-		 local val=estat=="charges"and
-		           maxcharges+1 or
-		           _ENV[estat]+1
+		 local val=(estat=="charges"and
+		           maxcharges or
+		           _ENV[estat])+1
 			if test then
 			 if test==estat then
 			 	return val
@@ -1903,14 +1904,14 @@ pickup=function()
  if #inventory<10 then
 		sfx"25"
 		addtoinventory()
-		setpos()
-		log("+"..getname())
 		if victory then
 			player.setanim"victory"
-			player.yface=-1
-			--player.statuses={}
-			setmode"victory"
+			player.yface,player.statuses,tl.fire,light=
+			-1,{},0
+			call"setmode(victory)calcvis()calclight("
 		end
+		setpos()
+		log("+"..getname())
 	else
 	 log"INVENTORY FULL"
 	end
@@ -2018,7 +2019,7 @@ end
 			if tl.ent then
 				tl.ent.hurt(dmg)
 			end
-			call"calclight(true"
+			call"calclight(,t"
 		end
 	end
 end
@@ -2513,8 +2514,8 @@ function postproc()
 			 	checkspawn(_ENV,nil,-4,typ==72)
 			 then
 			  create(typ,pos,behav,n)
-					found=true
-					spawntl=_ENV
+					found,spawntl=
+					true,_ENV
 				end
 			end)
 		end
@@ -2528,7 +2529,7 @@ function postproc()
 		end
 	end
 	
-	call"calcvis()calclight(t"
+	call"calcvis()calclight(,t"
 end
 
 -->8
@@ -2540,7 +2541,7 @@ function aim(params)
 end
 
 function updateaim(_ENV,lineparams,atktype)
- _g.aimitem,aimscrpos,_g.aimscrposy=_ENV,
+ player.aimitem,aimscrpos,_g.aimscrposy=_ENV,
   screenpos(aimpos)+1.5*
   vec2(1.5*(tonum(btn"1")
            -tonum(btn"0")),
@@ -2560,13 +2561,13 @@ function updateaim(_ENV,lineparams,atktype)
 	end
 	player.lookat(aimpos)
 	xface=player.xface
-	if #aimline>0 and btn"5" and
+	if getbtn"32" and #aimline>0 and
 	   statet>0.2 then
 		setmode"play"
 		pos=player.pos
 		if atktype=="throw" then
 			sfx"12"
-			aimitem=--nil
+			player.aimitem=--nil
 			sTOW(true)
 			del(inventory,_ENV)
 		else
@@ -2576,7 +2577,7 @@ function updateaim(_ENV,lineparams,atktype)
 		end
 		player.setanim"throw"
 		add(rangedatks,{rangedatk,{0,aimline,atktype}})
-	elseif btnp"4" then
+	elseif getbtn"16" then
 	 player.skipturn=false
 	 setmode"play"
 	end
@@ -2587,7 +2588,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:16,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
+[[mode:play,statet:0,depth:16,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2981,9 +2982,9 @@ __map__
 00000000000000000000000000000000000000002ec800000000000030000000200000002ea900002e000000000036302e002e002e003000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000308800000000000030000000300000002ea900002e0000000000362e2e002e002e002e0000002e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-385008100f0341c02028010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
+38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-900200000062403630036000062000610006000060000600056000060005600016000060000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
+9205000017631276702c6702f6713067032671316713267034671316712f6702e6712f6712a670296502965122651236512264020f411ff411ef301df311cf301bf211af2119f2018f1116f1115f1113f1105f01
 c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
 48030c1c0862424524240242404124051240412403124021240212402124021240212403124031240412404124031240312402124021240312403124041240412403124031240212402124011240112401123011
 480800000a05301030010210102101015010000100001000010000100000000000000800301000010000905301030010210102101015006450051300503050050000000000000000000000000000000000000000
@@ -2991,7 +2992,7 @@ c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f
 9203002000661026510c6710267008661016310866001661106710366009641026610567006651016710b640066610167103670046510267109640016610a671026400466103671076310b650036610667103631
 0027002005f7113f7111f7112f7108f7110f711af710df7115f7105f7121f710df7112f7118f7104f7106f7112f711bf7110f710ff7106f7104f7111f710ff710cf7115f7118f7104f710cf7111f710bf710ff71
 520709003e65331651006113e62330621006113e61311611006150060000600006000060000600006000060000600006000060000600006000060000600006000060000600006000060000600006000060000600
-9002060017a1417a1017a1017a1017a1017a100060009a0009a0009a0009a0009a0009a0000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
+900207000f9140f9300f9450f9030f9200f92509a0009a0009a0009a0009a0009a000060000600006000060000600006000060000500005000060000600005000050000500005000050000500005000050000000
 00020a001414015151151611216111141061330613105121051200512102100011000210003100031000210003100081000810000100001000010000100001000010000100001000010000100001000010000000
 900117000062000621056310a64112641186512065110051060310302101621006210262000610006100061000610006000061000600006100000000610000000000000600000000000000000006000000000000
 a8020600322303f2613e2413c231342010b2002e2002f2002320000200002000020000200002002d2001d20000200002000020000200002000020000200002000020000200002000020000200002000020000200
@@ -3021,7 +3022,7 @@ a8011700322103e2313f2313f2312f200232002e2002f20023200002000020000200002003020038
 490210000261000620036100161000600006100061000610006000061000600006000050000500006150060000500005000050000500005000050000500005000000000000000000000000000000000000000000
 79020b000e91006010040110301500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 a9030800260242a011001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000000000000000000000000000000000
-920100003b3153461034615270000000000000000000000000000000002b6002e600000000000000000000003931530610306151a6052900029000290053b6000000000000000003b600000003b600000003b600
+930100003b3153461034615270000000000000000000000000000000002b6002e600393153061330605306003930030600306001a6052900029000290053b6000000000000000003b600000003b600000003b600
 90070b001967316333073130060315333073131530315303153130830000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000
 000b02000f05300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 90010d0007615006110061524500316000060000600006003162500610006110060100601006011e60500601006010060100601006051d600006050560004600000000060500000000000a600086050000002600
