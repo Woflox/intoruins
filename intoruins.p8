@@ -1417,7 +1417,7 @@ end
 
 _g=assigntable(
 [[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
-,tempty:0,tcavefloor:50,tcavefloorvar:52
+,tempty:0,tcavefloor:50,tcavefloorvar:521
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
@@ -1425,20 +1425,20 @@ _g=assigntable(
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entstr=[[64=n:yOU,hp:2000,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,isplayer:
-70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1
-67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26
-68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25
-69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16
-72=n:bAT,hp:4,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19
-74=n:hORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33
-75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:
-76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9
-77=n:gLOWHORN,hp:7,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:1,ai:,altpdist:3,light:3,alert:49,hurtfx:50
-78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4__;1;0;0;51,
+70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21,profilepic:16
+65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1,profilepic:16
+67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16
+69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16
+72=n:bAT,hp:4,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16
+74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33,profilepic:16
+75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16
+76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16
+77=n:gLOWHORN,hp:7,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:1,ai:,altpdist:3,light:3,alert:49,hurtfx:50,profilepic:16
+78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4__;1;0;0;51,profilepic:17
 137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:
 136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23
 169=n:cHAIR,hp:3,nofire:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23
@@ -1481,6 +1481,7 @@ fall=w0v50v50v60cv70v80v80r_
 pfall=w0v54v54v64cv74v84v84e444r_
 fallin=wsv90v90v94v94sv5hm46666666sv54v3440r
 slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
+victory=w00000000000000000000000y000000000000000000000000j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52v12v02v4v02v3v02v2v02v1v02v0v02v0v02v02v0v02v0v02v0v02v0v02v0v02v0v02v0v02v0v02v0v02l0
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:
@@ -1518,15 +1519,21 @@ slofall=wsv94v84v74v64v54v54v54v54v544v5444v54m00r
 308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
 310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
-311=,nid:aMULET OF rECKONING,dmghurt:,cursed:
+311=,nid:aMULET OF rECKONING,dmghurt:,cursed:,idprefix:ᶜe³i✽
 312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
 313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
 314=,nid:cLOAK OF wISDOM,recharge:1,falleffect:,rndlvl:
-315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:
+315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:,idprefix:ᶜe³i✽
 316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36
 317=,nid:sTAFF OF lYTNING,dmg:3,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9
 318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:ice,usefx:28
 319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29
+58=37
+38=10
+54=10
+44=38
+60=38
+40=43
 ]]
 entdata=assigntable(
 									entstr,nil,"\n","=")

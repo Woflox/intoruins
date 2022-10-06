@@ -40,7 +40,8 @@ function _update()
  	screenpos(
  		lerp(player.pos,
  							vec2s"10,9.5",
- 							modeis"gameover" and
+ 							(modeis"gameover" or
+							modeis"victory") and
  							max(0.36-statet*2) or
  							0.36))
 	smoothb=lerp(smoothb,camtarget,0.5)
@@ -69,7 +70,7 @@ function _draw()
 	end
 	if anyfire != fireplaying then
 		fireplaying=anyfire
-		music(anyfire and 32 or -1, 500, 3)
+		call(anyfire and "music(32,500,3" or "music(-1,500,4")
 	end
 	
 	for i,atk in inext,rangedatks do
@@ -84,7 +85,7 @@ function _draw()
 	--if fadetoblack then
  -- textanims={}
  --end
-	if modeis"play" then
+	if modeis"play" or modeis"victory"then
 		for i,ent in inext,ents do
 			local _ENV=ent.textanim
 			if _ENV and t<=0.5 then
@@ -257,7 +258,7 @@ function info()
  local _ENV,x=selitem,gettrans"42,4"
  frame(x,6,gettrans"42,93.5",111,rectfill)
 
- spr(ai and typ+16 or typ,x+3,8)
+ spr(typ+profilepic,x+3,8)
  ?"\fd    "..getname()
  local statstr="\f1 ……………………………\fd\|j"
  if isid() then
@@ -487,14 +488,15 @@ checkeffects=function()
 
  function checkeffect(_typ,has)
  	if effect then
-		 if	effect.typ==_typ then
-		  if not effect.dead and
+	 	local _ENV = effect
+		 if	typ==_typ then
+		  if not dead and
 		 	not has then
-			 	effect.setanim(effect.deathanim)
-			 	effect.dead,effect.light=true
+			 	setanim(deathanim)
+			 	dead,light=true
 		 	end
 		 elseif has then
-		 	destroy(effect)
+		 	destroy(_ENV)
 		 end
 		end
 		if not effect and has then
@@ -505,12 +507,11 @@ checkeffects=function()
 	local hasfire=fire>0 or
  						ent and 
  						ent.statuses.BURN
- local hasspores=spores>0
 
 	_g.anyfire=_g.anyfire or hasfire and mode!="ui"
 
  checkeffect(138,hasfire)
- checkeffect(139,hasspores)
+ checkeffect(139,spores>0)
 end
 
 
@@ -564,14 +565,15 @@ end
 freeze=function()
 	frozen,fire=true,0
 	flatten()
-	if ent then
-	 if ent.hitfire then
-	 	ent.setanim"brazierdeath"
+	local _ENV = ent
+	if _ENV then
+	 if hitfire then
+	 	setanim"brazierdeath"
 	 end
-		ent.statuses.BURN=--nil
-		ent.setstatus"FROZEN,8,8,13,6"
-		ent.animtext"○"
-		_g.aggro(_ENV)
+		statuses.BURN=--nil
+		setstatus"FROZEN,8,8,13,6"
+		animtext"○"
+		_g.aggro(tl)
 	end
 end
 
@@ -730,11 +732,11 @@ function dijkstra(var,tovisit,flag)
 	while #tovisit>0 do
 		local tl=deli(tovisit,1)
 		local d=tl[var]-1
-		for k,ntl in inext,tl.adjtl do
-			if ntl[var]<d then
-				ntl[var]=d
-				if fget(ntl.typ,flag) then
-					add(tovisit,ntl) 
+		for k,_ENV in inext,tl.adjtl do
+			if _ENV[var]<d then
+				_ENV[var]=d
+				if fget(typ,flag) then
+					add(tovisit,_ENV) 
 				end
 			end
 		end
@@ -794,7 +796,7 @@ function calcvis()
 		vis=pos==player.pos
 	end)
 	for i=1,6 do
-		viscone(player.pos,adj[i],adj[(i+1)%6+1],0,1,1)
+		viscone(player.pos,adj[i],adj[(i+1)%6+1],usplit"0,1,1")
 	end
 end
 
@@ -818,8 +820,8 @@ function(_ENV)
 			if nent then
 				local tlight=nent.stat"light"
 				if tlight and tlight>light then
-					light=tlight
-					lcool=lcool or nent.lcool
+					light,lcool=
+					tlight,lcool or nent.lcool
 				end
 			end	
 		end
@@ -916,7 +918,7 @@ function updateenv()
 		end
 		checkeffects()
 	end)
-	calclight(true,true)
+	call"calclight(true,true"
 end
 
 function findfree(tl,var,distlimit)
@@ -1075,8 +1077,7 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,statuses:{}"
-	printh(_typ)
+	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,statuses:{}"
 	typ,behav,group=
 	_typ,_behav,_group
 	
@@ -1119,6 +1120,10 @@ draw=function()
 			held and
 			frame<=5 then
 			local wpnpos=vec2list"3,-2|2,-1|1,-2|1,3|3,-3|1,0"[frame+1]
+			if held.victory then
+				wpnpos=vec2s"-1,1"
+				call"palt(14,t"
+			end
 			call"pal(8,8)pal(9,9"
 			
 			spr(held.typ +
@@ -1326,6 +1331,9 @@ update=function()
 				if statuses.BURN then
 					pushtl.entfire()
 				end
+			elseif case"y" then
+				create(201).eQUIP()
+				sfx"25"
 			end
 			animt+=1
 			tickanim()
@@ -1693,9 +1701,8 @@ move=function(dst,playsfx)
 		 if dsttile.frozen then
 	  	call"sfx(28,-1,12,3"
 	  else
-		  local snd=assigntable"58:37,38:10,54:10,44:38,60:38,40:43"[dsttile.typ]
-		  sfx(snd or 35)
-		  if snd==43 then
+		  sfx(entdata[dsttile.typ] or 35)
+		  if dsttile.typ==40 then
 					--bonez
 					aggro(dsttile)	
 			 end
@@ -1884,7 +1891,7 @@ end
 id=function()
 	if not isid() then
 		ided[typ]=true
-		log((cursed and "\fe\-i☉ " or "\-g☉ ")..getname())
+		log(idprefix..getname())
 	end
 end
 
@@ -1898,6 +1905,12 @@ pickup=function()
 		addtoinventory()
 		setpos()
 		log("+"..getname())
+		if victory then
+			player.setanim"victory"
+			player.yface=-1
+			--player.statuses={}
+			setmode"victory"
+		end
 	else
 	 log"INVENTORY FULL"
 	end
@@ -1928,7 +1941,6 @@ rangedatk=function(i,ln,atktype)
 		drawln(ln[i].tlscrpos)
 		ln[i].lflashl=6
 	end
-	calclight(true)
 end
 
 	function drawburst()
@@ -1990,24 +2002,23 @@ end
 		tl.freeze()
 		tl.initpal()
 		drawburst()
- else
-	 if i==1 then
-		 gettile(pos).lflash=2
-		 aggro(gettile(pos))
-	 end
-	 if atkis"fire" then
+ 	else
+		if i==1 then
+			gettile(pos).lflash=2
+			aggro(gettile(pos))
+		end
+		if atkis"fire" then
 			trysetfire(tl,true)
 			if tl.fire==0 then
 				create(138,tl.pos)
 			end
-			calclight(true)
+			tl.entfire()
+		end
+		if dmg then --lightning/fire
 			if tl.ent then
-				tl.ent.burn()
-			 tl.ent.hurt(dmg)
+				tl.ent.hurt(dmg)
 			end
-		 gettile(pos).lflash=2
-		elseif atkis"lightning" and tl.ent then
-			tl.ent.hurt(dmg)
+			call"calclight(true"
 		end
 	end
 end
@@ -2456,7 +2467,7 @@ function postproc()
 	--create exit holes if needed
 	if depth==16 then
 		repeat until 
-			checkspawn(rndtl(),201,furthestd*0.75)
+			checkspawn(rndtl(),201,furthestd*0.66)
 	elseif numholes<3 then
 		alltiles(
 		function (_ENV)
@@ -2595,7 +2606,7 @@ split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
-assigntable"130:,131:,132:,133:,134:,135:",--ided
+assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
 assigntable"301:-1",--counts
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
 split"item,ent,effect",--tlentvars
@@ -2801,7 +2812,7 @@ ff0111000111f10fff0111111111110fff0111118111110ffffffffffff9ffffff5011d08111106f
 f011110180001110f011100111111110f011111111111110fffff9fffffbfffff5011d0181111d05ffff3ff3f3ffbffff505502402405504fff15500d55455ff
 000000111101000001111118111111110101111111111111fffff3ff9ffffffffd1110111111d01dfffff3f3fbffbfff022022022055044ff0005559d0550001
 f011000010111100f011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005910d11100
-ff0011110001100fff0111118111110fff0111111181100ffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffff0011110559100f
+ff0011110001100fff0111111111110fff0111111111100ffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffff0011110559100f
 fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffff0ddddd6ddd0fffffffffbfffffffffff44ffffffffffffff00510111000ff
 __label__
 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
@@ -2970,7 +2981,7 @@ __map__
 00000000000000000000000000000000000000002ec800000000000030000000200000002ea900002e000000000036302e002e002e003000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000308800000000000030000000300000002ea900002e0000000000362e2e002e002e002e0000002e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
+385008100f0341c02028010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 900200000062403630036000062000610006000060000600056000060005600016000060000600006000060000600006000060000600005000050000600006000050000500005000050000500005000050000500
 c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
@@ -3007,7 +3018,7 @@ a8011700322103e2313f2313f2312f200232002e2002f20023200002000020000200002003020038
 4c0603000667306573005530d503005030c5030050500103001010010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000000000000000000000
 9001190019920199201992019920199201992019920199200d9000d9000d900059100591005910059100591005910059100591005910059100591005910059100b9000b9000b9000b9000b9000b9000b9000b900
 4a020000016212f641056600a671136710965003641026413663005621036310562008621056310e630056210162100610096110061100620006312d621006110061001601016210160100610006210060100611
-480210000261000620036100161000600006100061000610006000061000600006000050000500006150060000500005000050000500005000050000500005000000000000000000000000000000000000000000
+490210000261000620036100161000600006100061000610006000061000600006000050000500006150060000500005000050000500005000050000500005000000000000000000000000000000000000000000
 79020b000e91006010040110301500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 a9030800260242a011001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000000000000000000000000000000000
 920100003b3153461034615270000000000000000000000000000000002b6002e600000000000000000000003931530610306151a6052900029000290053b6000000000000000003b600000003b600000003b600
