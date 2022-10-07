@@ -17,7 +17,7 @@ end
 function _update()
 	btns|=btnp()
 
-	if modeis"play" then
+	if modeis"play" and not waitforanim then
 		updateturn()
 	elseif modeis"aim" then
 		updateaim(unpack(aimparams))
@@ -381,7 +381,7 @@ flags:
 4:genable
 5:drawnormal
 6:flippable
-7:manmade
+7:manmade << no longer used
 8:navflying
 9:flammable
 10:flammable2
@@ -519,10 +519,6 @@ genable=function()
 	return tileflag"4"
 end
 
-ismanmade=function()
-	return tileflag"7" or
-	bg and fget(bg,7)
-end
 
 vistoplayer=function()
 	local darks=player.stat"darksight"
@@ -680,7 +676,7 @@ function setupdrawcalls()
 							_adjtl.bg!=thole
 				then
 				 tdraw(_ENV,_ENV,i+
-				 	(_adjtl.ismanmade()
+				 	(_adjtl.manmade
 				 	and 3 or 0),--brick hole
 				 	bg==thole)--bridges
 				end 
@@ -2065,8 +2061,6 @@ end
 -->8
 --entity management
 function updateturn()
- if (waitforanim) return
-	
 	if turnorder==0 then
 		pseen=false
 	 if not player.taketurn() then
@@ -2077,7 +2071,7 @@ function updateturn()
 	elseif turnorder==1 then
 		call"calcvis()calclight("
 	 for i,_ENV in inext,ents do
-			if not isplayer then
+			if ai or blocking then
 				taketurn()
 				tickstatuses()
 			end
@@ -2135,17 +2129,16 @@ end
 --level generation
 
 function genmap(startpos,manmade)
-	genpos,cave=
-	startpos,not manmade
-	
 	alltiles(function(_ENV)
 	 --required for now or we run
 	 --out of memory
 		adjtl=nil
 	end)
 
+	genpos,cave,ents=
+	startpos,not manmade,{unpack(inventory)}
+	
 	assigntable("world:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
-	ents={unpack(inventory)}
 	for y=0,20 do
 	 world[y],tileinbounds[y]=
 	 {},{}
@@ -2210,8 +2203,8 @@ function genroom(pos)
 			offset.x-=alt
 			local xwall=y==0 or y==h
 			for x=0,w do
-				local ywall=x==0 or	x==w
-				local npos=pos+offset+vec2(x,y)
+				local ywall,npos=
+				x==0 or x==w,pos+offset+vec2(x,y)
 				local tl=inbounds(npos)
 				if test then
 				 if not tl or
@@ -2223,6 +2216,7 @@ function genroom(pos)
 					local _ENV=tl
 					altwall=alt!=0
 					destroy(ent)
+					manmade=true
 					
 					if (xwall or ywall) and
 							 not (typ==tdunjfloor 
@@ -2231,7 +2225,6 @@ function genroom(pos)
 					 if rndp(crumble) and
 					    not altwall and not
 					    (xwall and ywall) then				   
-						 typ=tdunjfloor --needs manmade flag
 							gentile(txwall,tl)
 							if not ent then
 								genned=false
@@ -2245,7 +2238,6 @@ function genroom(pos)
 					else
 						set(tdunjfloor)
 					end
-					manmade=true
 				end
 			end
 	 end
@@ -2291,7 +2283,7 @@ end
 
 function gentile(typ,_ENV)
 	local y =	ceil(rnd"15")
-	if (ismanmade()) y+=16
+	if (manmade) y+=16
 	set(mget(typ,y))
 	if depth==16 and tileflag"15" then
 		return gentile(typ,_ENV)
@@ -2349,7 +2341,7 @@ function postproc()
 				local p1=rnd(unreach)
 				local tl1=gettile(p1)
 				local diri=
-		   rnd(split(tl1.ismanmade() and
+		   rnd(split(tl1.manmade and
 		   not permissive and "1,2,4,5" or"1,2,3,4,5,6"))
 				local dir=adj[diri]
 				local p2=p1+rndint(18)*dir
@@ -2373,9 +2365,7 @@ function postproc()
 					local _ENV=besttl1
 					local nav=navigable()
 					if not nav then
-					 if ismanmade() then
-					 	typ=tdunjfloor
-					 elseif tileflag"15" then
+					 if tileflag"15" then
 					 	if bestdiri%3==2 then
 					 		typ=tybridge
 					 	else
@@ -2383,6 +2373,8 @@ function postproc()
 					 		flip=bestdiri%3==1
 					 	end
 					 	bg=thole
+					 elseif manmade then
+					 	typ=tdunjfloor
 					 else
 					 	typ=tcavefloor
 						end
@@ -2582,7 +2574,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:16,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2674,7 +2666,7 @@ end
 
 genmap(vec2s"10,12")
 
-create(135).addtoinventory().eQUIP(true)
+create(130).addtoinventory().eQUIP(true)
 --create(mapping[311]).addtoinventory()
 calclight()
 

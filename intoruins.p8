@@ -1424,7 +1424,7 @@ _g=assigntable(
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
-entstr=[[64=n:yOU,hp:2000,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:
+entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21,profilepic:16
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16
