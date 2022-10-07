@@ -879,8 +879,7 @@ function updateenv()
 			visitadjrnd(trysetfire)
 			if tileflag"9" then
 				if rndp"0.2" then
-					fire=0
-					typ=34
+					fire,typ=0,34
 				end
 			else
 				fire=0
