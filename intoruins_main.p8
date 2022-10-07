@@ -1662,7 +1662,7 @@ doatk=function(ntl,pat)
 			if stat "dmghurt" then
 				hurt(dmgv)
 			end
-			if  stat"stun" and amor and b.hp>0 then
+			if stat"stun" and armor and b.hp>0 then
 				b.setstatus("STUN,"..stat"stun"..",2,11,3")
 				b.animtext"○,wavy:1"
 			end
