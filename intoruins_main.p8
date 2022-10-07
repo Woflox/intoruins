@@ -1269,7 +1269,12 @@ update=function()
 					destroy(_ENV)
 				end
 			elseif case"m" then
-				log("\-i◆ dEPTH "..depth.." ◆")
+				if depth==16 then
+					call"sfx(57,-1,10,1"
+					animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
+				else
+					log("\-i◆ dEPTH "..depth.." ◆")
+				end
 				if stat"fallheal" then
 					heal(3)
 					call"sfx(17,-1,6"
@@ -2574,7 +2579,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:16,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
