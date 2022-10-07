@@ -2675,7 +2675,7 @@ end
 
 genmap(vec2s"10,12")
 
-create(130).addtoinventory().eQUIP(true)
+create(135).addtoinventory().eQUIP(true)
 --create(mapping[311]).addtoinventory()
 calclight()
 
