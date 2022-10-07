@@ -1565,8 +1565,7 @@ end
 
 hurt=function(dmg,atkdir,nosplit,_push)
 	hp-=dmg
-	flash=true
-	shake=1
+	flash,shake=true,1
 	if hp<=0 then
 	 sfx(death)
 		setbehav"dead"
@@ -1611,7 +1610,7 @@ end
 push=function(dir)
 	if (nopush) return
 	local pushpos=pos+dir
-	pushdir,pushtl=dir,gettile(pushpos)
+	pushdir,pushtl,lasttl=dir,gettile(pushpos),tl
 	if hitfire then
 		sfx"36"
 		light=nil
