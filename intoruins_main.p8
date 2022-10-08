@@ -123,7 +123,8 @@ function _draw()
 		 curindex=0
 		 d()
 	 end
-	elseif textcrawl(
+	end
+	textcrawl(
 "\^x5\-dgAME oVER\^x4                                        \
 \
 \
@@ -137,11 +138,22 @@ function _draw()
 \-kdEPTH:"..depth.. 
 "            \n\n\-a❎:tRY AGAIN",
 usplit"47,29,1.3,13,gameover,16")
- then
- 	fadetoblack=true
- 	call"music(-1,300)setmode(reset"
-	end
 	
+	textcrawl(
+usplit"  \^x5◆ victory ◆\^x4                                                                                                                                                                                           \
+\
+\
+\
+\
+yOU ESCAPED WITH THE\
+\-owINGS OF yENDOR!\
+\
+\
+\
+\
+\
+\
+    ❎:cONTINUE,24,21,6,7,victory,8")
 	--print("memory: "..stat(0),0,0)
 end
 
@@ -170,13 +182,16 @@ function drawbar(label,val,maxval,col1,col2)
 end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
- if modeis(m) and statet>fadet then
-	 if not musicplayed then
-		 music(mus)
-		 musicplayed=true
+	if modeis(m) and statet>fadet then
+		if not musicplayed then
+			music(mus)
+			musicplayed=true
+			end
+		?sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1	
+		if btnp"5" then
+			fadetoblack=true
+			call"music(-1,300)setmode(reset"
 		end
- 	?sub(str,0,statet*30),x,y,statet>fadet+0.1and col or 1	
-	 return getbtn"32"
 	end
 end
 
@@ -459,7 +474,8 @@ initpal=function(fadefow)
 			if modeis"gameover" then
 				nfow=_ENV==player.tl and 3 or 1
 			elseif vistoplayer() and
-			   mode != "ui" then
+			   mode != "ui" and
+			   (mode != "victory" or statet<6)then
 				nfow=light>=2 and 4 or 3
 			elseif explored then
 				nfow=2
@@ -1269,12 +1285,6 @@ update=function()
 					destroy(_ENV)
 				end
 			elseif case"m" then
-				if depth==16 then
-					call"sfx(57,-1,10,1"
-					animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
-				else
-					log("\-i◆ dEPTH "..depth.." ◆")
-				end
 				if stat"fallheal" then
 					heal(3)
 					call"sfx(17,-1,6"
@@ -1287,6 +1297,12 @@ update=function()
 						end
 					end
 					call"sfx(55,-1,6,10"
+				end
+				if depth==16 then
+					call"sfx(61,-1,1,3"
+					animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
+				else
+					log("\-i◆ dEPTH "..depth.." ◆")
 				end
 			elseif case"v" then
 				animt+=1
