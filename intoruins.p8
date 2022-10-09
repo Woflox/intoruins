@@ -1435,7 +1435,7 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 72=n:bAT,hp:4,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0
 74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0
-75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0
+75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.5,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0
 76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0
 77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,altpdist:3,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0
 78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0
