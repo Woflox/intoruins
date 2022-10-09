@@ -538,7 +538,7 @@ end
 
 vistoplayer=function()
 	local darks=player.stat"darksight"
-	return vis and (light>-darks 
+	return rendervis and (light>-darks 
 	    or pdist>-2-darks)
 end
 
@@ -809,6 +809,7 @@ function calclight(nop,checkburn,clearflash)
 
  alltiles(
 function(_ENV)
+		rendervis=vis
 		if vistoplayer() then
 			explored=true
 		end
@@ -921,7 +922,6 @@ function updateenv()
 		end
 		checkeffects()
 	end)
-	call"calclight(,t,t"
 end
 
 function findfree(tl,var,distlimit)
@@ -2081,37 +2081,39 @@ end
 
 -->8
 --entity management
-function updateturn()
-	if turnorder==0 then
-		pseen=false
-	 if not player.taketurn() then
-	 	return
-	 end
-	 player.tickstatuses()
-	 calcdist"pdist"
-	elseif turnorder==1 then
-		call"calcvis()calclight("
-	 for i,_ENV in inext,ents do
-			if ai or blocking then
-				taketurn()
-				tickstatuses()
+function updateplayer()
+	pseen=false
+	if player.taketurn() then
+		player.tickstatuses()
+		call"calcdist(pdist)calcvis("
+		updateturn=function()
+			calclight()
+			for i,_ENV in inext,ents do
+				if ai or blocking then
+					taketurn()
+					tickstatuses()
+				end
+			end
+			updateturn=function()
+				for i,_ENV in inext,ents do
+					if ai and behavis"hunt" and
+						not _g.pseen and not alwayshunt
+					then
+						setbehav"search"
+						setsearchtl(lastpseentl)
+					end
+					canact=true
+				end
+				updateturn=function()
+					updateenv()
+					updateturn=function()
+						call"calclight(,t,t"
+						updateturn=updateplayer
+					end
+				end
 			end
 		end
-	elseif turnorder==2 then
-		for i,_ENV in inext,ents do
-			if ai and behavis"hunt" and
-				not _g.pseen and not alwayshunt
-			then
-				setbehav"search"
-				setsearchtl(lastpseentl)
-			end
-			canact=true
-		end
-	else
-		updateenv()
-		turnorder=-1
 	end
-	turnorder+=1
 end
 
 function setsearchtl(tl)
@@ -2595,7 +2597,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2607,7 +2609,7 @@ entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
-adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots=
+adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots,updateturn=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2617,7 +2619,8 @@ split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
 split"item,ent,effect",--tlentvars
-split"wpn,cloak,amulet"--itemslots
+split"wpn,cloak,amulet",--itemslots
+updateplayer--updateturn
 
 for i,s in inext,
 split([[16
