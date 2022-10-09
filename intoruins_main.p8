@@ -140,7 +140,7 @@ function _draw()
 usplit"47,29,1.3,13,gameover,16")
 	
 	textcrawl(
-usplit"  \^x5◆ victory ◆\^x4                                                                                                                                                                                           \
+usplit"  \^x5◆ victory ◆\^x4                                                                                                                                                                                       \
 \
 \
 \
@@ -1080,14 +1080,18 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,statuses:{}"
-	typ,behav,group=
-	_typ,_behav,_group
+	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,statuses:{}"
 	
-	assigntable(entdata[_typ],_ENV)						
-
-	animoffset=vec2(0,var=="ent"and 0or 2)
-	--counts[_typ]=(counts[_typ]or 0)+1
+	behav,typ,group=
+	_behav,_typ,_group
+	
+	assigntable(entdata[_typ],_ENV)		
+	
+	animoffset,counts[_typ],name,maxhp=
+	vec2(0,yoffs),
+	(counts[_typ]or 0)+1,
+	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n"),
+	hp
 	
 --member functions
 draw=function()
@@ -2052,11 +2056,7 @@ end
 		eMPOWER(nil,true)
 	end
 	
-	name=ai and 
-		rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..
-		rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n")
 	add(ents,_ENV)
-	maxhp=hp
 	if (flippable or ai)
 	   and rndp() then
 		xface*=-1
@@ -2444,7 +2444,7 @@ function postproc()
 			(allowent or not ent) and
 			(not nolight or light<=0) 
 		then	
-			return _typ and create(_typ,pos) or true
+			return not _typ or create(_typ,pos)
 		end
 	end
 	
@@ -2558,7 +2558,7 @@ function updateaim(_ENV,lineparams,atktype)
  _g.aimscrposx,_g.aimscrposy=
  mid(campos.x,aimscrpos.x,campos.x+127),
  mid(campos.y,aimscrpos.y,campos.y+127)
-	aimpos=vec2(aimscrposx/12,
+	_g.aimpos=vec2(aimscrposx/12,
 	            aimscrposy/8-aimscrposx/24)
  
  local aimline=hexline(player.pos,aimpos,unpack(lineparams))
@@ -2595,19 +2595,19 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:16,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:1,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
-,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
+,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],
 _ENV)
 entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
-adj,fowpals,frozepal,ided,counts,enchstats,tlentvars,itemslots=
+adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2615,7 +2615,6 @@ split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
-assigntable"301:-1",--counts
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet"--itemslots
@@ -2681,7 +2680,7 @@ for j,str in inext,split([[
 		local i=del(items,rnd(items))
 		entdata[i]..=entdata[s]
 		mapping[s]=i
-		counts[i]=counts[s] or 0
+		counts[i]=-tonum(s==301)
 	end
 end
 
@@ -2989,7 +2988,7 @@ __map__
 00000000000000000000000000000000000000002ec800000000000030000000200000002ea900002e000000000036302e002e002e003000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000308800000000000030000000300000002ea900002e0000000000362e2e002e002e002e0000002e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
+39500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 9205000017631276702c6702f6703167033670316703267030671316712f6602cf7029f702af7026f602af5126f5125f5125f4020f411ff411ef301df311cf301bf211af2119f2018f1116f1115f1113f1105f01
 c4281400184151a4151f41521415184151a4151f41521415184251a4251f42521425184251a4251f42521425184251a4251f415214152140523405284052a4050000000000000000000000000000000000000000
@@ -3046,7 +3045,7 @@ c004000000656046560a666071761167612676156761567614676176761767617676176661566613
 910600000f60102011080110d6111402119621230313a6113f6010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 400510001f501375513c5001f501375213c5001f501375113c50000500005000050000500005000050000500005003c000005003200000500370002a500005000050000500005000050000500005000050000500
 04a014001882018820188251b8001c8001e8101e8241e81518c001bc001f8101f8101f815240002a8001f8201f825158000000000000000000000000000000000000000000000000000000000000000000000000
-6ca00014155141e52621517155120e5111e5141e5141e502175141f5061c51418516185121a5111a5121b5111b5141b5121b5121b5133f5000050000500005000050000500005000050000500005000050000500
+6da00014155141e52621517155120e5111e5141e5141e502175141f5061c51418516185121a5111a5121b5111b5141b5121b5121b5133f5000050000500005000050000500005000050000500005000050000500
 6050000014e0424e2015c2415c301ac541ac401ac301ac301ac2015c3019c3019c4019c3419c351bc000000000000000000000018c2418c5418c5018c3018c4018c541cc161cc301cc301cc2017c5016c5416c55
 00a0140019d7019d7019d7019d7019d0019d7018d7018d7018d0018d7017d7017d7017d7017d7017d0017d701dd701dd7027d00000001dd000000000000000000000000000000000000000000000000000000000
 90a014001fb441fb401fb441fb401fb351de301eb441eb401eb201eb201fb441fb401fb441fb401fb2020b4420b4020b3020b2020b10000002d4002c400000000000000000000000000000000000000000000000
