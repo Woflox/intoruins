@@ -2046,7 +2046,6 @@ end
  	else
 		if i==1 then
 			gettile(pos).lflash=2
-			aggro(gettile(pos))
 		end
 		if atkis"fire" then
 			trysetfire(tl,true)
@@ -2056,8 +2055,11 @@ end
 			tl.entfire()
 		end
 		if dmg then --lightning/fire
+			aggro(tl)
 			if tl.ent then
 				tl.ent.hurt(dmg)
+			else
+
 			end
 			call"calclight(,t"
 		end
