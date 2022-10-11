@@ -2113,10 +2113,10 @@ function updateplayer()
 		updateturn=function()
 			calclight()
 			for i,_ENV in inext,ents do
-				if ai or blocking then
+				if ai then
 					taketurn()
-					tickstatuses()
 				end
+				tickstatuses()
 			end
 			updateturn=function()
 				for i,_ENV in inext,ents do
