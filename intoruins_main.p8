@@ -2004,6 +2004,7 @@ end
 			 	setpos(findfree(tl,"item"),true)
 		 end
 		 doatk(tl)
+			aggro(tl)
 		elseif atkis"heal" then
 			tl.sporeburst(0.9)
 		elseif atkis"summon" then
