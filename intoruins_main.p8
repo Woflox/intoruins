@@ -1631,7 +1631,7 @@ hurt=function(dmg,atkdir,nosplit,_push)
 			if splitpos then
 				hp/=2
 				local newent=create(typ,splitpos,behav,group)
-				if statuses.FIRE then
+				if statuses.BURN then
 					newent.burn()
 				end
 				newent.renderpos,newent.hp=
@@ -1989,7 +1989,6 @@ end
  
  if i*spd>=#ln then
   if atkis"throw" then
-		 doatk(tl)
 		 if tl.tileflag"15" then
 		 	setpos(tl.pos,true)
 		 elseif lit then
@@ -2004,6 +2003,7 @@ end
 		 elseif throw and not ai then
 			 	setpos(findfree(tl,"item"),true)
 		 end
+		 doatk(tl)
 		elseif atkis"heal" then
 			tl.sporeburst(0.9)
 		elseif atkis"summon" then
@@ -2621,7 +2621,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:5,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
