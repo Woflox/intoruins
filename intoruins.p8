@@ -848,15 +848,134 @@ tickstatuses=function()
 	end
 end
 
+animfuncs={
+	function()--[a]ttack
+		animoffset=
+		movratio*
+		screenpos(dir)
+	end,
+	function()--[b]lood
+		animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
+		animtext".,col:8,speed:0.1,offset:0"
+	end,
+	function()--[c]lip
+		animclip=animoffset.y
+	end,
+	function()--[d]amage
+		doatk(atktl,stat"atkpat")
+	end,
+	function()--[e] fade
+		_g.fadetoblack=true
+	end,
+	function()--[f]lip
+		animflip=-1
+	end,
+	function()--[g] sleep Z
+		if tl.vistoplayer() then
+			animtext"z,wavy:1"
+		end
+	end,
+	function()--[h]urt
+		hurt(hp>maxhp\20 and 
+			min(maxhp\3,hp-1) or
+			1000)
+	end,
+	function()--[i] flash
+		flash=true
+	end,
+	function()--[j] jet start
+		shake,_g.shakedamp=1,0.985
+		call"music(32,20,3"
+	end,
+	function()--[k] push collision
+		hurt(2)
+		animoffset=vec2s"0,0"
+		if pushtl.ent then
+			pushtl.ent.hurt(2,pushdir)
+		end
+		if statuses.BURN then
+			pushtl.entfire()
+		end
+	end,
+	function()--[l]oop
+		animloop=animindex+1
+		animt+=rnd(#anim-animindex-1)
+	end,
+	function()--[m] land
+		if stat"fallheal" then
+			heal(3)
+			call"sfx(17,-1,6"
+		end
+		if stat"recharge" then
+			for i,item in inext,inventory do
+				if item.charges then
+					item.charges = min(
+						item.maxcharges,item.charges+stat"recharge")
+				end
+			end
+			call"sfx(55,-1,6,10"
+		end
+		if depth==16 then
+			call"sfx(61,-1,1,3"
+			animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
+		else
+			log("\-i◆ dEPTH "..depth.." ◆")
+		end
+	end,
+	function()--[n]one (reset state)
+		flip,animtele=1
+	end,
+	function()--[o] destroy
+		destroy(_ENV)
+	end,
+	function()--[p]ut on wings
+		inventory[#inventory].eQUIP()
+		sfx"25"
+	end,
+	function()--[q] blast off
+		call"sfx(2)music(-1,300"
+	end,
+	function()--[r]elease
+		animwait=false
+	end,
+	function()--[s]nap
+		renderpos=nil
+	end,
+	function()--[t]eleport effect
+		animtele=true
+	end,
+	function()--[u] player light
+		animt+=1
+		light,lcool=
+		anim[animindex+1]-4
+		call"calclight(,t,t"
+	end,
+	function()--[v]ertical offset
+		animt+=1
+		animoffset.y+=anim[animindex+1]-4
+	end,
+	function()--[w]ait
+		_g.waitforanim,animwait=
+		true,true
+	end,
+	function()--[x]new level
+		load("intoruins_main","new game")
+	end
+}
+
 update=function()
 	function tickanim()
-		local index=flr(animt)
-		local char=anim[index]
+		animindex=flr(animt)
+		local char=anim[animindex]
+		printh(char)
 		
-		if type(char)=="number" or
-		   index > #anim then
-			animframe=char
-			animt+=animtele and 1 or animspeed
+		if type(char)=="string" then
+			animfuncs[ord(char)-96]()
+			animt+=1
+			tickanim()
+		else
+			animframe=char or 0
+			animt+=animspeed
 			
 			if flr(animt)>#anim then
 				if animloop then
@@ -866,56 +985,6 @@ update=function()
 					animoffset=vec2s"0,0"
 				end
 			end
-		else
-			function case(c)
-				return char==c
-			end
-			animflip=case"f"and -1or 1
-			animtele=case"t"
-			if case"l"then
-				animloop=index+1
-				animt+=rnd(#anim-index-1)
-			elseif case"r" then
-				animwait=false
-			elseif case"z" and
-			tl.vistoplayer() 
-			then
-				animtext"z,wavy:"
-			elseif case"_" then
-				destroy(_ENV)
-				if isplayer then
-					--next level
-					load("intoruins_main","new game")
-				end
-			elseif case"m" then
-				log("\-i◆ dEPTH "..depth.." ◆")
-			elseif case"v" then
-				animt+=1
-				animoffset.y+=anim[index+1]-4
-			elseif case"c" then
-				animclip=animoffset.y
-			elseif case"e" then
-				_g.fadetoblack=true
-			elseif case"!" then
-				flash=true
-			elseif case"b" then
-				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext".,col:8,speed:3,offset:6"
-			elseif case"a" then
-				animoffset=
-				movratio*
-				screenpos(dir)
-			elseif case"d" then
-				doatk(atktl,stat"atkpat")
-			elseif case"s" then
-				renderpos=nil
-			elseif case"h" then
-				hurt((hp>maxhp\20) and 
-					min(maxhp\3,hp-1) or
-					1000)
-		 end
-			animt+=1
-			tickanim()
 		end
 		
 		if animclip then
@@ -1446,8 +1515,8 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 138=n:fIRE,var:effect,light:4,idleanim:fireidle,deathanim:firedeath,animspeed:0.33,flippable:
 139=n:sPORES,var:effect,light:4,lcool:,idleanim:sporeidle,deathanim:firedeath,animspeed:0.33,flippable:,flying:
 brazieridle=l001122
-fireidle=01f0l.1.2.3f1f2f3
-firedeath=20_
+fireidle=01f0ln1n2n3f1f2f3
+firedeath=20o
 sporeidle=0l112233
 batidle=l0022
 move=044
@@ -1457,30 +1526,30 @@ emove=022
 dmove=0222
 esplit=02022
 hover=lv3000000v5000000
-bladesummon=45t2
-bladedeath=w2t5.54r_
-sleep=lz000000000000000000000
-flash=l!0000000000000000000000000000000000000000000
+bladesummon=45t2n
+bladedeath=w2t5n54ro
+sleep=lg000000000000000000000
+flash=li0000000000000000000000000000000000000000000
 patk=wa22d22r
 eatk=wa22dr22
 ratk=wa22r22
 batatk=wa20dr22
-death=wb0cv50v500v50r_
-jellydeath=w0cv60v32v52b22r_
-sharddeath=wv72!2t22r_
+death=wb0cv50v500v50ro
+jellydeath=w0cv60v32v52b22ro
+sharddeath=wv72i2t22ro
 pdeath=w444l6
-mushdeath=w01r_
-horndeath=wb0cv50t11r_
-brazierdeath=w333r_
+mushdeath=w01ro
+horndeath=wb0cv50t11ro
+brazierdeath=w333ro
 brazierpush=w3kr
-brazierfall=w3v53v53v63cv73v83v83r_
-propdeath=w111r_
+brazierfall=w3v53v53v63cv73v83v83ro
+propdeath=w111ro
 proppush=w1kr
-propfall=w1v51v51v61cv71v81v81r_
+propfall=w1v51v51v61cv71v81v81ro
 push=w2kr
-tele=rst0!0
-fall=w0v50v50v60cv70v80v80r_
-pfall=w0v54v54v64cv74v84v84e444r_
+tele=rst0ni0
+fall=w0v50v50v60cv70v80v80ro
+pfall=w0v54v54v64cv74v84v84e444rx
 fallin=ws0v90v90v94v94sv5hm46666666sv54v3440r
 slofall=ws0v94v84v74v64v54v54v54v54v544v5444v54m00r
 victory=w00000000000000000000000y440000000000000000000000u8j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52qu9v12v02v4v02v3v02u8v2v02v1v02v0v02u7v0v02v02v0v02u6v0v02v0v02v0v02u5v0v02v0v02u4v0v02v0v02u3v0v0u02l0

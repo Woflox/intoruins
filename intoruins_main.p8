@@ -1148,11 +1148,6 @@ setanim=
 function (name)
 	anim,animt,animloop=
 	split(entdata[name],""),1,false
-		
-	if anim[1]=="w" then
-		_g.waitforanim,animwait=
-		true,true
-	end
 end
 
 checkidle=function()
@@ -1260,106 +1255,135 @@ tickstatuses=function()
 	end
 end
 
+animfuncs={
+	function()--[a]ttack
+		animoffset=
+		movratio*
+		screenpos(dir)
+	end,
+	function()--[b]lood
+		animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
+		animtext".,col:8,speed:0.1,offset:0"
+	end,
+	function()--[c]lip
+		animclip=animoffset.y
+	end,
+	function()--[d]amage
+		doatk(atktl,stat"atkpat")
+	end,
+	function()--[e] fade
+		_g.fadetoblack=true
+	end,
+	function()--[f]lip
+		animflip=-1
+	end,
+	function()--[g] sleep Z
+		if tl.vistoplayer() then
+			animtext"z,wavy:1"
+		end
+	end,
+	function()--[h]urt
+		hurt(hp>maxhp\20 and 
+			min(maxhp\3,hp-1) or
+			1000)
+	end,
+	function()--[i] flash
+		flash=true
+	end,
+	function()--[j] jet start
+		shake,_g.shakedamp=1,0.985
+		call"music(32,20,3"
+	end,
+	function()--[k] push collision
+		hurt(2)
+		animoffset=vec2s"0,0"
+		if pushtl.ent then
+			pushtl.ent.hurt(2,pushdir)
+		end
+		if statuses.BURN then
+			pushtl.entfire()
+		end
+	end,
+	function()--[l]oop
+		animloop=animindex+1
+		animt+=rnd(#anim-animindex-1)
+	end,
+	function()--[m] land
+		if stat"fallheal" then
+			heal(3)
+			call"sfx(17,-1,6"
+		end
+		if stat"recharge" then
+			for i,item in inext,inventory do
+				if item.charges then
+					item.charges = min(
+						item.maxcharges,item.charges+stat"recharge")
+				end
+			end
+			call"sfx(55,-1,6,10"
+		end
+		if depth==16 then
+			call"sfx(61,-1,1,3"
+			animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
+		else
+			log("\-i◆ dEPTH "..depth.." ◆")
+		end
+	end,
+	function()--[n]one (reset state)
+		flip,animtele=1
+	end,
+	function()--[o] destroy
+		destroy(_ENV)
+	end,
+	function()--[p]ut on wings
+		inventory[#inventory].eQUIP()
+		sfx"25"
+	end,
+	function()--[q] blast off
+		call"sfx(2)music(-1,300"
+	end,
+	function()--[r]elease
+		animwait=false
+	end,
+	function()--[s]nap
+		renderpos=nil
+	end,
+	function()--[t]eleport effect
+		animtele=true
+	end,
+	function()--[u] player light
+		animt+=1
+		light,lcool=
+		anim[animindex+1]-4
+		call"calclight(,t,t"
+	end,
+	function()--[v]ertical offset
+		animt+=1
+		animoffset.y+=anim[animindex+1]-4
+	end,
+	function()--[w]ait
+		_g.waitforanim,animwait=
+		true,true
+	end,
+	function()--[x]new level
+		_g.depth+=1
+		genmap(pos,tl.manmade)
+	end
+}
+
 update=function()
 	function tickanim()
-		local index=flr(animt)
-		local char=anim[index]
+		animindex=flr(animt)
+		local char=anim[animindex]
+		printh(char)
 		
 		if type(char)=="string" then
-		function case(c)
-				return char==c
-			end
-			animflip=case"f"and -1or 1
-			animtele=case"t"
-			if case"l"then
-				animloop=index+1
-				animt+=rnd(#anim-index-1)
-			elseif case"r" then
-				animwait=false
-			elseif case"z" and
-			tl.vistoplayer()
-			then
-				animtext"z,wavy:1"
-			elseif case"_" then
-				if isplayer then
-					--next level
-					_g.depth+=1
-					genmap(pos,tl.manmade)
-				else
-					destroy(_ENV)
-				end
-			elseif case"m" then
-				if stat"fallheal" then
-					heal(3)
-					call"sfx(17,-1,6"
-				end
-				if stat"recharge" then
-					for i,item in inext,inventory do
-						if item.charges then
-							item.charges = min(
-								item.maxcharges,item.charges+stat"recharge")
-						end
-					end
-					call"sfx(55,-1,6,10"
-				end
-				if depth==16 then
-					call"sfx(61,-1,1,3"
-					animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
-				else
-					log("\-i◆ dEPTH "..depth.." ◆")
-				end
-			elseif case"v" then
-				animt+=1
-				animoffset.y+=anim[index+1]-4
-			elseif case"c" then
-				animclip=animoffset.y
-			elseif case"e" then
-				_g.fadetoblack=true
-			elseif case"!" then
-				flash=true
-			elseif case"b" then
-				animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-				animtext".,col:8,speed:0.1,offset:0"
-			elseif case"a" then
-				animoffset=
-				movratio*
-				screenpos(dir)
-			elseif case"d" then
-				doatk(atktl,stat"atkpat")
-			elseif case"s" then
-				renderpos=nil
-			elseif case"h" then
-				hurt(hp>maxhp\20 and 
-					min(maxhp\3,hp-1) or
-					1000)
-			elseif case"k" then
-				hurt(2)
-				animoffset=vec2s"0,0"
-				if pushtl.ent then
-					pushtl.ent.hurt(2,pushdir)
-				end
-				if statuses.BURN then
-					pushtl.entfire()
-				end
-			elseif case"y" then
-				inventory[#inventory].eQUIP()
-				sfx"25"
-			elseif case"j" then
-				shake,_g.shakedamp=1,0.985
-				call"music(32,20,3"
-			elseif case"q" then
-				call"sfx(2)music(-1,300"
-			elseif case"u" then
-				animt+=1
-				light,lcool=
-				anim[index+1]-4
-				call"calclight(,t,t"
-			end
+			animfuncs[ord(char)-96]()
 			animt+=1
 			tickanim()
 		else
-			animframe=char
-			animt+=animtele and 1 or animspeed
+			animframe=char or 0
+			animt+=animspeed
 			
 			if flr(animt)>#anim then
 				if animloop then
