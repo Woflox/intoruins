@@ -147,15 +147,13 @@ usplit"47,29,1.3,13,gameover,16")
 yOU ESCAPED WITH THE\
 \-owINGS OF yENDOR!\
 \
-\-hsTEPS TAKEN:     "..stepstaken.."\
+\-h\|isTEPS TAKEN:    "..stepstaken.."\
 \-hiTEMS FOUND:     "..itemsfound.."\
 \-hcREATURES SLAIN: "..creaturesslain.."\
 \
 \
 \
-\
     ❎:cONTINUE",usplit"24,21,6,7,victory,8")
-	--print("memory: "..stat(0),0,0)
 end
 
 function popdiag()
@@ -805,7 +803,7 @@ function calcvis()
 	end
 end
 
-function calclight(nop,checkburn,clearflash)
+function calclight(nop,checkburn,clearflash,despawn)
  local tovisit={}
 
  alltiles(
@@ -839,15 +837,19 @@ function(_ENV)
 	end)
 	dijkstra("light",tovisit,1)
 	if checkburn then
-		for i,_ENV in inext,ents do
+		for _ENV in all(ents) do
 			if hp and 
 			   stat"burnlight" and 
 			   tl.light>=2 and
 			   not statuses.BURN
 			then
-				burn()
-			 trysetfire(tl,true)
-				sfx"36"
+				if despawn and nolightspawn then
+					destroy(_ENV)
+				else
+					burn()
+					trysetfire(tl,true)
+					sfx"36"
+				end
 			end
 		end
 	end
@@ -1376,7 +1378,6 @@ update=function()
 	function tickanim()
 		animindex=flr(animt)
 		local char=anim[animindex]
-		--printh(char)
 		
 		if type(char)=="string" then
 			animfuncs[ord(char)-96]()
@@ -2473,13 +2474,12 @@ function postproc()
 	local numholes,furthestd=0,0
 	
 		
-	function checkspawn(_ENV,_typ,mindist,nolight,allowent)
-		if navigable(nolight) and
+	function checkspawn(_ENV,_typ,mindist,allowent)
+		if navigable() and
 		 pdist < mindist and
 			pdist > -1000 and
 			not item and
-			(allowent or not ent) and
-			(not nolight or light<=0) 
+			(allowent or not ent)
 		then	
 			return not _typ or create(_typ,pos)
 		end
@@ -2504,7 +2504,7 @@ function postproc()
 		then
 			numholes+=1
 		end
-		if checkspawn(_ENV,nil,0,false,true) then
+		if checkspawn(_ENV,nil,0,true) then
 			furthestd=min(furthestd,pdist)
 		end
 	end)
@@ -2516,7 +2516,7 @@ function postproc()
 	elseif numholes<3 then
 		alltiles(
 		function (_ENV)
-			if checkspawn(_ENV,nil,furthestd+2.5+rnd(),false,true)
+			if checkspawn(_ENV,nil,furthestd+2.5+rnd(),true)
 			then
 			 set(thole)
 				destroy(ent)
@@ -2555,7 +2555,7 @@ function postproc()
 			spawntl.visitadjrnd(
 			function(_ENV)
 				if not found and
-			 	checkspawn(_ENV,nil,-4,typ==72)
+			 	checkspawn(_ENV,nil,-4)
 			 then
 			  create(typ,pos,behav,n)
 					found,spawntl=
@@ -2572,8 +2572,8 @@ function postproc()
 			checkspawn(rndtl(),mapping[orb],-3)
 		end
 	end
-	
-	call"calcvis()calclight(,t"
+
+	call"calcvis()calclight(,t,t,t"
 end
 
 -->8
