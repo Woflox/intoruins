@@ -967,7 +967,6 @@ update=function()
 	function tickanim()
 		animindex=flr(animt)
 		local char=anim[animindex]
-		printh(char)
 		
 		if type(char)=="string" then
 			animfuncs[ord(char)-96]()
@@ -1499,9 +1498,9 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16,yoffs:0
 66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0
 67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0
-68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;22,rangep:0.25,profilepic:16,yoffs:0
 69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16,yoffs:0
-72=n:bAT,hp:4,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0
+72=n:bAT,hp:6,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0
 74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0
@@ -1552,7 +1551,7 @@ fall=w0v50v50v60cv70v80v80ro
 pfall=w0v54v54v64cv74v84v84e444rx
 fallin=ws0v90v90v94v94sv5hm46666666sv54v3440r
 slofall=ws0v94v84v74v64v54v54v54v54v544v5444v54m00r
-victory=w00000000000000000000000y440000000000000000000000u8j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52qu9v12v02v4v02v3v02u8v2v02v1v02v0v02u7v0v02v02v0v02u6v0v02v0v02v0v02u5v0v02v0v02u4v0v02v0v02u3v0v0u02l0
+victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52qu9v12v02v4v02v3v02u8v2v02v1v02v0v02u7v0v02v02v0v02u6v0v02v0v02v0v02u5v0v02v0v02u4v0v02v0v02u3v0v0u02l0
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
 133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:

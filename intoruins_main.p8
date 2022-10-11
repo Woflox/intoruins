@@ -140,20 +140,21 @@ function _draw()
 usplit"47,29,1.3,13,gameover,16")
 	
 	textcrawl(
-usplit"  \^x5◆ victory ◆\^x4                                                                                                                                                                                       \
-\
+"  \^x5◆ victory ◆\^x4                                                                                                                                                                                       \
 \
 \
 \
 yOU ESCAPED WITH THE\
 \-owINGS OF yENDOR!\
 \
+\-hsTEPS TAKEN:     "..stepstaken.."\
+\-hiTEMS FOUND:     "..itemsfound.."\
+\-hcREATURES SLAIN: "..creaturesslain.."\
 \
 \
 \
 \
-\
-    ❎:cONTINUE,24,21,6,7,victory,8")
+    ❎:cONTINUE",usplit"24,21,6,7,victory,8")
 	--print("memory: "..stat(0),0,0)
 end
 
@@ -1612,6 +1613,9 @@ hurt=function(dmg,atkdir,nosplit,_push)
 	hp-=dmg
 	flash,shake=true,1
 	if hp<=0 then
+		if ai and behav!="dead" then
+			_g.creaturesslain+=1
+		end
 	 sfx(death)
 		setbehav"dead"
 		setanim(deathanim)
@@ -1738,6 +1742,7 @@ move=function(dst,playsfx)
 		end
 		
 		if playsfx then
+			_g.stepstaken+=1
 		 if dsttile.frozen then
 	  	call"sfx(28,-1,12,3"
 	  else
@@ -1940,6 +1945,10 @@ isid=function()
 end
 
 pickup=function()
+	if not beenfound then
+		beenfound=true
+		_g.itemsfound+=1
+	end
  if #inventory<10 then
 		sfx"25"
 		addtoinventory()
@@ -2623,12 +2632,13 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:5,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:16,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
+,stepstaken:0,itemsfound:0,creaturesslain:0
 ,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],
 _ENV)
 entdata=assigntable(
