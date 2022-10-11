@@ -1375,7 +1375,7 @@ update=function()
 	function tickanim()
 		animindex=flr(animt)
 		local char=anim[animindex]
-		printh(char)
+		--printh(char)
 		
 		if type(char)=="string" then
 			animfuncs[ord(char)-96]()
