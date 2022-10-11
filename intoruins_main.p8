@@ -2055,11 +2055,10 @@ end
 			tl.entfire()
 		end
 		if dmg then --lightning/fire
-			aggro(tl)
 			if tl.ent then
 				tl.ent.hurt(dmg)
 			else
-
+				aggro(tl)
 			end
 			call"calclight(,t"
 		end
@@ -2717,7 +2716,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
---create(mapping[311]).addtoinventory()
+--create(mapping[301]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
