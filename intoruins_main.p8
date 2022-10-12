@@ -2734,9 +2734,9 @@ end
 
 genmap(vec2s"10,12")
 
---create(130).addtoinventory().eQUIP(true)
+create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
-create(mapping[315]).addtoinventory()
+--create(mapping[315]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
