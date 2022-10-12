@@ -472,7 +472,7 @@ initpal=function(fadefow)
 	 if not fadetoblack then
 			if modeis"gameover" then
 				nfow=_ENV==player.tl and 3 or 1
-			elseif vistoplayer() and
+			elseif vistoplayer and
 			   mode != "ui" and
 			   (mode != "victory" or statet<6)then
 				nfow=light>=2 and 4 or 3
@@ -534,13 +534,6 @@ genable=function()
 	return tileflag"4"
 end
 
-
-vistoplayer=function()
-	local darks=player.stat"darksight"
-	return rendervis and (light>-darks 
-	    or pdist>-2-darks)
-end
-
 flatten=function()
  if typ==tlonggrass then
  	typ=tflatgrass
@@ -562,6 +555,18 @@ entfire=function()
 	if ent and 
 		  not ent.nofire then
 		 ent.burn()
+	end
+	orbburst()
+end
+
+orbburst=function(repitem)
+	local itm=item
+	if itm and itm.orb then
+		destroy(itm)
+		if repitem then
+			repitem.setpos(pos,true)
+		end
+		itm.orbeffect(_ENV)
 	end
 end
 
@@ -691,8 +696,7 @@ function setupdrawcalls()
 							_adjtl.bg!=thole
 				then
 				 tdraw(_ENV,_ENV,i+
-				 	(_adjtl.manmade
-				 	and 3 or 0),--brick hole
+				 	(_adjtl.manmade and 3 or 0),--brick hole
 				 	bg==thole)--bridges
 				end 
 			end
@@ -747,7 +751,7 @@ function dijkstra(var,tovisit,flag)
 end
 
 function calcdist(var,tl,mindist)
-	tl,var=tl or player.tl,var
+	tl=tl or player.tl
 	alltiles(
 	function(ntl)
 		ntl[var]=mindist or-1000
@@ -808,10 +812,6 @@ function calclight(nop,checkburn,clearflash,despawn)
 
  alltiles(
 function(_ENV)
-		rendervis=vis
-		if vistoplayer() then
-			explored=true
-		end
 		light=lflash
 		if clearflash then 
 			lflash,lflashl=-10,-10
@@ -836,6 +836,17 @@ function(_ENV)
 		end
 	end)
 	dijkstra("light",tovisit,1)
+	
+	alltiles(
+	function(_ENV)
+		local darks=player.stat"darksight"
+		vistoplayer=vis and (light>-darks 
+							or pdist>-2-darks)
+		if vistoplayer then
+			explored=true
+		end
+	end)
+
 	if checkburn then
 		for _ENV in all(ents) do
 			if hp and 
@@ -859,7 +870,7 @@ function trysetfire(_ENV,always)
 	frozen=nil
 	if tileflag"10" or
     spores>0 or
-    (rndp() or always) and
+    (rndp"0.5" or always) and
    	(tileflag"9" or
     	ent and
 					ent.flammable)
@@ -967,8 +978,7 @@ function hexdist(p1,p2)
 end
 
 function hexline(p1,p2,range,linemode,cont)
-	p2=hexnearest(p2)
-	ln={}
+	p2,ln=hexnearest(p2),{}
 	local dist,tl=hexdist(p1,p2)
 	for i=1,min(cont and 20 or dist,range) do
 	 local tl=gettile(hexnearest(
@@ -1042,7 +1052,7 @@ function rndint(maxval)
 end
 
 function rndp(p)
-	return rnd()<(tonum(p) or 0.5)
+	return rnd()<tonum(p)
 end
 
 function lerp(a,b,t)
@@ -1098,8 +1108,8 @@ function create(_typ,_pos,_behav,_group)
 	
 --member functions
 draw=function()
-	if tl.vistoplayer() or
-		lasttl and lasttl.vistoplayer()
+	if tl.vistoplayer or
+		lasttl and lasttl.vistoplayer
 	then
 		tl.initpal()
 		if isplayer then
@@ -1235,7 +1245,7 @@ tickstatuses=function()
     and tl.spores>0
  then
 	heal(2)
- 	if tl.vistoplayer() and not textanim then
+ 	if tl.vistoplayer and not textanim then
  		animtext"+"
  	end
  	if isplayer then
@@ -1281,7 +1291,7 @@ animfuncs={
 		animflip=-1
 	end,
 	function()--[g] sleep Z
-		if tl.vistoplayer() then
+		if tl.vistoplayer then
 			animtext"z,wavy:1"
 		end
 	end,
@@ -1319,7 +1329,7 @@ animfuncs={
 		if stat"recharge" then
 			for i,item in inext,inventory do
 				if item.charges then
-					item.charges = min(
+					item.charges=min(
 						item.maxcharges,item.charges+stat"recharge")
 				end
 			end
@@ -1365,8 +1375,7 @@ animfuncs={
 		animoffset.y+=anim[animindex+1]-4
 	end,
 	function()--[w]ait
-		_g.waitforanim,animwait=
-		true,true
+		animwait=true
 	end,
 	function()--[x]new level
 		_g.depth+=1
@@ -1396,10 +1405,6 @@ update=function()
 				end
 			end
 		end
-		
-		if animclip then
-			animheight=1-(animoffset.y-animclip)/8
-		end
 	end
 	
 	if anim then
@@ -1407,6 +1412,9 @@ update=function()
 	end
 	if animwait then
 		_g.waitforanim=true
+	end
+	if animclip then
+		animheight=1-(animoffset.y-animclip)/8
 	end
 	
 	if pos then
@@ -1456,8 +1464,7 @@ findmove=function(var,goal,special)
 		 	score-=3*(ntl.light-tl.light)
 		 end
 			if score>bestscore then
-				bestscore=score
-				besttl=ntl
+				bestscore,besttl=score,ntl
 			end
 		end
 	end)
@@ -1496,11 +1503,7 @@ taketurn=function()
 		end
 		updst()
 		lookat(playerdst)
-		if dsttile.typ!=tywall or
-		playerdst.x<=pos.x
-		then
-			dsttile.hilight=2
-		end
+		dsttile.hilight=2
 		
 		if getbtn"32" then
 			dialog(inv)
@@ -1521,7 +1524,7 @@ taketurn=function()
 					end
 				updst()
 				if stat"lunge" and
-					dsttile.vistoplayer() and
+					dsttile.vistoplayer and
 					dsttile.ent
 				then
 					interact(dsttile.ent)
@@ -1537,7 +1540,7 @@ taketurn=function()
 		if behavis"hunt" then
 			checkseesplayer()
 			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
-				findmove("pdist",rndp() and altpdist or pdist,movandatk and "noatk")
+				findmove("pdist",rndp"0.5" and altpdist or pdist,movandatk and "noatk")
 			end
 				checkseesplayer()
 			if movandatk then
@@ -1688,7 +1691,7 @@ doatk=function(ntl,pat)
  
  for p in all(split(pat,"|")) do
  	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
- 	if nntl.vistoplayer() then
+ 	if nntl.vistoplayer then
  		doatk(nntl)
  	end
  end
@@ -1712,7 +1715,7 @@ doatk=function(ntl,pat)
 				hurt(dmgv)
 			end
 			if stat"stun" and armor and b.hp>0 then
-				b.setstatus("STUN,"..stat"stun"..",2,11,3")
+				b.setstatus(ai and "STUN,2,2,11,3" or "STUN,3")
 				b.animtext"○,wavy:1"
 			end
 		end
@@ -1747,7 +1750,7 @@ move=function(dst,playsfx)
 		 if dsttile.frozen then
 	  	call"sfx(28,-1,12,3"
 	  else
-		  sfx(entdata[dsttile.typ] or 35)
+		  sfx(entdata[dsttile.typ])
 		  if dsttile.typ==40 then
 					--bonez
 					aggro(dsttile)	
@@ -1779,8 +1782,11 @@ tele=function(dst)
 	end
 	setanim"tele"
 	setpos(dst.pos,true)
-	if isplayer and dst.item then
-		dst.item.pickup()
+	if isplayer then
+		if dst.item then
+			dst.item.pickup()
+		end
+		call"calcdist(pdist)calcvis()calclight("
 	end
 end
 
@@ -1788,11 +1794,7 @@ eQUIP=function()
 	if player[slot] then
 		player[slot].sTOW()
 	end
-	player[slot]=_ENV
-	equipped="t"
-	if lit then
-		player.setstatus"TORCH,160,160,2,9"
-	end
+	player[slot],equipped=_ENV,"t"
 	id()
 end
 
@@ -1821,7 +1823,6 @@ uSE=function()
 	if orb then
 		orbeffect(player.tl,true)
 		
-		id()
 		del(inventory,_ENV)
 		destroy(_ENV)
 	else
@@ -1831,16 +1832,14 @@ uSE=function()
 end
 
 orbeffect=function(tl,used)
- 	sfx(orbfx)
 	local entoritem=tl.ent or tl.item
  if used then
 	 if orbis"light" then
 			player.setstatus"LIGHT,160,160,2,13"
-			player.light,player.lcool=4,true
+			assigntable("light:4,lcool:",player)
 			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL,160,160,2,3"
-			return
 		elseif orbis"eMPOWER" or orbis"iDENTIFY"then
 			_g.uimode=orb
 			dialog(inv,true)
@@ -1850,6 +1849,7 @@ orbeffect=function(tl,used)
  		log"+MAX HP"
 		end
 	else
+		sfx"27"
 		if orbis"light" then
 			tl.lflash=8
 		elseif (orbis"eMPOWER" or 
@@ -1860,7 +1860,7 @@ orbeffect=function(tl,used)
 			tl.sporeburst(12)
 		end
 	end
-	
+
 	if orbis"tele" and entoritem then
 		entoritem.tele()
 	end
@@ -1868,7 +1868,7 @@ orbeffect=function(tl,used)
 	for i=0,6 do
 		local ntl=tl.adjtl[i]
 		if orbis"slofall" and i>0 and 
-		   ntl.ent
+		   ntl.ent and not used
 		then
 		   ntl.ent.push(adj[i])
 		elseif ntl.tileflag"8" and
@@ -1881,12 +1881,16 @@ orbeffect=function(tl,used)
 		 end
 		end
 	end
+	
+ sfx(orbfx)
+	if tl.vistoplayer then
+		id()
+	end
 end
 
 eXTINGUISH=function()
-	throwln,lit,light,
-	player.statuses.TORCH=0.125
-	typ+=1
+	throwln,typ,lit,light,
+	player.statuses.TORCH=0.125,131
 end
 
 eMPOWER=function(test,nosnd)
@@ -1975,9 +1979,9 @@ rangedatk=function(i,ln,atktype)
 	 return atktype==str
 	end
 	
-	local spd=atkis"throw" and throw/12 or 0.999
+	local spd,lngth=atkis"throw" and throw/12 or 0.999,#ln
  
-	local tl = ln[min(flr(i*spd)+1,#ln)]
+	local tl = ln[min(flr(i*spd)+1,lngth)]
 
  if atkis"lightning" then
 	drawln=function(_pos)
@@ -1987,7 +1991,7 @@ rangedatk=function(i,ln,atktype)
 	fillp()
 	line(i%2*5+7)
 	drawln(0.5*(screenpos(pos)+ln[1].tlscrpos))
-	for i=1,min(i,#ln) do
+	for i=1,min(i,lngth) do
 		drawln(ln[i].tlscrpos)
 		ln[i].lflashl=6
 	end
@@ -1997,7 +2001,8 @@ end
 		spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)
 	end
  
- if i*spd>=#ln then
+	tl.initpal()
+ if i*spd>=lngth then
   if atkis"throw" then
 		 if tl.tileflag"15" then
 		 	setpos(tl.pos,true)
@@ -2006,14 +2011,14 @@ end
 		 	sfx"36"
 		 elseif orb then
 		  orbeffect(tl)
-		  tl.initpal()
 		  drawburst()
-		  id()
-		 	sfx"27"
 		 elseif throw and not ai then
 			 	setpos(findfree(tl,"item"),true)
 		 end
-		 doatk(tl)
+			doatk(tl)
+			if atk and not tl.ent then	 
+				tl.orbburst(_ENV)
+			end
 			aggro(tl)
 		elseif atkis"heal" then
 			tl.sporeburst(0.9)
@@ -2025,18 +2030,17 @@ end
 	end
 
 	if atkis"blink" then
-	 (ai and _ENV or player).tele(ln[#ln])
+	 (ai and _ENV or player).tele(ln[lngth])
 		return true
 	elseif atkis"throw" then
 		tl.flatten()
-		tl.initpal()
 		
 		function getpos(i,offs)
 			local t,airtime=
-			spd*i/#ln, #ln/spd
+			spd*i/lngth, lngth/spd
 			local arcy,_pos=
 			(t*t-t)*airtime*airtime/4,
-			lerp(pos,ln[#ln].pos,t)
+			lerp(pos,ln[lngth].pos,t)
 			local scrpos=screenpos(_pos)+offs
 			return scrpos.x,scrpos.y+arcy,1,1,xface<0
 		end
@@ -2051,7 +2055,6 @@ end
 		end
 	elseif atkis"ice" then
 		tl.freeze()
-		tl.initpal()
 		drawburst()
  	else
 		if i==1 then
@@ -2065,11 +2068,11 @@ end
 			tl.entfire()
 		end
 		if dmg then --lightning/fire
+			tl.orbburst()
 			if tl.ent then
 				tl.ent.hurt(dmg)
-			else
-				aggro(tl)
 			end
+			aggro(tl)
 			call"calclight(,t"
 		end
 	end
@@ -2094,10 +2097,10 @@ end
 	
 	add(ents,_ENV)
 	if (flippable or ai)
-	   and rndp() then
+	   and rndp"0.5" then
 		xface*=-1
 	end
-	if ai and rndp() then
+	if ai and rndp"0.5" then
 		yface*=-1
 	end
 	checkidle()
@@ -2128,7 +2131,9 @@ function updateplayer()
 				if ai then
 					taketurn()
 				end
-				tickstatuses()
+				if not isplayer then
+					tickstatuses()
+				end
 			end
 			updateturn=function()
 				for i,_ENV in inext,ents do
@@ -2255,8 +2260,8 @@ function genroom(pos)
 	minpos.y-=(minpos.y+2-genpos.y)%4
 	
 	function doroom(test)
-		local offset,openplan=
-		minpos-pos,rndp()
+		local offset,openplan,crumble=
+		minpos-pos,rndp"0.5",rndp"0.25"
 		for y=0,h do
 		 local alt=(pos.y+offset.y+genpos.y+y)%2
 			offset.x-=alt
@@ -2307,7 +2312,6 @@ function genroom(pos)
 	end
 		
 	entropy-=0.15+rnd"0.1"
-	local crumble = rnd"0.25"
 	if entropy>=0 then
 		doroom()
 		if rndp(0.4-depth*0.025) then
@@ -2349,7 +2353,7 @@ function gentile(typ,_ENV)
 	end
 	local typ2=mget(typ+1,y)
 	flip,genned=
-	rndp(),true
+	rndp"0.5",true
  if typ2!=0 then
   if typ2<64 then
  		bg=typ2
@@ -2632,7 +2636,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:16,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2726,6 +2730,7 @@ end
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
+player.setstatus"TORCH,160,160,2,9"
 --create(mapping[301]).addtoinventory()
 calclight()
 
