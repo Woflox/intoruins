@@ -1494,7 +1494,7 @@ taketurn=function()
  end
 	if isplayer then
 		
-		call"turn(1,-1)turn(2,1)turn(8,3"
+		call"turn(1,4)turn(2,6)turn(8,8"
 		
 		function updst()
 			_g.playerdst,aimitem=
@@ -1860,17 +1860,13 @@ orbeffect=function(tl,used)
 			tl.sporeburst(12)
 		end
 	end
-
-	if orbis"tele" and entoritem then
-		entoritem.tele()
-	end
 	
-	for i=0,6 do
+	for i=6,0,-1 do
 		local ntl=tl.adjtl[i]
-		if orbis"slofall" and i>0 and 
+		if orbis"slofall" and 
 		   ntl.ent and not used
 		then
-		   ntl.ent.push(adj[i])
+		   ntl.ent.push(i>0 and adj[i] or player.dir)
 		elseif ntl.tileflag"8" and
 		  ntl.typ!=thole
 		then
@@ -1885,6 +1881,10 @@ orbeffect=function(tl,used)
  sfx(orbfx)
 	if tl.vistoplayer then
 		id()
+	end
+	
+	if orbis"tele" and entoritem then
+		entoritem.tele()
 	end
 end
 
@@ -2011,6 +2011,7 @@ end
 		 	sfx"36"
 		 elseif orb then
 		  orbeffect(tl)
+				id()
 		  drawburst()
 		 elseif throw and not ai then
 			 	setpos(findfree(tl,"item"),true)
@@ -2113,7 +2114,7 @@ end
 
 function turn(btnid,i)
 	if getbtn(btnid) then
-		player.diri=(player.diri+i+5)%6+1
+		player.diri=(player.diri+i)%6+1
 		player.setanim"turn"
 	end
 end
