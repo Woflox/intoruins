@@ -153,7 +153,8 @@ yOU ESCAPED WITH THE\
 \
 \
 \
-    ❎:cONTINUE",usplit"24,21,6,7,victory,8")
+    ❎:cONTINUE",
+	usplit"24,21,6,7,victory,8")
 end
 
 function popdiag()
@@ -181,7 +182,7 @@ function drawbar(label,val,maxval,col1,col2)
 end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
-	if modeis(m) and statet>fadet then
+	if mode==m and statet>fadet then
 		if not musicplayed then
 			music(mus)
 			musicplayed=true
@@ -1666,7 +1667,7 @@ push=function(dir)
 	pushdir,pushtl,lasttl=dir,gettile(pushpos),tl
 	if hitfire then
 		sfx"36"
-		light=nil
+		light=--nil
 		(pushtl.navigable() and pushtl or tl).setfire()
 	end
 	if (pushtl.navigable(flying) or pushtl.tileflag"15") and not pushtl.ent then
@@ -1796,6 +1797,9 @@ eQUIP=function()
 	end
 	player[slot],equipped=_ENV,"t"
 	id()
+	if cursed then
+		call"sfx(44,-1,1"
+	end
 end
 
 sTOW=function(staylit)
@@ -1823,7 +1827,6 @@ uSE=function()
 	if orb then
 		orbeffect(player.tl,true)
 		
-		del(inventory,_ENV)
 		destroy(_ENV)
 	else
 		--staffs
@@ -1910,7 +1913,6 @@ eMPOWER=function(test,nosnd)
 	end
 	if cursed and not test then
 		sTOW()
-		del(inventory,_ENV)
 		destroy(_ENV)
 		ided[typ]=true
 		log"CURSED ITEM DESTROYED"
@@ -2187,6 +2189,7 @@ end
 function destroy(_ENV)
  if _ENV then
 		del(ents,_ENV)
+		del(inventory,_ENV)
 		setpos()
 	end
 end
@@ -2732,7 +2735,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[301]).addtoinventory()
+--create(mapping[315]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
