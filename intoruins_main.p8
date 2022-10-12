@@ -1798,7 +1798,7 @@ eQUIP=function()
 	player[slot],equipped=_ENV,"t"
 	id()
 	if cursed then
-		call"sfx(44,-1,1"
+		sfx"44"
 	end
 end
 
@@ -1911,15 +1911,16 @@ eMPOWER=function(test,nosnd)
 			end
 		end
 	end
+	if not nosnd then
+		call"sfx(55,-1,0,16"
+		if (tl and not cursed) animtext"+LVL,speed:0.01666"
+	end
 	if cursed and not test then
 		sTOW()
 		destroy(_ENV)
 		ided[typ]=true
-		log"CURSED ITEM DESTROYED"
+		call"log(CURSED ITEM DESTROYED)sfx(44"
 	end
-	if (nosnd)return
-	call"sfx(55,-1,0,16"
-	if (tl and not cursed) animtext"+LVL,speed:0.01666"
 end
 
 iDENTIFY=function()
@@ -2733,9 +2734,9 @@ end
 
 genmap(vec2s"10,12")
 
-create(130).addtoinventory().eQUIP(true)
+--create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[315]).addtoinventory()
+create(mapping[315]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
