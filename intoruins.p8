@@ -120,7 +120,7 @@ OF THE FABLED wINGS OF yENDOR?    \
    \-jtHERE'\-eS NO TURNING BACK\-f.\-e.\-e.    \
 \
          ❎:jump down",
-  usplit"2,18,0,6,intro")
+  usplit"3,18,0,6,intro")
  then
   if statet > 5.75 then
 	  setmode"play"
@@ -1494,21 +1494,21 @@ _g=assigntable(
 _ENV)
 entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:,yoffs:0
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16,yoffs:0
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:3,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,desc1:aTTACKS WHILE MOVING,desc2:
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16,yoffs:0
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:
 67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0
-68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0
-69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16,yoffs:0
-72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,darksight:20,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,nolightspawn:
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,desc1:sHOOTS FIRE,desc2:
+69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16,yoffs:0,desc1:aTTACKS SLOWLY,desc2:
+72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK,desc3:
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT,desc3:
 74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0
-76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0
-77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,altpdist:3,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0
-78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0
-137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:,yoffs:1
-136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23,yoffs:0
+76=n:mIRRORSHARD,hp:6,ai:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:
+77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,altpdist:3,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES,desc3:
+78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0,desc1:bREATHES FIRE,desc2:dOESN'T BURN,desc3:
+137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:,yoffs:1,desc1:bURSTS INTO HEALING,desc2:SPORES,desc3:
+136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23,yoffs:0,desc1:eASILY KNOCKED OVER,desc2:
 169=n:cHAIR,hp:3,nofire:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23,yoffs:0
 200=n:bARREL,hp:3,hitpush:,pushanim:proppush,fallanim:propfall,flammable:,deathanim:propdeath,death:23,yoffs:0
 138=n:fIRE,var:effect,light:4,idleanim:fireidle,deathanim:firedeath,animspeed:0.33,flippable:
@@ -1549,14 +1549,14 @@ push=w2kr
 tele=rst0ni0
 fall=w0v50v50v60cv70v80v80ro
 pfall=w0v54v54v64cv74v84v84e444rx
-fallin=wws0v90v90v94v94sv5mh46666666sv54v3440r
-slofall=wws0v94v84v74v64v54v54v54v54v544v5444v54m00r
+fallin=wwsv90v90v94v94sv5mh46666666sv54v3440r
+slofall=wwsv94v84v74v64v54v54v54v54v544v5444v54m00r
 victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52qu9v12v02v4v02v3v02u8v2v02v1v02v0v02u7v0v02v02v0v02u6v0v02v0v02v0v02u5v0v02v0v02u4v0v02v0v02u3v0v0u02l0
 130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash
 132=n:sPEAR,var:item,slot:wpn,dmg:3,atk:1,pierce:,throwatk:3,throw:6,throwln:0.25,wpnfrms:16,atkpat:5,idleanim:flash,rndlvl:
-133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:
+133=n:rAPIER,var:item,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACK WHEN STEPPING,desc2:TOWARDS A CREATURE,desc3:
 134=n:aXE,var:item,slot:wpn,dmg:3,atk:1,arc:,throw:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash,rndlvl:
-135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:3,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:
+135=n:hAMMER,var:item,slot:wpn,dmg:6,atk:1,stun:3,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACKS SLOWLY,desc2:
 129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:
 161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:
@@ -1577,27 +1577,27 @@ victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v
 189=n:oRANGE ORB,var:item,light:2,throw:6,idleanim:flash
 190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash
 191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash
-201=n:wINGS OF yENDOR,var:item,light:2,slot:wpn,wpnfrms:8,idleanim:flash,victory:
-300=,nid:oRB OF lIGHT,orb:light,orbfx:53
-301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54
-302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55
-303=,nid:oRB OF dATA,orb:iDENTIFY,orbfx:18
-304=,nid:oRB OF lIFE,orb:life,orbfx:17
-305=,nid:oRB OF fIRE,orb:fire,orbfx:36
-306=,nid:oRB OF iCE,orb:ice,orbfx:28
-307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29
+201=n:wINGS OF yENDOR,var:item,light:2,slot:wpn,wpnfrms:8,idleanim:flash,victory:,desc1:aRTIFACT OF LEGEND
+300=,nid:oRB OF lIGHT,orb:light,orbfx:53,desc1:eMITS A PALE LIGHT,desc2:,desc3:tHROW FOR A BRIGHT,desc4:FLASH,desc5:
+301=,nid:oRB OF gRAVITY,orb:slofall,orbfx:54,desc1:sLOWS YOUR DESCENT,desc2:,desc3:tHROW TO PUSH,desc4:NEARBY CREATURES,desc5:
+302=,nid:oRB OF pOWER,orb:eMPOWER,orbfx:55,desc1:pERMANENTLY EMPOWER,desc2:AN ITEM,desc3:
+303=,nid:oRB OF dATA,orb:iDENTIFY,orbfx:18,desc1:iDENTIFY AN ITEM,desc2:,desc3:tHROW TO IDENTIFY,desc4:A CREATURE,desc5:
+304=,nid:oRB OF lIFE,orb:life,orbfx:17,desc1:hEALS YOU FULLY,desc2:,desc3:+3 TO MAX HP,desc4:
+305=,nid:oRB OF fIRE,orb:fire,orbfx:36,desc1:cREATES A BURST,desc2:OF FIRE,desc3:
+306=,nid:oRB OF iCE,orb:ice,orbfx:28,desc1:fREEZES NEARBY,desc2:CREATURES,desc3:
+307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29,desc1:tELEPORTS TARGET TO,desc2:A RANDOM LOCATION,desc3:
 308=,nid:aMULET OF dEFNSE,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,darksight:1,rndlvl:
-310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:
-311=,nid:aMULET OF rECKONING,dmghurt:,fallheal:,cursed:,idprefix:ᶜe³i✽
+310=,nid:aMULET OF wISDOM,recharge:1,rndlvl:,desc1:
+311=,nid:aMULET OF rECKONING,dmghurt:,fallheal:,cursed:,idprefix:ᶜe³i✽,desc1:dEALING MELEE DAMAGE,desc2:HURTS YOU,desc3:,desc4:dESCENDING HEALS +3,desc5:
 312=,nid:cLOAK OF dEFENSE,armor:1,rndlvl:
 313=,nid:dARKSIGHT cLOAK,darksight:1,rndlvl:
-314=,nid:cLOAK OF wISDOM,recharge:1,falleffect:,rndlvl:
-315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:,idprefix:ᶜe³i✽
-316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36
-317=,nid:sTAFF OF lYTNING,dmg:3,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9
-318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:ice,usefx:28
-319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29
+314=,nid:cLOAK OF wISDOM,recharge:1,falleffect:,rndlvl:,desc1:
+315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:,idprefix:ᶜe³i✽,desc1:cATCH FIRE IN LIGHT,desc2:,desc3:dEALING MELEE DAMAGE,desc4:HEALS YOU,desc5:
+316=,nid:sTAFF OF fIRE,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36,desc1:cREATES A LINE OF,desc2:FIRE AND DAMAGES,desc3:TARGET,desc4:
+317=,nid:sTAFF OF lYTNING,dmg:3,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9,desc1:zAPS MULTIPLE,desc2:TARGETS IN A LINE,desc3:
+318=,nid:sTAFF OF iCE,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:ice,usefx:28,desc1:fREEZES MULTIPLE,desc2:TARGETS IN A LINE,desc3:
+319=,nid:sTAFF OF bLINK,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29,desc1:tELEPORT TO TARGET,desc2:SPACE,desc3:
 58=37
 38=10
 54=10

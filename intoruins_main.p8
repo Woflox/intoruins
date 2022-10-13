@@ -273,31 +273,23 @@ function info()
  	for i,str in inext,split(
 "\
   nAME: ,name|\
+  wHEN DESCENDING\
+  STAFFS CHARGE +,recharge|\
+  ,desc1|\
+  ,desc2|\
+  ,desc3|\
+  ,desc4|\
+  ,desc5|\
   cASTS LIGHT\
 ,lit|\
   aTTACK SHAPE:   \|k^\+3c❎\+fd❎\+fj❎\
 ,arc|\
   aTTACK SHAPE:   \|p^\+aa❎\+8a❎\|o\
 ,pierce|\
-  lUNGE ATTACK\
-,lunge|\
-  aTTACKS SLOWLY\
-,slow|\
-  cATCH FIRE IN LIGHT\
-,burnlight|\
-  dEALING MELEE DAMAGE\
-  HEALS YOU\
-,dmgheal|\
-  dEALING MELEE DAMAGE\
-  HURTS YOU\
-  \
-  dESCENDING HEALS +3\
-  ,dmghurt|\
-  sEE FURTHER INTO\
-  DARKNESS BY ,darksight|\
+  dARKSIGHT:  +,darksight|\
+  hEALTH:    ,hp|/,maxhp|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
-  hEALTH:      ,hp|/,maxhp|\
   aCCURACY:   +,atk|\
   dAMAGE:      ,dmg|\
   rANGE:       ,range|\
@@ -307,9 +299,6 @@ function info()
   tHROW DAMAGE:,throwdmg|\
 \
   cHARGES: ,charges|/,maxcharges|\
-  \
-  wHEN DESCENDING\
-  STAFFS RECHARGE ,recharge|\
   \
   cANNOT BE REMOVED.\
   \fceMPOWERING DESTROYS\
@@ -1074,8 +1063,8 @@ vec2mt={
  __mul=function(s,v)
   return vec2(s*v.x,s*v.y)
  end,
- __eq=function(v1,v2)
-  return v1.x==v2.x and v1.y==v2.y
+ __eq=function(_ENV,v2)
+  return x==v2.x and y==v2.y
  end
 }
 vec2mt.__index=vec2mt
@@ -1446,7 +1435,7 @@ seesplayer=function()
 	return tl.vis and
 	       (tl.pdist>=-1 or
 				    player.tl.light>=2 or
-				    darksight)				 
+				    nightvision)				 
 end
 
 findmove=function(var,goal,special)
@@ -2072,11 +2061,12 @@ end
 			tl.entfire()
 		end
 		if dmg then --lightning/fire
-			tl.orbburst()
 			if tl.ent then
 				tl.ent.hurt(dmg)
+			else
+				tl.orbburst()
+				aggro(tl)
 			end
-			aggro(tl)
 			call"calclight(,t"
 		end
 	end
@@ -2736,7 +2726,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[315]).addtoinventory()
+--create(mapping[303]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
