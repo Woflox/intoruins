@@ -276,9 +276,9 @@ function info()
   ,desc5|\
   cASTS LIGHT\
 ,lit|\
-  aTTACK SHAPE:   \|k^\+3c❎\+fd❎\+fj❎\
+  aTTACK SHAPE:   \|f\^:3e7f3e0000000000\-2\^:00003e7f3e000000\-k\^:00003e7f3e000000\+2h\^:000000081c3e0808\
 ,arc|\
-  aTTACK SHAPE:   \|p^\+aa❎\+8a❎\|o\
+  aTTACK SHAPE:   \|d\^:3e7f3e003e7f3e00\+8l\^:000000081c3e0808\
 ,pierce|\
   dARKSIGHT:  +,darksight|\
   hEALTH:    ,hp|/,maxhp|\
