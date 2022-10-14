@@ -269,13 +269,16 @@ function info()
   nAME: ,name|\
   wHEN DESCENDING\
   STAFFS CHARGE +,recharge|\
+  cASTS LIGHT\
+  tHROW TO START FIRE\
+		\
+  sTOWING DOUSES FLAME,lit|\
   ,desc1|\
   ,desc2|\
   ,desc3|\
   ,desc4|\
   ,desc5|\
-  cASTS LIGHT\
-,lit|\
+		,desc6|\
   aTTACK SHAPE:   \|f\^:3e7f3e0000000000\-2\^:00003e7f3e000000\-k\^:00003e7f3e000000\+2h\^:000000081c3e0808\
 ,arc|\
   aTTACK SHAPE:   \|d\^:3e7f3e003e7f3e00\+8l\^:000000081c3e0808\
@@ -294,9 +297,9 @@ function info()
 \
   cHARGES: ,charges|/,maxcharges|\
   \
-  cANNOT BE REMOVED.\
-  \fceMPOWERING DESTROYS\
-  THIS ITEM,cursed",
+  \fecURSED: cANNOT BE\
+  REMOVED; dESTROYED\
+  BY EMPOWERMENT,cursed",
   "|")
   do
   	k,v=usplit(str)
@@ -2719,6 +2722,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
+--create(mapping[306]).addtoinventory()
 --create(mapping[303]).addtoinventory()
 calclight()
 
