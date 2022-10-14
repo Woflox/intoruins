@@ -1227,12 +1227,12 @@ heal=function(val)
 end
 
 tickstatuses=function()
- if (isplayer or ai)
+ if actor
     and tl.spores>0
  then
 	heal(2)
- 	if tl.vistoplayer and not textanim then
- 		animtext"+"
+ 	if tl.vistoplayer and (not textanim or textanim.lowprio) then
+ 		animtext"+,lowprio:"
  	end
  	if isplayer then
  		call"sfx(17,-1,6"
