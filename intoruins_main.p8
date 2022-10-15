@@ -1575,7 +1575,7 @@ end
 
 
 dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
-	local bestscore,bestln=0
+	local bestscore,bestln,besttl=0
 	function checktl(ntl)
 		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
 		if hit and (not summon or not summoned or summoned.behavis"dead") then
@@ -1584,17 +1584,23 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 				score+=etarg
 			end
 			if score>bestscore then
-				bestscore,bestln=score,ln
+				bestscore,bestln,besttl=score,ln,ntl
 			end
 		end
 	end
 	checktl(player.tl)
-	ptarg=btarg --hacky but saves tokenss
+	ptarg=btarg --hacky but saves tokens
 	tl.visitadjrnd(checktl)
 	if bestln then
 		sfx(fx)
 		setanim"ratk"
-		lookat(bestln[1].pos)
+		lookat(besttl.pos)
+		if summon then
+			summoned=create(75,besttl.pos)
+			summoned.setanim"bladesummon"
+		elseif healer then
+			besttl.sporeburst(0.9)
+		end
 		return add(rangedatks,{rangedatk,{0,bestln,atktype}})
 	end
 end
@@ -2009,11 +2015,6 @@ end
 				tl.orbburst(_ENV)
 			end
 			aggro(tl)
-		elseif atkis"heal" then
-			tl.sporeburst(0.9)
-		elseif atkis"summon" then
-			summoned=create(75,tl.pos)
-			summoned.setanim"bladesummon"
 		end
 		return true
 	end
@@ -2647,7 +2648,7 @@ split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
-assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
+assigntable"135:,131:,132:,133:,134:,135:,201:",--ided
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet",--itemslots
@@ -2714,7 +2715,7 @@ for j,str in inext,split([[
 		local i=del(items,rnd(items))
 		entdata[i]..=entdata[s]
 		mapping[s]=i
-		counts[i]=-tonum(s==301)
+		counts[i]=-tonum(s<=301)
 	end
 end
 
