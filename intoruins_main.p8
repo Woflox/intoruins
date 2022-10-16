@@ -1910,7 +1910,7 @@ eMPOWER=function(test,nosnd)
 		sTOW()
 		destroy(_ENV)
 		ided[typ]=true
-		call"log(CURSED ITEM DESTROYED)sfx(44"
+		call"log(ᶜe³mCURSED ITEM DESTROYED)sfx(44"
 	end
 end
 
@@ -2723,8 +2723,8 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[317]).addtoinventory()
---create(mapping[303]).addtoinventory()
+--create(mapping[311]).addtoinventory()
+--create(mapping[302]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
