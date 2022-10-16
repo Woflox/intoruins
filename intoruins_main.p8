@@ -1526,7 +1526,7 @@ taketurn=function()
 		if behavis"hunt" then
 			checkseesplayer()
 			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
-				findmove("pdist",rndp(0.5) and altpdist or pdist,movandatk and "noatk")
+				findmove("pdist",rndp"0.5" and altpdist or pdist,movandatk and "noatk")
 			end
 				checkseesplayer()
 			if movandatk then
@@ -2112,7 +2112,6 @@ end
 -->8
 --entity management
 function updateplayer()
-	pseen=false
 	if player.taketurn() then
 		player.tickstatuses()
 		call"calcdist(pdist)calcvis("
@@ -2140,6 +2139,7 @@ function updateplayer()
 					updateenv()
 					updateturn=function()
 						call"calclight(,t,t"
+						pseen=false
 						updateturn=updateplayer
 					end
 				end
@@ -2191,7 +2191,7 @@ function genmap(startpos,manmade)
 		adjtl=nil
 	end)
 
-	genpos,cave,ents=
+	genpos,cave,ents,pseen=
 	startpos,not manmade,{unpack(inventory)}
 	
 	assigntable("world:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
