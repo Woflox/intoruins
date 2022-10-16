@@ -1526,7 +1526,7 @@ taketurn=function()
 		if behavis"hunt" then
 			checkseesplayer()
 			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
-				findmove("pdist",rndp"0.5" and altpdist or pdist,movandatk and "noatk")
+				findmove("pdist",rndp(0.5) and altpdist or pdist,movandatk and "noatk")
 			end
 				checkseesplayer()
 			if movandatk then
@@ -2648,7 +2648,7 @@ split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
-assigntable"135:,131:,132:,133:,134:,135:,201:",--ided
+assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet",--itemslots
@@ -2723,7 +2723,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[306]).addtoinventory()
+--create(mapping[317]).addtoinventory()
 --create(mapping[303]).addtoinventory()
 calclight()
 
