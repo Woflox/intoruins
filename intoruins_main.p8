@@ -285,6 +285,7 @@ function info()
 ,pierce|\
   dARKSIGHT:  +,darksight|\
   hEALTH:    ,hp|/,maxhp|\
+  fREEZE TURNS:,freezeturns|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
   aCCURACY:   +,atk|\
@@ -544,7 +545,7 @@ entfire=function()
 	end
 end
 
-freeze=function()
+freeze=function(turns)
 	frozen,fire=true,0
 	flatten()
 	local _ENV = ent
@@ -553,7 +554,7 @@ freeze=function()
 	 	setanim"brazierdeath"
 	 end
 		statuses.BURN=--nil
-		setstatus"FROZEN,8,8,13,6"
+		setstatus("FROZEN,"..turns..","..turns..",13,6")
 		animtext"○"
 		_g.aggro(tl)
 	end
@@ -1564,6 +1565,7 @@ end
 
 dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 	local bestscore,bestln,besttl=0
+	if (atktype=="ice" and player.statuses.FROZEN) return
 	function checktl(ntl)
 		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
 		if hit and (not summon or not summoned or summoned.behavis"dead") then
@@ -1855,7 +1857,7 @@ orbeffect=function(tl,used)
 		 if orbis"fire" then
 				ntl.setfire()
 			elseif orbis"ice" then
-			 ntl.freeze()
+			 ntl.freeze(freezeturns)
 		 end
 		end
 	end
@@ -2027,7 +2029,7 @@ end
 			spr(typ,getpos(i,vec2s"-3,-6"))
 		end
 	elseif atkis"ice" then
-		tl.freeze()
+		tl.freeze(freezeturns)
 		drawburst()
  	else
 		if i==1 then
@@ -2631,7 +2633,7 @@ split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
 assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
-split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",--enchstats
+split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges,freezeturns",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet",--itemslots
 updateplayer--updateturn
@@ -2705,8 +2707,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[311]).addtoinventory()
---create(mapping[302]).addtoinventory()
+--create(mapping[303]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
