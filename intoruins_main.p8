@@ -542,18 +542,6 @@ entfire=function()
 		  not ent.nofire then
 		 ent.burn()
 	end
-	orbburst()
-end
-
-orbburst=function(repitem)
-	local itm=item
-	if itm and itm.orb then
-		destroy(itm)
-		if repitem then
-			repitem.setpos(pos,true)
-		end
-		itm.orbeffect(_ENV)
-	end
 end
 
 freeze=function()
@@ -1873,9 +1861,7 @@ orbeffect=function(tl,used)
 	end
 	
  sfx(orbfx)
-	if tl.vistoplayer then
-		id()
-	end
+	id()
 	
 	if orbis"tele" and entoritem then
 		entoritem.tele()
@@ -2011,9 +1997,6 @@ end
 			 	setpos(findfree(tl,"item"),true)
 		 end
 			doatk(tl)
-			if atk and not tl.ent then	 
-				tl.orbburst(_ENV)
-			end
 			aggro(tl)
 		end
 		return true
@@ -2061,7 +2044,6 @@ end
 			if tl.ent then
 				tl.ent.hurt(dmg)
 			else
-				tl.orbburst()
 				aggro(tl)
 			end
 			call"calclight(,t"
