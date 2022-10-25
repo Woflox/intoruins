@@ -636,7 +636,7 @@ function setupdrawcalls()
 			tdraw(_ENV,_ENV)
 		end
 		
-		for i in inext,split"2,1,3,4,5,6" do
+		for k,i in inext,split"2,1,3,4,5,6" do
 			
 			if infront and i==4 then
 				tdraw(_ENV,_ENV)		
