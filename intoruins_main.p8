@@ -1639,6 +1639,9 @@ hurt=function(dmg,atkdir,nosplit,_push)
 	aggro(tl)
 	if _push or hitpush and atkdir then
 		push(atkdir)
+	elseif hitfire then
+		sfx"36"
+		tl.setfire()
 	end
 end
 
@@ -1986,6 +1989,7 @@ end
 	tl.initpal()
  if i*spd>=lngth then
   if atkis"throw" then
+			doatk(tl)
 		 if tl.tileflag"15" then
 		 	setpos(tl.pos,true)
 		 elseif lit then
@@ -1998,7 +2002,6 @@ end
 		 elseif throw and not ai then
 			 	setpos(findfree(tl,"item"),true)
 		 end
-			doatk(tl)
 			aggro(tl)
 		end
 		return true
@@ -2710,7 +2713,7 @@ genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[303]).addtoinventory()
+--create(mapping[317]).addtoinventory()
 calclight()
 
 ?"\^!5f5c\9\6"--key repeat poke
