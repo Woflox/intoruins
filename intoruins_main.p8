@@ -2012,9 +2012,9 @@ end
 	if atkis"blink" then
 	 player.tele(ln[lngth])
 		return true
-	elseif atkis"throw" then
-		tl.flatten()
-		
+	end
+	tl.flatten()
+	if atkis"throw" then
 		function getpos(i,offs)
 			local t,airtime=
 			spd*i/lngth, lngth/spd
