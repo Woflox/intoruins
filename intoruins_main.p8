@@ -1590,8 +1590,6 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 			summoned.setanim"bladesummon"
 		elseif healer then
 			besttl.sporeburst(0.9)
-		elseif atktype=="shardblink" then
-			tele(bestln[#bestln])
 		end
 		return add(rangedatks,{rangedatk,{0,bestln,atktype}})
 	end
@@ -2010,7 +2008,7 @@ end
 	end
 
 	if atkis"blink" then
-	 player.tele(ln[lngth])
+	 (ai and _ENV or player).tele(ln[lngth])
 		return true
 	end
 	tl.flatten()
@@ -2047,7 +2045,7 @@ end
 			end
 			tl.entfire()
 		end
-		if atkis"fire" or atkis"lightning" then
+		if dmg then --lightning/fire
 			if tl.ent then
 				tl.ent.hurt(dmg)
 			else
