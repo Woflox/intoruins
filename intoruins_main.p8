@@ -2534,7 +2534,7 @@ function postproc()
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
-		={66},--rnd(spawns[min(spawndepth,20)]),
+		=rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false
