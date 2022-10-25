@@ -636,8 +636,7 @@ function setupdrawcalls()
 			tdraw(_ENV,_ENV)
 		end
 		
-		for n=1,6 do
-			i=split"2,1,3,4,5,6"[n]
+		for i in inext,split"2,1,3,4,5,6" do
 			
 			if infront and i==4 then
 				tdraw(_ENV,_ENV)		
@@ -1568,8 +1567,9 @@ dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 	if (atktype=="ice" and player.statuses.FROZEN) return
 	function checktl(ntl)
 		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
-		if hit and (not summon or not summoned or summoned.behavis"dead") then
-			local _ENV,score = ntl.ent,ptarg
+		if hit then
+			local _ENV,score = ntl.ent,
+			summon and not summoned and 100+ntl.pdist or ptarg
 			if _ENV and ai and hp<maxhp and ntl.spores==0 then
 				score+=etarg
 			end
@@ -1766,6 +1766,7 @@ tele=function(dst)
 		      not dst.ent
 	end
 	setanim"tele"
+	if (dst.ent) return
 	setpos(dst.pos,true)
 	if isplayer then
 		if dst.item then
@@ -2120,14 +2121,16 @@ function updateplayer()
 						setbehav"search"
 						setsearchtl(lastpseentl)
 					end
+					if summoned and summoned.behavis"dead" then
+						summoned=nil
+					end
 					canact=true
 				end
 				updateturn=function()
 					updateenv()
 					updateturn=function()
 						call"calclight(,t,t"
-						pseen=false
-						updateturn=updateplayer
+						updateturn,pseen=updateplayer
 					end
 				end
 			end
@@ -2531,7 +2534,7 @@ function postproc()
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
-		=rnd(spawns[min(spawndepth,20)]),
+		={66},--rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false

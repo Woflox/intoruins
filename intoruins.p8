@@ -1496,7 +1496,7 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16,yoffs:0,actor:
 71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:-2,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,desc1:aTTACKS WHILE MOVING,desc2:,actor:
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16,yoffs:0,actor:
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;1;0;0.5;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:,actor:,healer:
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;0;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:,actor:,healer:
 67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0,actor:
 68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,desc1:sHOOTS FIRE,desc2:,actor:
 69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16,yoffs:0,desc1:aTTACK TAKES 2 TURNS,desc2:,actor:
