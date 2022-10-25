@@ -1564,7 +1564,7 @@ end
 
 dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)
 	local bestscore,bestln,besttl=0
-	if (atktype=="ice" and player.statuses.FROZEN) return
+	if (atktype=="ice" and noice) return
 	function checktl(ntl)
 		local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))
 		if hit then
@@ -2124,7 +2124,7 @@ function updateplayer()
 					if summoned and summoned.behavis"dead" then
 						summoned=nil
 					end
-					canact=true
+					canact,noice=true,player.statuses.FROZEN
 				end
 				updateturn=function()
 					updateenv()
