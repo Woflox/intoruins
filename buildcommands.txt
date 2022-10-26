@@ -1,0 +1,7 @@
+--minify
+py /e/Programs/shrinko8/shrinko8.py -m --no-minify-rename --no-minify-tokens intoruins_main.p8 minified/intoruins_main.p8
+
+--html export
+export -f intoruins.html minified/intoruins_main.p8
+
+--bin export

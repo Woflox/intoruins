@@ -1,8 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 38
 __lua__
---iNTO rUINS
---BY ERIC BILLINGSLEY
+--keep:iNTO rUINS
+--keep:BY ERIC BILLINGSLEY
+--keep:
+--keep:unminified source available at
+--keep:https://github.com/woflox/intoruins
+--keep:
 
 function modeis(m)
 	return mode==m

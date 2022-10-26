@@ -1,6 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 38
 __lua__
+--iNTO rUINS
+--BY ERIC BILLINGSLEY
+--
+--unminified source available at
+--https://github.com/woflox/intoruins
+--
 function modeis(m)return mode==m end function getbtn(b)b&=btns btns&=~b return b!=0end function _update()btns|=btnp()if modeis"play"and not waitforanim then updateturn()elseif modeis"aim"then updateaim(unpack(aimparams))elseif modeis"reset"and statet>0.3then load"intoruins"end statet+=0.03333if mode!="ui"then waitforanim=#rangedatks>0for i,_ENV in inext,ents do update()end end local camtarget=screenpos(lerp(player.pos,vec2s"10,9.5",(modeis"gameover"or modeis"victory")and max(0.36-statet*2)or 0.36))smoothb=lerp(smoothb,camtarget,0.5)smooth=lerp(smooth,smoothb,0.25)function getcampos(val)return flr(rnd(player.shake*2)-player.shake+val-63.5)end campos=vec2(getcampos(smooth.x),getcampos(smooth.y))player.shake*=shakedamp end function _draw()cls()camera(campos.x,campos.y)lfillp,anyfire=localfillp(0xbfd6.4,-campos)for i,drawcall in inext,drawcalls do drawcall[1](unpack(drawcall[2]))end if anyfire!=fireplaying then fireplaying=anyfire call(anyfire and"music(32,500,3"or"music(-1,500")end for i,atk in inext,rangedatks do atk[2][1]+=1if atk[1](unpack(atk[2]))then del(rangedatks,atk)end end call"pal()palt(1)pal(15,129,1)pal(11,131,1)fillp("if modeis"play"or modeis"victory"then for i,ent in inext,ents do local _ENV=ent.textanim if _ENV and t<=0.5then t+=speed pos.y-=0.5-t print(text,mid(campos.x,4+pos.x-#text*2,campos.x+128-#text*4)-wavy*cos(t*2),pos.y+offset,t>0.433and 5or col)else ent.textanim=nil end end elseif modeis"aim"then
 ?"\f7\+fe⁙",aimscrposx,aimscrposy
 end camera()
@@ -66,6 +72,7 @@ local statstr="\f1 ……………………………\fd\|j"if isid()then for i,s
 ,pierce|\
   dARKSIGHT:  +,darksight|\
   hEALTH:    ,hp|/,maxhp|\
+  fREEZE TURNS:,freezeturns|\
   kNOCKBACK:   1,knockback|\
   sTUN:        ,stun|\
   aCCURACY:   +,atk|\
@@ -97,11 +104,11 @@ end end initpal=function(fadefow)pal()palt(1)local nfow=1if fadefow then if not 
 if not dead and
 not has then setanim(deathanim)dead,light=true end elseif has then destroy(_ENV)end end if not effect and has then create(_typ,pos)end end local hasfire=fire>0or ent and ent.statuses.BURN _g.anyfire=_g.anyfire or hasfire and mode!="ui"and mode!="victory"checkeffect(138,hasfire)checkeffect(139,spores>0)end tileflag=function(i)return fget(typ+i\8,i%8)end navigable=function(flying)return tileflag(flying and 8or 0)end genable=function()return tileflag"4"end flatten=function()if typ==tlonggrass then typ=tflatgrass end end setfire=function()fire,spores,newspores,frozen=max(fire,1),0,0entfire()end sporeburst=function(val)spores+=val sfx"17"end entfire=function()
 if ent and
-not ent.nofire then ent.burn()end orbburst()end orbburst=function(repitem)local itm=item if itm and itm.orb then destroy(itm)if repitem then repitem.setpos(pos,true)end itm.orbeffect(_ENV)end end freeze=function()frozen,fire=true,0flatten()local _ENV=ent if _ENV then if hitfire then setanim"brazierdeath"end statuses.BURN=setstatus"FROZEN,8,8,13,6"animtext"○"_g.aggro(tl)end end visitadjrnd=function(func)local neighbors={unpack(adjtl)}for i=1,6do func(del(neighbors,rnd(neighbors)))end end return _ENV end function drawcall(dcall)add(drawcalls,dcall)end function setupdrawcalls()alltiles(function(_ENV)local palready=nil function tdraw(tltodraw,postl,i,_bg)if not palready then drawcall{initpal,{true}}palready=true end local _typ,flp=i and(bg and tltodraw.bg or tltodraw.typ),flip if not i and tltodraw.tileflag"14"then _typ=tdunjfloor end local baseoffset,offsets,sizes=unpack(specialtiles[i and _typ or"default"])local offset,size=offsets[i or 1],sizes[i or 1]if i then
+not ent.nofire then ent.burn()end end freeze=function(turns)frozen,fire=true,0flatten()local _ENV=ent if _ENV then if hitfire then setanim"brazierdeath"end statuses.BURN=setstatus("FROZEN,"..turns..","..turns..",13,6")animtext"○"_g.aggro(tl)end end visitadjrnd=function(func)local neighbors={unpack(adjtl)}for i=1,6do func(del(neighbors,rnd(neighbors)))end end return _ENV end function drawcall(dcall)add(drawcalls,dcall)end function setupdrawcalls()alltiles(function(_ENV)local palready=nil function tdraw(tltodraw,postl,i,_bg)if not palready then drawcall{initpal,{true}}palready=true end local _typ,flp=i and(bg and tltodraw.bg or tltodraw.typ),flip if not i and tltodraw.tileflag"14"then _typ=tdunjfloor end local baseoffset,offsets,sizes=unpack(specialtiles[i and _typ or"default"])local offset,size=offsets[i or 1],sizes[i or 1]if i then
 if _typ==tywall and
 not postl.altwall then baseoffset+=vec2s"-6,-2"elseif _typ==thole then _typ+=192if i>3then _typ+=2flp=false baseoffset+=vec2s"0,1"end end flp=flp and i%3==2end drawcall{draw,{_typ,postl,postl.tlscrpos+offset+baseoffset,offset,size,flp and tltodraw.tileflag"6",_bg,not(i or _bg)}}end local infront,uprtl=fget(typ,3),adjtl[3]if bg then tdraw(_ENV,_ENV,nil,true)end
 if not infront and
-tileflag"5"or tileflag"14"and altwall then tdraw(_ENV,_ENV)end for n=1,6do i=split"2,1,3,4,5,6"[n]if infront and i==4then tdraw(_ENV,_ENV)end local _adjtl=adjtl[i]if _adjtl then local adjtyp=_adjtl.typ
+tileflag"5"or tileflag"14"and altwall then tdraw(_ENV,_ENV)end for k,i in inext,split"2,1,3,4,5,6"do if infront and i==4then tdraw(_ENV,_ENV)end local _adjtl=adjtl[i]if _adjtl then local adjtyp=_adjtl.typ
 if typ!=tcavewall and
 typ!=tempty and adjtyp==tcavewall then tdraw(_adjtl,_ENV,i)elseif i<=2and _adjtl.tileflag"11"then walltl=adjtl[i]
 if adjtyp==tywall and
@@ -153,19 +160,23 @@ and rndp(p)then aggro(tl)return true end end checkaggro(behavis"search"and 1.0or
 if not wanderdsts[group]
 or pos==wanderdsts[group]or rndp"0.025"then repeat wandertl=rndtl()wanderdsts[group]=wandertl until wandertl.navigable()and wandertl.pdist>-1000calcdist(group,wandertl)end findmove(group,0,"aggro")checkaggro(0.29)elseif behavis"search"then local goal=pdist findmove("search",goal,"aggro")
 if not checkaggro(1.0)and
-tl.search==goal then setbehav"wander"end end end end end dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)local bestscore,bestln,besttl=0function checktl(ntl)local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))if hit and(not summon or not summoned or summoned.behavis"dead")then local _ENV,score=ntl.ent,ptarg if _ENV and ai and hp<maxhp and ntl.spores==0then score+=etarg end if score>bestscore then bestscore,bestln,besttl=score,ln,ntl end end end checktl(player.tl)ptarg=btarg tl.visitadjrnd(checktl)if bestln then sfx(fx)setanim"ratk"lookat(besttl.pos)if summon then summoned=create(75,besttl.pos)summoned.setanim"bladesummon"elseif healer then besttl.sporeburst(0.9)end return add(rangedatks,{rangedatk,{0,bestln,atktype}})end end hurt=function(dmg,atkdir,nosplit,_push)hp-=dmg flash,shake=true,1if hp<=0then if ai and behav!="dead"then _g.creaturesslain+=1end sfx(death)setbehav"dead"setanim(deathanim)if isplayer then call"setmode(gameover)print(\^!5f40\31)calclight("elseif sporedeath then tl.sporeburst(sporedeath)elseif summoned and not summoned.behavis"dead"then summoned.hurt(10)end else sfx"34"
+tl.search==goal then setbehav"wander"end end end end end dorangedatk=function(atktype,lineparams,ptarg,etarg,btarg,fx,summon)local bestscore,bestln,besttl=0
+if(atktype=="ice"and noice)return
+function checktl(ntl)local ln,hit=hexline(pos,ntl.pos,usplit(lineparams,"_"))if hit then local _ENV,score=ntl.ent,summon and not summoned and 100+ntl.pdist or ptarg if _ENV and ai and hp<maxhp and ntl.spores==0then score+=etarg end if score>bestscore then bestscore,bestln,besttl=score,ln,ntl end end end checktl(player.tl)ptarg=btarg tl.visitadjrnd(checktl)if bestln then sfx(fx)setanim"ratk"lookat(besttl.pos)if summon then summoned=create(75,besttl.pos)summoned.setanim"bladesummon"elseif healer then besttl.sporeburst(0.9)end return add(rangedatks,{rangedatk,{0,bestln,atktype}})end end hurt=function(dmg,atkdir,nosplit,_push)hp-=dmg flash,shake=true,1if hp<=0then if ai and behav!="dead"then _g.creaturesslain+=1end sfx(death)setbehav"dead"setanim(deathanim)if isplayer then call"setmode(gameover)print(\^!5f40\31)calclight("elseif sporedeath then tl.sporeburst(sporedeath)elseif summoned and not summoned.behavis"dead"then summoned.hurt(10)end else sfx"34"
 if hurtsplit and
-not(statuses.FROZEN or nosplit)then local splitpos=findfree(tl,"ent",-2)if splitpos then hp/=2local newent=create(typ,splitpos,behav,group)if statuses.BURN then newent.burn()end newent.renderpos,newent.hp=renderpos,hp newent.setanim"esplit"end end end if statuses.FROZEN then sfx"27"statuses.FROZEN[2]-=dmg elseif hurtfx then sfx(hurtfx)end aggro(tl)if _push or hitpush and atkdir then push(atkdir)end end push=function(dir)
+not(statuses.FROZEN or nosplit)then local splitpos=findfree(tl,"ent",-2)if splitpos then hp/=2local newent=create(typ,splitpos,behav,group)if statuses.BURN then newent.burn()end newent.renderpos,newent.hp=renderpos,hp newent.setanim"esplit"end end end if statuses.FROZEN then sfx"27"statuses.FROZEN[2]-=dmg elseif hurtfx then sfx(hurtfx)end aggro(tl)if _push or hitpush and atkdir then push(atkdir)elseif hitfire then sfx"36"tl.setfire()end end push=function(dir)
 if(nopush)return
-local pushpos=pos+dir pushdir,pushtl,lasttl=dir,gettile(pushpos),tl if hitfire then sfx"36"light=(pushtl.navigable()and pushtl or tl).setfire()end if(pushtl.navigable(flying)or pushtl.tileflag"15")and not pushtl.ent then setpos(pushpos)if isplayer then call"calcdist(pdist)calcvis()calclight("end else setanim(pushanim)animoffset=0.66*screenpos(dir)end end burn=function()statuses.FROZEN=setstatus"BURN,6,6,8,9"end doatk=function(ntl,pat)local b=ntl.ent local atkdir,atkdiri=hexdir(pos,ntl.pos)for p in all(split(pat,"|"))do local nntl=ntl.adjtl[(atkdiri+p)%6+1]if nntl.vistoplayer then doatk(nntl)end end if atk and b then local hitp=1if b.armor then local diff=(throwatk or stat"atk")-b.stat"armor"hitp=(max(diff)+1)/(abs(diff)+2)end if rndp(hitp)then local dmgv=min(stat"dmg",b.hp)b.hurt(throwdmg or dmgv,atkdir,nil,armor and stat"knockback")if b.armor then if stat"dmgheal"then heal(dmgv)animtext"+,col:8"end if stat"dmghurt"then hurt(dmgv)end if stat"stun"and armor and b.hp>0then b.setstatus(ai and"STUN,2,2,11,3"or"STUN,3")b.animtext"○,wavy:1"end end else aggro(ntl)end end skipturn=stat"slow"end interact=function(b)setanim(atkanim)sfx"33"_g.waitforanim,atktl=true,b.tl end move=function(dst,playsfx)local dsttile,lasttl=gettile(dst),tl lookat(dst)if dsttile.ent then interact(dsttile.ent)else if moveanim then setanim(moveanim)end if playsfx then _g.stepstaken+=1if dsttile.frozen then call"sfx(28,-1,12,3"else sfx(entdata[dsttile.typ])if dsttile.typ==40then aggro(dsttile)end end end setpos(dst)return true end end lookat=function(dst)deltax,dir,diri=dst.x-pos.x,hexdir(pos,dst)if deltax!=0then xface=sgn(deltax)end yface=dir.y==0and xface or dir.y end tele=function(dst)if not dst then repeat dst=rndtl()until dst.navigable()and not dst.ent end setanim"tele"setpos(dst.pos,true)if isplayer then if dst.item then dst.item.pickup()end call"calcdist(pdist)calcvis()calclight("end end eQUIP=function()if player[slot]then player[slot].sTOW()end player[slot],equipped=_ENV,"t"id()if cursed then sfx"44"end end sTOW=function(staylit)if equipped then equipped,player[slot]=nil if lit then if staylit then player.statuses.TORCH=nil else eXTINGUISH()end end end end tHROW=function()aim{_ENV,{throw},"throw"}end function orbis(str)return orb==str end uSE=function()if orb then orbeffect(player.tl,true)destroy(_ENV)else aim{_ENV,{range,linemode,true},rangetyp}end end orbeffect=function(tl,used)local entoritem=tl.ent or tl.item if used then if orbis"light"then player.setstatus"LIGHT,160,160,2,13"assigntable("light:4,lcool:",player)calclight()elseif orbis"slofall"then player.setstatus"SLOFALL,160,160,2,3"elseif orbis"eMPOWER"or orbis"iDENTIFY"then _g.uimode=orb dialog(inv,true)elseif orbis"life"then player.maxhp+=3player.hp=player.maxhp log"+MAX HP"end else sfx"27"if orbis"light"then tl.lflash=8elseif(orbis"eMPOWER"or orbis"iDENTIFY")and entoritem then entoritem[orb]()elseif orbis"life"then tl.sporeburst(12)end end for i=6,0,-1do local ntl=tl.adjtl[i]
+local pushpos=pos+dir pushdir,pushtl,lasttl=dir,gettile(pushpos),tl if hitfire then sfx"36"light=(pushtl.navigable()and pushtl or tl).setfire()end if(pushtl.navigable(flying)or pushtl.tileflag"15")and not pushtl.ent then setpos(pushpos)if isplayer then call"calcdist(pdist)calcvis()calclight("end else setanim(pushanim)animoffset=0.66*screenpos(dir)end end burn=function()statuses.FROZEN=setstatus"BURN,6,6,8,9"end doatk=function(ntl,pat)local b=ntl.ent local atkdir,atkdiri=hexdir(pos,ntl.pos)for p in all(split(pat,"|"))do local nntl=ntl.adjtl[(atkdiri+p)%6+1]if nntl.vistoplayer then doatk(nntl)end end if atk and b then local hitp=1if b.armor then local diff=(throwatk or stat"atk")-b.stat"armor"hitp=(max(diff)+1)/(abs(diff)+2)end if rndp(hitp)then local dmgv=min(stat"dmg",b.hp)b.hurt(throwdmg or dmgv,atkdir,nil,armor and stat"knockback")if b.armor then if stat"dmgheal"then heal(dmgv)animtext"+,col:8"end if stat"dmghurt"then hurt(dmgv)end if stat"stun"and armor and b.hp>0then b.setstatus(ai and"STUN,2,2,11,3"or"STUN,3")b.animtext"○,wavy:1"end end else aggro(ntl)end end skipturn=stat"slow"end interact=function(b)setanim(atkanim)sfx"33"_g.waitforanim,atktl=true,b.tl end move=function(dst,playsfx)local dsttile,lasttl=gettile(dst),tl lookat(dst)if dsttile.ent then interact(dsttile.ent)else if moveanim then setanim(moveanim)end if playsfx then _g.stepstaken+=1if dsttile.frozen then call"sfx(28,-1,12,3"else sfx(entdata[dsttile.typ])if dsttile.typ==40then aggro(dsttile)end end end setpos(dst)return true end end lookat=function(dst)deltax,dir,diri=dst.x-pos.x,hexdir(pos,dst)if deltax!=0then xface=sgn(deltax)end yface=dir.y==0and xface or dir.y end tele=function(dst)if not dst then repeat dst=rndtl()until dst.navigable()and not dst.ent end setanim"tele"
+if(dst.ent)return
+setpos(dst.pos,true)if isplayer then if dst.item then dst.item.pickup()end call"calcdist(pdist)calcvis()calclight("end end eQUIP=function()if player[slot]then player[slot].sTOW()end player[slot],equipped=_ENV,"t"id()if cursed then sfx"44"end end sTOW=function(staylit)if equipped then equipped,player[slot]=nil if lit then if staylit then player.statuses.TORCH=nil else eXTINGUISH()end end end end tHROW=function()aim{_ENV,{throw},"throw"}end function orbis(str)return orb==str end uSE=function()if orb then orbeffect(player.tl,true)destroy(_ENV)else aim{_ENV,{range,linemode,true},rangetyp}end end orbeffect=function(tl,used)local entoritem=tl.ent or tl.item if used then if orbis"light"then player.setstatus"LIGHT,160,160,2,13"assigntable("light:4,lcool:",player)calclight()elseif orbis"slofall"then player.setstatus"SLOFALL,160,160,2,3"elseif orbis"eMPOWER"or orbis"iDENTIFY"then _g.uimode=orb dialog(inv,true)elseif orbis"life"then player.maxhp+=3player.hp=player.maxhp log"+MAX HP"end else sfx"27"if orbis"light"then tl.lflash=8elseif(orbis"eMPOWER"or orbis"iDENTIFY")and entoritem then entoritem[orb]()elseif orbis"life"then tl.sporeburst(12)end end for i=6,0,-1do local ntl=tl.adjtl[i]
 if orbis"slofall"and
-ntl.ent and not used then ntl.ent.push(i>0and adj[i]or player.dir)elseif ntl.tileflag"8"and ntl.typ!=thole then if orbis"fire"then ntl.setfire()elseif orbis"ice"then ntl.freeze()end end end sfx(orbfx)if tl.vistoplayer then id()end if orbis"tele"and entoritem then entoritem.tele()end end eXTINGUISH=function()throwln,typ,lit,light,player.statuses.TORCH=0.125,131end eMPOWER=function(test,nosnd)for i,estat in inext,enchstats do if _ENV[estat]then local val=(estat=="charges"and maxcharges or _ENV[estat])+1if test then if test==estat then return val end else _ENV[estat]=val end end end if not nosnd then call"sfx(55,-1,0,16"
+ntl.ent and not used then ntl.ent.push(i>0and adj[i]or player.dir)elseif ntl.tileflag"8"and ntl.typ!=thole then if orbis"fire"then ntl.setfire()elseif orbis"ice"then ntl.freeze(freezeturns)end end end sfx(orbfx)id()if orbis"tele"and entoritem then entoritem.tele()end end eXTINGUISH=function()throwln,typ,lit,light,player.statuses.TORCH=0.125,131end eMPOWER=function(test,nosnd)for i,estat in inext,enchstats do if _ENV[estat]then local val=(estat=="charges"and maxcharges or _ENV[estat])+1if test then if test==estat then return val end else _ENV[estat]=val end end end if not nosnd then call"sfx(55,-1,0,16"
 if(tl and not cursed)animtext"+LVL,speed:0.01666"
-end if cursed and not test then sTOW()destroy(_ENV)ided[typ]=true call"log(ᶜe³mCURSED ITEM DESTROYED)sfx(44"end end iDENTIFY=function()id()call"sfx(55,-1,16,16"dialog(info)_g.selitem,_g.uimode=_ENV,"dISMISS"end dISMISS=function()popdiag()end getname=function()return isid()and(nid or n)..(lvl>0and"+"..lvl or"")or n end id=function()if not isid()then ided[typ]=true log(idprefix..getname())end end isid=function()return ided[typ]end pickup=function()if not beenfound then beenfound=true _g.itemsfound+=1end if#inventory<10then sfx"25"addtoinventory()if victory then player.setanim"victory"player.yface,player.statuses,tl.fire,light=-1,{},0call"setmode(victory)calcvis()calclight("end setpos()log("+"..getname())else log"INVENTORY FULL"end end addtoinventory=function()return add(inventory,_ENV)end rangedatk=function(i,ln,atktype)function atkis(str)return atktype==str end local spd,lngth=atkis"throw"and throw/12or 0.999,#ln local tl=ln[min(flr(i*spd)+1,lngth)]if atkis"lightning"then drawln=function(_pos)line(_pos.x+rnd(6)-3,_pos.y-2.5-rnd(3))end fillp()line(i%2*5+7)drawln(0.5*(screenpos(pos)+ln[1].tlscrpos))for i=1,min(i,lngth)do drawln(ln[i].tlscrpos)ln[i].lflashl=6end end function drawburst()spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)end tl.initpal()if i*spd>=lngth then if atkis"throw"then if tl.tileflag"15"then setpos(tl.pos,true)elseif lit then tl.setfire()sfx"36"elseif orb then orbeffect(tl)id()drawburst()elseif throw and not ai then setpos(findfree(tl,"item"),true)end doatk(tl)if atk and not tl.ent then tl.orbburst(_ENV)end aggro(tl)end return true end if atkis"blink"then(ai and _ENV or player).tele(ln[lngth])return true elseif atkis"throw"then tl.flatten()function getpos(i,offs)local t,airtime=spd*i/lngth,lngth/spd local arcy,_pos=(t*t-t)*airtime*airtime/4,lerp(pos,ln[lngth].pos,t)local scrpos=screenpos(_pos)+offs return scrpos.x,scrpos.y+arcy,1,1,xface<0end if throwln then local x1,y1=getpos(i-1,vec2s"0,-2")local x2,y2=getpos(i,vec2s"0,-2")tline(x2,y2,x1,y1,18,throwln)else xface*=throwflp spr(typ,getpos(i,vec2s"-3,-6"))end elseif atkis"ice"then tl.freeze()drawburst()else if i==1then gettile(pos).lflash=2end if atkis"fire"then trysetfire(tl,true)if tl.fire==0then create(138,tl.pos)end tl.entfire()end if dmg then if tl.ent then tl.ent.hurt(dmg)else tl.orbburst()aggro(tl)end call"calclight(,t"end end end animtext=function(str)textanim=objtable("t:0,speed:0.03333,col:7,offset:-6,wavy:0,text:"..str)textanim.pos=entscreenpos()end entscreenpos=function()return screenpos(pos)+vec2(scrxoffset,-6.5)end setpos(_pos,true)while rndlvl and rndp"0.33"do eMPOWER(nil,true)end add(ents,_ENV)
+end if cursed and not test then sTOW()destroy(_ENV)ided[typ]=true call"log(ᶜe³mCURSED ITEM DESTROYED)sfx(44"end end iDENTIFY=function()id()call"sfx(55,-1,16,16"dialog(info)_g.selitem,_g.uimode=_ENV,"dISMISS"end dISMISS=function()popdiag()end getname=function()return isid()and(nid or n)..(lvl>0and"+"..lvl or"")or n end id=function()if not isid()then ided[typ]=true log(idprefix..getname())end end isid=function()return ided[typ]end pickup=function()if not beenfound then beenfound=true _g.itemsfound+=1end if#inventory<10then sfx"25"addtoinventory()if victory then player.setanim"victory"player.yface,player.statuses,tl.fire,light=-1,{},0call"setmode(victory)calcvis()calclight("end setpos()log("+"..getname())else log"INVENTORY FULL"end end addtoinventory=function()return add(inventory,_ENV)end rangedatk=function(i,ln,atktype)function atkis(str)return atktype==str end local spd,lngth=atkis"throw"and throw/12or 0.999,#ln local tl=ln[min(flr(i*spd)+1,lngth)]if atkis"lightning"then drawln=function(_pos)line(_pos.x+rnd(6)-3,_pos.y-2.5-rnd(3))end fillp()line(i%2*5+7)drawln(0.5*(screenpos(pos)+ln[1].tlscrpos))for i=1,min(i,lngth)do drawln(ln[i].tlscrpos)ln[i].lflashl=6end end function drawburst()spr(153,tl.tlscrpos.x-2.5,tl.tlscrpos.y-4.5)end tl.initpal()if i*spd>=lngth then if atkis"throw"then doatk(tl)if tl.tileflag"15"then setpos(tl.pos,true)elseif lit then tl.setfire()sfx"36"elseif orb then orbeffect(tl)id()drawburst()elseif throw and not ai then setpos(findfree(tl,"item"),true)end aggro(tl)end return true end if atkis"blink"then(ai and _ENV or player).tele(ln[lngth])return true end tl.flatten()if atkis"throw"then function getpos(i,offs)local t,airtime=spd*i/lngth,lngth/spd local arcy,_pos=(t*t-t)*airtime*airtime/4,lerp(pos,ln[lngth].pos,t)local scrpos=screenpos(_pos)+offs return scrpos.x,scrpos.y+arcy,1,1,xface<0end if throwln then local x1,y1=getpos(i-1,vec2s"0,-2")local x2,y2=getpos(i,vec2s"0,-2")tline(x2,y2,x1,y1,18,throwln)else xface*=throwflp spr(typ,getpos(i,vec2s"-3,-6"))end elseif atkis"ice"then tl.freeze(freezeturns)drawburst()else if i==1then gettile(pos).lflash=2end if atkis"fire"then trysetfire(tl,true)if tl.fire==0then create(138,tl.pos)end tl.entfire()end if dmg then if tl.ent then tl.ent.hurt(dmg)else aggro(tl)end call"calclight(,t"end end end animtext=function(str)textanim=objtable("t:0,speed:0.03333,col:7,offset:-6,wavy:0,text:"..str)textanim.pos=entscreenpos()end entscreenpos=function()return screenpos(pos)+vec2(scrxoffset,-6.5)end setpos(_pos,true)while rndlvl and rndp"0.33"do eMPOWER(nil,true)end add(ents,_ENV)
 if(flippable or ai)
 and rndp"0.5"then xface*=-1end if ai and rndp"0.5"then yface*=-1end checkidle()if behavis"sleep"then setanim"sleep"end return _ENV end function turn(btnid,i)if getbtn(btnid)then player.diri=(player.diri+i)%6+1player.setanim"turn"end end function updateplayer()if player.taketurn()then player.tickstatuses()call"calcdist(pdist)calcvis("updateturn=function()calclight()for i,_ENV in inext,ents do if ai then taketurn()end if not isplayer then tickstatuses()end end updateturn=function()for i,_ENV in inext,ents do
 if ai and behavis"hunt"and
-not _g.pseen and not alwayshunt then setbehav"search"setsearchtl(lastpseentl)end canact=true end updateturn=function()updateenv()updateturn=function()call"calclight(,t,t"pseen=false updateturn=updateplayer end end end end end end function setsearchtl(tl)if searchtl!=tl then lastpseentl,searchtl=tl,tl calcdist("search",tl)end end function aggro(_tl)setsearchtl(player.tl)calcdist("aggro",_tl,-4)for i,_ENV in inext,ents do
+not _g.pseen and not alwayshunt then setbehav"search"setsearchtl(lastpseentl)end if summoned and summoned.behavis"dead"then summoned=nil end canact,noice=true,player.statuses.FROZEN end updateturn=function()updateenv()updateturn=function()call"calclight(,t,t"updateturn,pseen=updateplayer end end end end end end function setsearchtl(tl)if searchtl!=tl then lastpseentl,searchtl=tl,tl calcdist("search",tl)end end function aggro(_tl)setsearchtl(player.tl)calcdist("aggro",_tl,-4)for i,_ENV in inext,ents do
 if ai and
 behav!="dead"and tl.aggro>=-3then if seesplayer()then setbehav"hunt"_g.pseen=true elseif behav!="hunt"then setbehav"search"end end end end function destroy(_ENV)if _ENV then del(ents,_ENV)del(inventory,_ENV)setpos()end end function genmap(startpos,manmade)alltiles(function(_ENV)adjtl=nil end)genpos,cave,ents,pseen=startpos,not manmade,{unpack(inventory)}assigntable("world:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)for y=0,20do world[y],tileinbounds[y]={},{}local startx,endx=max(10-y),min(30-y,20)for x=startx,endx do local pos=vec2(x,y)local tl=tile(tempty,pos)world[y][x]=tl add(validtiles,tl)
 if y>0and y<20and
@@ -201,7 +212,7 @@ ntl.tileflag"5"then typ=tcavewall end end elseif tileflag"14"and adjtl[4].typ==t
 if checkspawn(_ENV,nil,furthestd+2.5+rnd(),true)
 then set(thole)destroy(ent)end end)end if not player then player=create(64,genpos)else add(ents,player)end do local _ENV=player animheight,animclip=1setpos(genpos)call"calcdist(pdist)calclight("animoffset.y=-21setanim(statuses.SLOFALL and"slofall"or"fallin")end wanderdsts,fadetoblack={}for n=1,6do local spawntl=rndtl()local spawndepth=depth while rndp"0.45"do spawndepth+=1end local spawn,behav,spawnedany=rnd(spawns[min(spawndepth,20)]),rnd{"sleep","wander"}for i,typ in inext,spawn do local found=false spawntl.visitadjrnd(function(_ENV)
 if not found and
-checkspawn(_ENV,nil,-4)then create(typ,pos,behav,n)found,spawntl=true,_ENV end end)end checkspawn(rndtl(),mget(64+rndint(56),24),-3)end for orb=300,304do for i=counts[mapping[orb]],depth/2.001do checkspawn(rndtl(),mapping[orb],-3)end end call"calcvis()calclight(,t,t,t"end function aim(params)aimparams,aimpos=params,playerdst setmode"aim"end function updateaim(_ENV,lineparams,atktype)player.aimitem,aimscrpos,_g.aimscrposy=_ENV,screenpos(aimpos)+1.5*vec2(1.5*(tonum(btn"1")-tonum(btn"0")),tonum(btn"3")-tonum(btn"2"))_g.aimscrposx,_g.aimscrposy=mid(campos.x,aimscrpos.x,campos.x+127),mid(campos.y,aimscrpos.y,campos.y+127)_g.aimpos=vec2(aimscrposx/12,aimscrposy/8-aimscrposx/24)local aimline=hexline(player.pos,aimpos,unpack(lineparams))for i,tl in inext,aimline do
+checkspawn(_ENV,nil,-4)then create(typ,pos,behav,n)found,spawntl=true,_ENV end end)end end for n=1,7-depth\5.99do checkspawn(rndtl(),mget(64+rndint(56),24),-3)end for orb=300,304do for i=counts[mapping[orb]],depth/2.001do checkspawn(rndtl(),mapping[orb],-3)end end call"calcvis()calclight(,t,t,t"end function aim(params)aimparams,aimpos=params,playerdst setmode"aim"end function updateaim(_ENV,lineparams,atktype)player.aimitem,aimscrpos,_g.aimscrposy=_ENV,screenpos(aimpos)+1.5*vec2(1.5*(tonum(btn"1")-tonum(btn"0")),tonum(btn"3")-tonum(btn"2"))_g.aimscrposx,_g.aimscrposy=mid(campos.x,aimscrpos.x,campos.x+127),mid(campos.y,aimscrpos.y,campos.y+127)_g.aimpos=vec2(aimscrposx/12,aimscrposy/8-aimscrposx/24)local aimline=hexline(player.pos,aimpos,unpack(lineparams))for i,tl in inext,aimline do
 if(tl==player.tl)return
 tl.hilight=2end player.lookat(aimpos)xface=player.xface
 if getbtn"32"and#aimline>0and
@@ -212,7 +223,7 @@ statet>0.2then setmode"play"pos=player.pos if atktype=="throw"then sfx"12"player
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,stepstaken:0,itemsfound:0,creaturesslain:0
-,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],_ENV)entdata=assigntable(chr(peek(0x8002,%0x8000)),nil,"\n","=")adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots,updateturn=vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",{split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"},split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",assigntable"130:,131:,132:,133:,134:,135:,201:",split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges",split"item,ent,effect",split"wpn,cloak,amulet",updateplayer for i,s in inext,split([[16
+,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],_ENV)entdata=assigntable(chr(peek(0x8002,%0x8000)),nil,"\n","=")adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots,updateturn=vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",{split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"},split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",assigntable"130:,131:,132:,133:,134:,135:,201:",split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges,freezeturns",split"item,ent,effect",split"wpn,cloak,amulet",updateplayer for i,s in inext,split([[16
 -9,-4
 0,-8|5,-8|13,-8|13,4|4,4|2,4
 5,13|8,13|5,13|5,4|11,4|3,4
@@ -370,6 +381,139 @@ f011110180001110f011100111111110f011111111111110fffff9fffffbfffff5011d0181111d05
 f011000010111100f011111110011110f011111111100110fffffbf3fffffffff0d11111111101d0fffffbf3fbff00fff02202505404fffff051005910d11100
 ff0011110001100fff0111111111110fff0111111111100ffffffffbffffffffff0d111111d11d0fffff0b0bffffffffff055044ffffffffff0011110559100f
 fff00110111000fffff01111111110fffff01111111110fffffffffffffffffffff0ddddd6ddd0fffffffffbfffffffffff44ffffffffffffff00510111000ff
+__label__
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000h000h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000hh00h000h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000h00h00h0h0h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000h0h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000h000h000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000hh000h00hh000h000000h0000h000h00h0000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000h00h000hh0hh0000hhh0h0h0000h000hh0h0000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000h00000000hh000000h00000h000000000h0000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000h000h0000000h000h0000000h000h000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000hh000h00hh000h000000hhh0h000h0000000hh000000h0000h000h00h0000000000000000000000000000000000000000000000000000000000000000000
+00h00h000hh0hh000hhh0hh00hhh0000000000h00hhh0hh000000h000hh0h0000000000000000000000000000000000000000000000000000000000000000000
+000h00000000hh0000000h00000h00000000000000000h0000h000000000h0000000000000000000000000000000000000000000000000000000000000000000
+000h000h0000000h000h00000000000000000000000h0000000h000h000000000000000000000000000000000000000000000000000000000000000000000000
+0h000h000000hhh0h0000h000h00000000000000h0000h000000hh000000h0000000000000000000000000000000000000000000000000000000000000000000
+0h000hhh0hh00hhh0000000000000000000000000000000000h00hhh0hh000000000000000000000000000000000000000000000000000000000000000000000
+0h0000000h00000h00000000000000000000000000000000000000000h0000h00000000000000000001000000000000000000000000000000000000000000000
+000h000h00000000000000000000000000000000000000000000000h0000000h0000000000000110001000000000000000000000000000000000000000000000
+0000h0000h000h00000000000000000000000000000000000000h0000h0000000000000000101510051010000000000000000000000000000000000000000000
+00h00000000000000000000000000000000000000000000000000000000000000000000000110501051050000000000000000000000000000000000000000000
+000h00000000000000000000000000000000000000000000000000000000000000000000001d0001011050100001000000000000000000000000000000000000
+000h00000000000000000000000000000000000000000000000000000000000000000000011d0101011010100001000110000000000000000000000000000000
+0h00000000000000000000000000000000000000000000000000000000000000000000000d010100000010000101500150000000000000000000000000000000
+0h00000000000000000000000000000000000000000000000000000000000000000000000d010000000000000501501050000000000000000000000000000000
+0h000000000000000000000000000000000000000000000000000000000000h0000000000d100111101110010501101000100000001000000000000000000000
+0000000h000h000000000000000000000000000000000000000000000000000h0000000000000111111051000101101010100110001000000000000000000000
+0000hh00hh00hh000000000000000000000000000000000000000000000000000000000000101111111000100100000010000510051010000000000000000000
+00h000h000h000h00000000000000000000000000000000000000000000000000000000000110111111111110000000000000501051050000000000000000000
+000h00000000000000000000000000000000000000000000000000000000001000010000001d0110011111110111011110010001011050100000001000000000
+000h000h000h000h00000000000000000000000000000000000000000000001000010001111d0111111111101501111111000101011010100110001000000000
+0h000h00hh00hhh0h00000000000000000000000000000000000000000000000010150015d010111111111011100111110100100000010000510051010000000
+0h0000hhhhhhhhhh000000000000000000000000000000000000000000000000050150105d010000000000111111111111110000000000000501051050000000
+0h0000h00000h00h00000000000000000000000000h000000000000000000051050110100d100111111111011111110011110111101110010001011050100000
+000h000hhhhh0h0000000000000000000000000000000000h0000000000000110101101011100111111111101111111111101111111051000101011010100000
+0000h0h00000h0000000000000000000000000000000000000000000000000101100000011011111111001110111111111011111111000100100000010000000
+00h000hhhhhhh0000000000000000000000000000000000000000000000000100115515150011111111111111000000000111111111111110000000000000000
+000h00h00000000000000000000000h00000000000000000000000000000100011015010105111100111111101111cc111011110011111110111101110010000
+000h00hhhhhhhh0000000000000000000000h0000000000000000010000000101101111010111111111111101111ccc711101111111111101111111051000000
+hh0000h00000h000000000000000000000000000000000000000000000000000100110100010111111111101111111d111110111111111011111111110000000
+hh000hhhhhhhh000000000000000000000000000000000000000000000000000000000000010000000000011111c12d211101000000000111111111110000000
+hh0000h00000h00000000000000000000000000000100000000000000000000000011010100001c1111c1101100d100111110111165111011001111110100000
+000h0h0hhhhh00000000000000000000000000000000000010000000000000000010000000101111111111100111111111101111611611100111111110100000
+hhh0h0h00000h000000000000000000000000000000000000000000000000000000000000001110011111c110111111111011100167111110111111110000000
+0hhh00hhhhhhh00000000000000000000000000000000000000000000000000000000000001111111111111110000dd000111111611111111000000000000000
+000h00000000h0000hhhhhhhhh0000h00000000000000000000000000000100002cd222cd2511111760011110171111111011111110011110111111110010000
+00000hhhhhhhh000hhh1hhh1hhh000000000h000000000000000001000000000d000000000d111a12611111011111d1c11101111111111101111111111000000
+0h0000h00000h00h11hh11hh11hh000000000000000000000000000000000002000000000c121191888111011111111117110111111111011100111110000000
+0000000000000010hh1hhh1hhh1hh505000000000000000000000000000000d0000000000010d040d88000101111111111111115515150111111111110000000
+000000000000000hhhhhhhhh00hh20220550000000100000000000000000000200000000100201c6d88c11011111c11100111101501010511111110010100000
+0000000h000h0000hhh1hhh1hh02022022055000000000001000000000000000d010700000d011112881111011111111110d1101111010111111111110100000
+0000hh00hh000h0001hh11hh114055022022025050000000000000000000000002dd222dd201111121211c110111111111d11001101000101111111110000000
+00h000h000h000h00111h15hh5144055022022022000000000000000000000000000dd00c0101111d0d111111115515155151000000000100000000000000000
+0000000000000000hh0h01h0h1151050000520120111111111000000000010000111111111011111111100111101501011150001101010000111111110010000
+0000000h000h000dhh01hhh0h11000100001000011111111111000100000000011171d11111011117111110d1101111011101010000000101111111111000000
+hh000h00hh00hh5h100h01h001000000000000101111111111110000000000011111111111110111111111d11001101001010000000000011100111110000000
+00h00hhh0hh00111h000000000000000000000110111111111111000000000111c111111111010004400051510000000000000c0000000111111111110000000
+000000000h000hh100hh0hh0000000000000001d01111111001101111111710110011111111101711111110500010d0010000111111111011111110010100001
+000h000h00000hh0h0000000h00000000000011d011111111100111c11111110011111c111101111141c111010100d0000001111111711101111111110100001
+hhh0h0000h00010h000000000000000000000d010111111111011700111111110111111111011c1111111711000005d000011111111001110111111110000101
+hhhh000000000000000000000000000000000d010000003000111111111111111000c000c01111c111111110100011d00d01111111111c111000000000000501
+000h0000000000000000000000h0000000000d10011111j11101111111c011110111j11111011031c111c111000011501d0110d0001111110111111110010501
+000000000000000000000000000h00000000000001111111311011111111111011c7111111100131111c1110500001101d000010c0011d001111111111000101
+0h00000000000000000000000000h0000000001011301111j11101111111110111j11111c11131311c1311301100115001000000000000011100111110100100
+00000000000000000000000000h00000000000110131131111111000dd0000111c111c1131103003030303111010111000000000000000011111111111110000
+000000000000000000h000000000000000h0001d01j13100111101111111110110011131j111031j311313011010110d00000000000000001111100050110111
+00000000000000000000000h00000hh000h0011d0111j111111011111d111110011111c11110130j311313100110100500000000000000000011000000001501
+00000000000000000000000000h015h005h01d010111111111011111111111110111111111011j11313003110111110110000000000000000000000000h01100
+000000000000000000000000001h010h01101d01000000300011111111111110100000c000111j11j131311110000000000000000000000000000000001h0111
+00000000000000000000000000h5000h0hh01d10011111j1110110011111111101c111jc11010010j131j1110h000000hh0hh000000000000000000000h50111
+0000000000000000000000000hhd0h010hh0h11001111111311001111111111011111111c110111111j0j0hh00hh000h00h0000000000000000000000hhd0111
+hh000000000000000h000h00hd0h01000000110111301111j11101111111110111c01111jc11011111j11100hh0hhhh0hh00000000000000000000000d0h0111
+00h00000000000000h000hh0h50h00000000000111311311111110003000001111311c11c1111000000000h00hhh00hh000000000000000000000000050h0000
+000000000000000000000000h5h00hhhh0hhhh0111j1310011110111j111110111c1310031hh0hh000000h0000h0h00h00000000000000000000000005h00hhh
+0000000h000h0000000h00000hh00hh1hhh01hh01111j1111110113111111110111c71113110h00h000hh00hh0h0h0hh0000000h000h00000000000000000hh1
+hh00hh00hh00h0000h000000h10h11hh11hh11hh01111111110111j11110311131131c113130hh00h00h0hh00h00hh00h0000h00h000h00000000000000001hh
+00h000h000h000h000000000000hhh1hhh1hhh10h000000000111111131131111303030300300hhh00hh0hh00000h00000000h00h0h0h0000000000000000h1h
+00h000000000000000000000000hh00hhhhhhhhh01111111110111100131j1110313113j1300000h0h00h0000000h00000000h00000000000000000000000hh0
+000h000h000h0000000h0000h0000hh1hhh1hhh0111111111110111111j111101313113j0310000h0h00h00000hh000h0000000h000000000000000000000hh1
+0000hh00hh00hh00hh00hh000h0001hh11hh1101110011111111011111111101130031311j110h000hh0h000hhh0hh00h0000h000000h00000000000000001hh
+00h00hhh0hh000h000h000h000h0000000000011111111111111100000000011113131j11j11100000h00h0000h00hh0h0h00000000000000000000000000000
+000000000h0000h00000000000000hhhhhhhhh0111111100111101111111110111j131j01001000000h00h00000000h0h000000000h000000000000000000000
+0000000h0000000h000h000h0000hhh1hhh1hhh011111111111011111111111010j0j1111110h00000000h00000h00hh00000h0h000hh0000000000000000000
+0000h0000h000000hh00hh00hh0h11hh11hh11hh0111111111011100111111110111j1111100hh00hhh00hh00h00hh00hh00hhh0h000h0000000000000000000
+00000000000000h00hhh0hh0001hhh1hhh1hhh10h000000000111111111111111000000000h000h000h000hh0000000000h000h000h000000000000000000000
+000000h00000000000000h0000hhh00hhhhhhhhh0hhhhhhhhh011111110011110000000000000000000h000000000000000000h0000000000000000000000000
+00000000000h0000000h0000000h0hh1hhh1hhh0hhh1hhh1hhh0111111111110000h000h00000000000h0000000h000h0000000h000000000000000000000000
+0000000000000000h0000h000000h1hh11hh110h110011hh11hh011111111100hh00h000hh000h00hh00hh00hh00hh00hh000h000000h0000000000000000000
+00000000000000000000000000h00111h15hh01hhh1hhh1hhh1hh000000000h000h000h000h00000000000h000h000h000h00000000000000000000000000000
+000000000000000000h0000000000h0h01h0h01hhhhhhh00hhhh00000000000000000h0000000000000000000000000000000000000000000000000000000000
+00000000000000000000000h00000h01hhh0h0h1hhh1hhh1hhh0000h000h0000000h0h000000000h000h0000000h000h00000000000000000000000000000000
+00000000000000000000000000h0100h01h000h011hh11hh1100hh00hh00hh000h000hh0h000hh00h0000h000h00hh00hh000000000000000000000000000000
+000000000000000000000000001h0000000000100000000000h000h000h000h0000000h00h0000h000h000h00000000000000000000000000000000000000000
+00000000000000000000000000h500hh0hh00000011114141100000000000000000000h00h000000000000000000000000000000000000000000000000000000
+0000000000000000000000000hhd00000000h0h0111111551110000h000h0000h00000000h00000h00000000000h000h00000000000000000000000000000000
+0000000000000000000000000d0h0000000000011111555501110h00hh00hh00hh00hhh00hh00h000000h000hh00hh00hh000000000000000000000000000000
+000000000000000000000000050h000000000011111e544111111000000000h000h000h000hh00000000000000h000h000h00000000000000000000000000000
+00000000000000000000000005h00hhhhhhhhh011050001111110000000000000000000h00000000000000000000000000000000000000000000000000000000
+0000000000000000000000000hh00hh1hhh1hhh0011000010000000h000h00000000000h0000000000000000000h000h00000000000000000000000000000000
+000000000000000000000000010h11hh11h001hh000000000000hh00hh00hh000h00hh00hh000000000000000h00hh00hh000000000000000000000000000000
+000000000000000000000000000hhh1hhh1hhh1h0000000000h000h000h000h00000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000h01000hhh0h000000000000h0000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000hh00001h00000000000000h000h000h0000000h000h0000000000000000000h000h00000000000000000000000000000000
+0000000000000000000000000000000000000000000000000h000h00hh00hh00hh00hh00hh00000000000000hh00hh000h000000000000000000000000000000
+0000000000000000000000000000000000000000000000000h000000000000h000h000h000h00000000000h000h000h000h00000000000000000000000000000
+0000000000000000000000000000000000000000000000000h000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000h000h0000000h000h0000000h000h0000000h000h00000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000hh00hh000h000h00hh00hh00hh00hh00hh000h00hh00hh000000000000000000000000000000
+00000000000000000000000000000000000000000000000000h000h000h000h00000000000h000h000h000h0000000h000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000h000000000000000000000000000000000000000000h000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000h000h000h0000000h000h0000000h000h0000000h000hh0000000000000000000000000000000
+0000000000000000000000000000000000000000000000000h000h00hh00hh00hh00hh00hh000h00hh00hh00hhh0hh00hh000000000000000000000000000000
+0000000000000000000000000000000000000000000000000h000000000000h000h000h000h00000000000h000h00hh000h00000000000000000000000000000
+0000000000000000000000000000000000000000000000000h0000000000000000000000000000000000000000h0h00000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000h000h0000000h000h0000000h000h0000000hh00h00000000000000000000000000000000
+0000000000000000000000000000000000000000000000000h00hh00hh00hh000h00hh00hh00hh00hh000h000h00hh00hh000000000000000000000000000000
+002020022000000000000000002220022022000220202000000000h000h000h00000000000h000h000h000h00000000000000000000000000000000000000000
+002020202000000000000000000200202020202000202000000000000000h0000000000000000000000000000000000000000000000000000000000000000000
+0022202220000000000000000002002020220020002220000000000h00000000000h000h0000000h000h0000000h000h00000000000000000000000000000000
+0020202000000000000000000002002200202002202020000000000000000000hh00hh00hh000h00hh00hh00hh00hh000h000000000000000000000000000000
+0hhhhhhhhhhhhhhhhhhhhhh00hhhhhhhhhhhhhhhhhhhhhh0000000000000000000h000h000h00000000000h000h000h000h00000000000000000000000000000
+0h88888888888888888888h00h99999999999999990000h0000000000000000000000000h00000000000000000h0000000000000000000000000000000000000
+0h22222222222222222228h00h22222222222222290000h00000000000000000000h00000000000h000h00000000000h00000000000000000000000000000000
+0h22222222222222222228h00h22222222222222290000h00000000000000000000000000000hh00hh00hh000000000000000000000000000000000000000000
+0hhhhhhhhhhhhhhhhhhhhhh00hhhhhhhhhhhhhhhhhhhhhh0000000000000000000000000000000h000h000h00000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000h0000000000000000000000000000000000000000000
+
+__gff__
+000000000000000000000000000000004000804880082c000000ee00be00ee007a816301ba016b03f32109096b15b321b32173217321730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
+0000000001010101008000000000000000000000010101010000000000000000040000000101010300000000000000000400000001010103000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070400040904003000
 __map__
 000000000000000000000000000000001011ca0014150000000000001c1d000020210000242500002829000000002e2f303132333435363738393a3b0000000046004646004600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000003200cb0000000000000000003200000020000000320000003200000000003200320032003200363200003a320000000046004646004700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -403,9 +547,6 @@ __map__
 00000000000000000000000000000000000000001a0000000000000030000000200000002ea900002e000000000020002e002e002e003a2e0000362e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000002ec800000000000030000000200000002ea900002e000000000036302e002e002e003000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000308800000000000030000000300000002ea900002e0000000000362e2e002e002e002e0000002e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-__gff__
-000000000000000000000000000000004000804880082c000000ee00be00ee007a816301ba016b03f32109096b15b321b32173217321730323017d036b15ea0104040404000000000000000000000000040404040000000000000000000000000404040400000000000000000000000004040404000000000000000000000000
-0000000001010101008000000000000000000000010101010000000000000000040000000101010300000000000000000400000001010103000000000000000001010000000000000000000000000000010110002000700000003000300030000000000010000407040100090401040004000407040004070400040904003000
 __sfx__
 38500810220342202022010220122201022010220150060518500185000f5000f5001350013500165001650018500185000f5000f5001350013500165001650018500185000f5000f50013500135001650016500
 900100000064000620006100061000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -505,135 +646,7 @@ __music__
 00 41424344
 00 41424344
 03 08424344
-__label__
-88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-88888777777888eeeeee888eeeeee888eeeeee888eeeeee888eeeeee888eeeeee888eeeeee888888888ff8ff8888228822888222822888888822888888228888
-8888778887788ee88eee88ee888ee88ee888ee88ee8e8ee88ee888ee88ee8eeee88ee888ee88888888ff888ff888222222888222822888882282888888222888
-888777878778eeee8eee8eeeee8ee8eeeee8ee8eee8e8ee8eee8eeee8eee8eeee8eeeee8ee88888888ff888ff888282282888222888888228882888888288888
-888777878778eeee8eee8eee888ee8eeee88ee8eee888ee8eee888ee8eee888ee8eeeee8ee88888888ff888ff888222222888888222888228882888822288888
-888777878778eeee8eee8eee8eeee8eeeee8ee8eeeee8ee8eeeee8ee8eee8e8ee8eeeee8ee88888888ff888ff888822228888228222888882282888222288888
-888777888778eee888ee8eee888ee8eee888ee8eeeee8ee8eee888ee8eee888ee8eeeee8ee888888888ff8ff8888828828888228222888888822888222888888
-888777777778eeeeeeee8eeeeeeee8eeeeeeee8eeeeeeee8eeeeeeee8eeeeeeee8eeeeeeee888888888888888888888888888888888888888888888888888888
-1eee1ee11ee111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1ee11e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1e1e1eee11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1e1e1ee111ee1eee1eee11ee1ee1111116661666161616661166166616661616161111711166166616661111161611111616111116661666166116661666
-1e111e1e1e1e1e1111e111e11e1e1e1e111111611611161611611611161616161616161117111611116116161111161611111616111116111616161616111161
-1ee11e1e1e1e1e1111e111e11e1e1e1e111111611661116111611611166116661616161117111666116116611111116111111666111116611666161616611161
-1e111e1e1e1e1e1111e111e11e1e1e1e111111611611161611611611161616161666161117111116116116161171161611711116117116111616161616111161
-1e1111ee1e1e11ee11e11eee1ee11e1e111111611666161611611166161616161666166611711661116116161711161617111666171116111616166616661161
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111eee1eee111111661666166616661666166617111666166616611666166611111eee1e1e1eee1ee111111111111111111111111111111111111111111111
-111111e11e111111161111611616116116111161117116111616161616111161111111e11e1e1e111e1e11111111111111111111111111111111111111111111
-111111e11ee11111166611611666116116611161111716611666161616611161111111e11eee1ee11e1e11111111111111111111111111111111111111111111
-111111e11e111111111611611616116116111161117116111616161616111161111111e11e1e1e111e1e11111111111111111111111111111111111111111111
-11111eee1e111111166111611616116116661161171116111616166616661161111111e11e1e1eee1e1e11111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1eee111116661616116611111eee1ee11ee111111ee111ee1eee11111666161611661666116616661611166616161666166111111eee1e1e1eee
-1111111111e11e11111116661616161111111e1e1e1e1e1e11111e1e1e1e11e1111116661616161111611611161616111616161616111616111111e11e1e1e11
-1111111111e11ee1111116161616166611111eee1e1e1e1e11111e1e1e1e11e1111116161616166611611611166616111666166616611616111111e11eee1ee1
-1111111111e11e11111116161616111611111e1e1e1e1e1e11111e1e1e1e11e1111116161616111611611611161116111616111616111616111111e11e1e1e11
-111111111eee1e11111116161166166111111e1e1e1e1eee11111e1e1ee111e1111116161166166116661166161116661616166616661666111111e11e1e1eee
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1111111111111bbb1b1b11bb1bbb11bb117116661616116611111ccc1ccc1ccc1171111111111111111111111111111111111111111111111111111111111111
-1111111111111bbb1b1b1b1111b11b1117111666161616111111111c1c1c1c1c1117111111111111111111111111111111111111111111111111111111111111
-1111111111111b1b1b1b1bbb11b11b111711161616161666111111cc1c1c1c1c1117111111111111111111111111111111111111111111111111111111111111
-1111111111111b1b1b1b111b11b11b1117111616161611161171111c1c1c1c1c1117111111111111111111111111111111111111111111111111111111111111
-1111111111111b1b11bb1bb11bbb11bb117116161166166117111ccc1ccc1ccc1171111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1111111111111666161611661666116616661611166616161666166111111ccc1ccc1c1c1ccc1111111111111111111111111111111111111111111111111111
-11111111111116661616161111611611161616111616161616111616177711c11c1c1c1c1c111111111111111111111111111111111111111111111111111111
-11111111111116161616166611611611166616111666166616611616111111c11cc11c1c1cc11111111111111111111111111111111111111111111111111111
-11111111111116161616111611611611161116111616111616111616177711c11c1c1c1c1c111111111111111111111111111111111111111111111111111111
-11111111111116161166166116661166161116661616166616661666111111c11c1c11cc1ccc1111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1ee11ee1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111e111e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111ee11e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111e111e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1e1e1eee111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1eee11111bbb1bbb1bb11bbb117111666661117111111eee1e1e1eee1ee111111111111111111111111111111111111111111111111111111111
-1111111111e11e1111111b1b11b11b1b1b1b1711166161661117111111e11e1e1e111e1e11111111111111111111111111111111111111111111111111111111
-1111111111e11ee111111bb111b11b1b1bbb1711166616661117111111e11eee1ee11e1e11111111111111111111111111111111111111111111111111111111
-1111111111e11e1111111b1b11b11b1b1b111711166161661117111111e11e1e1e111e1e11111111111111111111111111111111111111111111111111111111
-111111111eee1e1111111bbb11b11b1b1b111171116666611171111111e11e1e1eee1e1e11111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111111166616661171166616161666166111111ccc1ccc1c1c1ccc11111111111111111111111111111111111111111111111111111111111111111111
-1111111111111616161111171161161616161616111111c11c1c1c1c1c1111111111111111111111111111111111111111111111111111111111111111111111
-1111111111111661166111111161161616611616111111c11cc11c1c1cc111111111111111111111111111111111111111111111111111111111111111111111
-1111111111111616161111111161161616161616111111c11c1c1c1c1c1111111111111111111111111111111111111111111111111111111111111111111111
-1111111111111616166611111161116616161616111111c11c1c11cc1ccc11111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1ee11ee1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111e111e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111ee11e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111e111e1e1e1e111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111eee1e1e1eee111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-111111111bbb1bbb1bbb1bb11bbb117111bb1b1b1bbb117111661666166611111ccc111111661666166616661666166617171ccc1ccc11711111161611111616
-111111111b1b1b1b11b11b1b11b117111b111b1b1b1b171116111161161611111c1c11111611116116161161161111611171111c1c1c11171111161611111616
-111111111bbb1bb111b11b1b11b117111bbb1b1b1bb1171116661161166111111c1c1111166611611666116116611161177711cc1c1c11171111116111111666
-111111111b111b1b11b11b1b11b11711111b1b1b1b1b171111161161161611711c1c11711116116116161161161111611171111c1c1c11171171161611711116
-111111111b111b1b1bbb1b1b11b111711bb111bb1bbb117116611161161617111ccc171116611161161611611666116117171ccc1ccc11711711161617111666
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111eee1ee11ee11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111e111e1e1e1e1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111ee11e1e1e1e1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111e111e1e1e1e1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111eee1e1e1eee1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1ee11ee111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1ee11e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1e1e1eee11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1e1e1ee111ee1eee1eee11ee1ee1111116661661166616661666166616161666117116661666161616661111166616611666111116161666161616161111
-1e111e1e1e1e1e1111e111e11e1e1e1e111116161616116116661161161116161161171111611611161611611111161116161161111116161616161616161111
-1ee11e1e1e1e1e1111e111e11e1e1e1e111116661616116116161161166111611161171111611661116111611111166116161161111116161666161616661111
-1e111e1e1e1e1e1111e111e11e1e1e1e111116161616116116161161161116161161171111611611161611611171161116161161117116661616166611161171
-1e1111ee1e1e11ee11e11eee1ee11e1e111116161616166616161161166616161161117111611666161611611711166616161161171116661616116116661711
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111bbb1bb11bb11171166616661616166616661661166616661166111111771666166616161666111116661661166611661166166616661666166116661166
-11111b1b1b1b1b1b1711116116111616116116161616116116661611111111711161161116161161111116111616116116111611161616111611161616161616
-11111bbb1b1b1b1b1711116116611161116116661616116116161666111117711161166111611161111116611616116116661611166116611661161616661616
-11111b1b1b1b1b1b1711116116111616116116161616116116161116117111711161161116161161117116111616116111161611161616111611161616111616
-11111b1b1bbb1bbb1171116116661616116116161616166616161661171111771161166616161161171116661616116116611166161616661666161616111661
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1ee11ee111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1ee11e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1e111e1e1e1e11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-1eee1e1e1eee11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-82888222822882228888828282288222888282228222822288888888888888888888888888888888888882228288828882228882822282288222822288866688
-82888828828282888888828288288282882882888882888288888888888888888888888888888888888888828288828882828828828288288282888288888888
-82888828828282288888822288288282882882228882882288888888888888888888888888888888888888828222822282228828822288288222822288822288
-82888828828282888888888288288282882888828882888288888888888888888888888888888888888888828282828282828828828288288882828888888888
-82228222828282228888888282228222828882228882822288888888888888888888888888888888888888828222822282228288822282228882822288822288
-88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+
 __meta:title__
-iNTO rUINS
-BY ERIC BILLINGSLEY
+keep:iNTO rUINS
+keep:BY ERIC BILLINGSLEY�
