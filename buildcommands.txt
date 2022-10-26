@@ -1,8 +1,19 @@
 --minify
 py /e/Programs/shrinko8/shrinko8.py -m --no-minify-rename --no-minify-tokens intoruins_main.p8 minified/intoruins_main.p8
 
---html export
-export -f intoruins.html minified/intoruins_main.p8
-
 --bin export
 export -i 81 -c 15 intoruins.bin minified/intoruins_main.p8
+
+--html export
+--(capture label image with f7)
+export -f intoruins.html minified/intoruins_main.p8
+--(open html and edit background-color to #000)
+--(replace files in zip with the new ones)
+
+--BBS cart export
+save carts/intoruins.png
+--(add "#" to load call for BBS support)
+load minified/intoruins_main
+--(capture label image with f7)
+save carts/intoruins_main.png
+--(add "#" to load call for BBS support)
