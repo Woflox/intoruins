@@ -285,8 +285,6 @@ function info()
 		,desc6|\
   aTTACK SHAPE:   \|f\^:3e7f3e0000000000\-2\^:00003e7f3e000000\-k\^:00003e7f3e000000\+2h\^:000000081c3e0808\
 ,arc|\
-  aTTACK SHAPE:   \|d\^:3e7f3e003e7f3e00\+8l\^:000000081c3e0808\
-,pierce|\
   dARKSIGHT:  +,darksight|\
   hEALTH:    ,hp|/,maxhp|\
   fREEZE TURNS:,freezeturns|\
@@ -1466,7 +1464,7 @@ taketurn=function()
  if statuses.FROZEN or
     statuses.STUN or
 	skipturn then
-  skipturn=--nil
+  skipturn,waited=--nil
   ai and checkseesplayer()
   return true
  end
@@ -1481,14 +1479,15 @@ taketurn=function()
 		end
 		updst()
 		lookat(playerdst)
-		dsttile.hilight=2
+		waited,dsttile.hilight=
+		getbtn"16",2
 		
 		if getbtn"32" then
 			dialog(inv)
 			return
 		end
 		
-		if getbtn"16" then
+		if waited then
 			sfx"40"
 			return true --wait 1 turn
 		end
@@ -1497,9 +1496,7 @@ taketurn=function()
 			dsttile.hilight=0
 			if canmove(playerdst) then
 				if move(playerdst,true) then
-					if dsttile.item then
-						dsttile.item.pickup()
-					end
+					pickup(dsttile.item)
 				updst()
 				if stat"lunge" and
 					dsttile.vistoplayer and
@@ -1529,36 +1526,36 @@ taketurn=function()
 			function checkaggro(p)
 				if seesplayer()
 				and rndp(p)
-				--and onscreenpos(ent.pos,62)
 				then
 				aggro(tl)
 				return true
 				end
 			end
-			checkaggro(behavis"search"
-					and 1.0 or 0.29)
-			if behavis"wander" then
-				if not wanderdsts[group]
-				or pos==wanderdsts[group]
-				or rndp"0.025"
-				then
-					repeat
-						wandertl =rndtl()
-						wanderdsts[group]=wandertl
-					until wandertl.navigable() and
-											wandertl.pdist>-1000
-					calcdist(group,wandertl)
-				end
-				findmove(group,0,"aggro")
-				checkaggro(0.29)
-			elseif behavis"search" 
-			then
+			if behavis"search" then
+				checkaggro"1.0"
 				local goal=pdist
 				findmove("search",goal,"aggro")
-				if not checkaggro(1.0) and
+				if not checkaggro"1.0" and
 					tl.search == goal
 				then
 					setbehav"wander"
+				end
+			else
+				checkaggro"0.29"
+				if behavis"wander" then
+					if not wanderdsts[group]
+					or pos==wanderdsts[group]
+					or rndp"0.025"
+					then
+						repeat
+							wandertl =rndtl()
+							wanderdsts[group]=wandertl
+						until wandertl.navigable() and
+												wandertl.pdist>-1000
+						calcdist(group,wandertl)
+					end
+					findmove(group,0,"aggro")
+					checkaggro"0.29"
 				end
 			end
 		end
@@ -1680,9 +1677,7 @@ doatk=function(ntl,pat)
  
  for p in all(split(pat,"|")) do
  	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
- 	if nntl.vistoplayer then
  		doatk(nntl)
- 	end
  end
  
  if atk and b then
@@ -1748,6 +1743,9 @@ move=function(dst,playsfx)
 		end
 	 
 	 setpos(dst)
+		if player.waited and player.stat"guard" and dst==playerdst then
+			player.interact(_ENV)
+		end
 	 return true
 	end
 end
@@ -1770,12 +1768,10 @@ tele=function(dst)
 		      not dst.ent
 	end
 	setanim"tele"
-	if (dst.ent) return
+	--if (dst.ent) return --fixes 2 mirrorshards blinking to same space but need the tokens
 	setpos(dst.pos,true)
 	if isplayer then
-		if dst.item then
-			dst.item.pickup()
-		end
+		pickup(	dst.item)
 		call"calcdist(pdist)calcvis()calclight("
 	end
 end
@@ -1939,27 +1935,6 @@ isid=function()
  return ided[typ]
 end
 
-pickup=function()
-	if not beenfound then
-		beenfound=true
-		_g.itemsfound+=1
-	end
- if #inventory<10 then
-		sfx"25"
-		addtoinventory()
-		if victory then
-			player.setanim"victory"
-			player.yface,player.statuses,tl.fire,light=
-			-1,{},0
-			call"setmode(victory)calcvis()calclight("
-		end
-		setpos()
-		log("+"..getname())
-	else
-	 log"INVENTORY FULL"
-	end
-end
-
 addtoinventory=function()
  return add(inventory,_ENV)
 end
@@ -2092,6 +2067,29 @@ end
 	end
 
 	return _ENV
+end
+
+function pickup(_ENV)
+	if _ENV then
+		if not beenfound then
+			beenfound=true
+			_g.itemsfound+=1
+		end
+		if #inventory<10 then
+			sfx"25"
+			addtoinventory()
+			if victory then
+				player.setanim"victory"
+				player.yface,player.statuses,tl.fire,light=
+				-1,{},0
+				call"setmode(victory)calcvis()calclight("
+			end
+			setpos()
+			log("+"..getname())
+		else
+			log"INVENTORY FULL"
+		end
+	end
 end
 
 function turn(btnid,i)
