@@ -519,9 +519,6 @@ navigable=function(flying)
 	return tileflag(flying and 8 or 0)
 end
 
-genable=function()
-	return tileflag"4"
-end
 
 flatten=function()
  if typ==tlonggrass then
@@ -2312,11 +2309,11 @@ function gencave(tl)
 	if tl then
 		tl.visitadjrnd(
 		function(ntl)
-			if not ntl.genable() then
+			if not ntl.tileflag"4" then
 				if inbounds(ntl.pos) and 
 							rndp(entropy) then
 					gentile(tl.typ,ntl)
-					if ntl.genable() then
+					if ntl.tileflag"4" then
 						if rndp(0.005+depth*0.001) then
 							genroom(rnd(inboundposes))
 						end
@@ -2351,12 +2348,12 @@ function postgen(tl,prevtl)
 	tl.postgenned=true
 	tl.visitadjrnd(
 	function(_ENV)
-		if genable() and not
+		if tileflag"4" and not
 					postgenned then
 			if not genned then
 				gentile(tl.typ,_ENV)
 			end
-			postgen(_ENV,tl.genable() and tl or prevtl)
+			postgen(_ENV,tl.tileflag"4" and tl or prevtl)
 		end
 	end)
 end
@@ -2395,7 +2392,7 @@ function postproc()
 				local tl2=gettile(p2)
 				if tl2 then
 					if tl2.navigable() and
-								tl2.genable() and
+								tl2.tileflag"4" and
 								tl2.pdist>-1000 then
 						d=hexdist(p1,p2)
 						if d<bestdist then
@@ -2451,8 +2448,8 @@ function postproc()
 	function(_ENV)
 		if typ==tempty and 
 					inbounds(pos) then
-			if adjtl[2].genable() and
-				  adjtl[5].genable() then
+			if adjtl[2].tileflag"4" and
+				  adjtl[5].tileflag"4" then
 				gentile(tcavewall,_ENV)
 			end
 		end
