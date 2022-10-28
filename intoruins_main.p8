@@ -1765,7 +1765,7 @@ tele=function(dst)
 		      not dst.ent
 	end
 	setanim"tele"
-	--if (dst.ent) return --fixes 2 mirrorshards blinking to same space but need the tokens
+	if (dst.ent) return --fixes 2 mirrorshards blinking to same space
 	setpos(dst.pos,true)
 	if isplayer then
 		pickup(	dst.item)
