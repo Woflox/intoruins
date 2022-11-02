@@ -2072,7 +2072,7 @@ function pickup(_ENV)
 			beenfound=true
 			_g.itemsfound+=1
 		end
-		if #inventory<10 then
+		if #inventory<10 or victory then
 			sfx"25"
 			addtoinventory()
 			if victory then
