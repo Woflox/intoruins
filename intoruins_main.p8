@@ -1316,7 +1316,7 @@ animfuncs={
 		end
 	end,
 	function()--[n]one (reset state)
-		flip,animtele=1
+		animflip,animtele=1
 	end,
 	function()--[o] destroy
 		destroy(_ENV)
