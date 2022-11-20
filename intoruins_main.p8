@@ -1163,11 +1163,13 @@ setbehav=function(name)
 		end
 		
 		behav,canact=name
-		if behavis"hunt" and not statuses.FROZEN then
-			animtext"!"
-			sfx(alert)
-		elseif behavis"search" then
-			animtext"?"
+		if not statuses.FROZEN then
+			if behavis"hunt" then
+				animtext"!"
+				sfx(alert)
+			elseif behavis"search" then
+				animtext"?"
+			end
 		end
 	end
 end
