@@ -1066,16 +1066,16 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,statuses:{}"
+	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,countid:generic,statuses:{}"
 	
 	behav,typ,group=
 	_behav,_typ,_group
 	
 	assigntable(entdata[_typ],_ENV)		
 	
-	animoffset,counts[_typ],name,maxhp=
+	animoffset,counts[countid],name,maxhp=
 	vec2(0,yoffs),
-	(counts[_typ]or 0)+1,
+	(counts[countid]or 0)+1,
 	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n"),
 	hp
 	
@@ -2390,7 +2390,7 @@ function postproc()
 		   rnd(split(tl1.manmade and
 		   not permissive and "1,2,4,5" or"1,2,3,4,5,6"))
 				local dir=adj[diri]
-				local p2=p1+rndint(18)*dir
+				local p2=p1+rndint"18"*dir
 				local tl2=gettile(p2)
 				if tl2 then
 					if tl2.navigable() and
@@ -2554,16 +2554,18 @@ function postproc()
 	
 	--spawn items
 	for n=1,7-depth\5.99 do
-		checkspawn(rndtl(),mget(64+rndint(56),24),-3)
+		checkspawn(rndtl(),mget(64+rndint"56",24),-3)
 	end
-	--rubberbanding important orbs
-	for orb=300,304 do
-		for i=counts[mapping[orb]],depth/2.001 do
-			checkspawn(rndtl(),mapping[orb],-3)
+	--rubberbanding items
+	function rband(countid,options,targetcount)
+		for i=counts[countid]or 0,targetcount or depth/2.001 do
+			local spwnid=rnd(split(options,"|"))
+			--printh(countid)
+			checkspawn(rndtl(),mapping[spwnid] or spwnid,-3)
 		end
 	end
 
-	call"calcvis()calclight(,t,t,t"
+	call"rband(life,300)rband(slofall,301)rband(empower,302)rband(data,303)rband(light,304)rband(wpn,132|133|134|135|316|317|318|319,1)rband(wearable,308|309|310|312|313|314,1)calcvis()calclight(,t,t,t"
 end
 
 -->8
@@ -2718,9 +2720,7 @@ genmap(vec2s"10,12")
 create(130).addtoinventory().eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
 --create(mapping[317]).addtoinventory()
-calclight()
-
-?"\^!5f5c\9\6"--key repeat poke
+call"calclight()print(\^!5f5c\9\6"--key repeat poke
 
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
