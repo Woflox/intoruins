@@ -1492,21 +1492,21 @@ _g=assigntable(
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,specialtiles:{},textanims:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
-entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:,yoffs:0,actor:
-70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16,yoffs:0,actor:
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,altpdist:-2,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,desc1:aTTACKS WHILE MOVING,desc2:,actor:
-65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,alert:30,hurtfx:11,profilepic:16,yoffs:0,actor:
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;0;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:,actor:,healer:
-67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0,actor:
-68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,desc1:sHOOTS FIRE,desc2:,actor:
-69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,alert:31,hurtfx:16,profilepic:16,yoffs:0,desc1:aTTACK TAKES 2 TURNS,desc2:,actor:
-72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK,desc3:,actor:
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT,desc3:,actor:
-74=n:fLESH HORROR,hp:32,atk:5,dmg:8,armor:0,ai:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0,actor:
-75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0,actor:
-76=n:mIRRORSHARD,hp:8,ai:,pdist:-2,altpdist:-4,dmg:6,armor:2,behav:wander,deathanim:sharddeath,rangep:0.3333,freezeturns:8,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:
-77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:1,ai:,altpdist:-2,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES,desc3:,actor:
-78=n:dRAGON,hp:24,atk:5,dmg:8,armor:5,nofire:,ai:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0,desc1:bREATHES FIRE,desc2:dOESN'T BURN,desc3:,actor:
+entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:,yoffs:0,yfacespr:1,actor:
+70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,flippable:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16,yoffs:0,yfacespr:1,actor:
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,flippable:,altpdist:-2,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:,actor:
+65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,flippable:,alert:30,hurtfx:11,profilepic:16,yoffs:0,yfacespr:1,actor:
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,flippable:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;0;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,yfacespr:1,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:,actor:,healer:
+67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,flippable:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0,yfacespr:1,actor:
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,flippable:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS FIRE,desc2:,actor:
+69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,flippable:,alert:31,hurtfx:16,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACK TAKES 2 TURNS,desc2:,actor:
+72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,flippable:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,yfacespr:1,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK,desc3:,actor:
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,flippable:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT,desc3:,actor:
+74=n:fLESH HORROR,hp:32,atk:5,dmg:8,armor:0,ai:,flippable:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0,yfacespr:1,actor:
+75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,flippable:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0,yfacespr:1,actor:
+76=n:mIRRORSHARD,hp:8,ai:,flippable:,pdist:-2,altpdist:-4,dmg:6,armor:2,behav:wander,deathanim:sharddeath,rangep:0.3333,freezeturns:8,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:
+77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:1,ai:,flippable:,altpdist:-2,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES,desc3:,actor:
+78=n:dRAGON,hp:24,atk:5,dmg:8,armor:5,nofire:,ai:,flippable:,moveanim:dmove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0,yfacespr:1,desc1:bREATHES FIRE,desc2:dOESN'T BURN,desc3:,actor:
 137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:,yoffs:1,desc1:bURSTS INTO HEALING,desc2:SPORES,desc3:
 136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23,yoffs:0,desc1:eASILY KNOCKED OVER,desc2:
 169=n:cHAIR,hp:3,nofire:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23,yoffs:0

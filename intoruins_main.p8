@@ -1066,7 +1066,7 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,countid:generic,statuses:{}"
+	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,yfacespr:0,countid:generic,statuses:{}"
 	
 	behav,typ,group=
 	_behav,_typ,_group
@@ -1101,7 +1101,7 @@ draw=function()
 					vec2(flp and -1 or 0,0)
 		local frame=
 						animframe
-						+0.5+yface*0.5
+						+max(yface*yfacespr)
 		spr(animtele and 153 or
 		    typ+frame*16,
 						scrpos.x,scrpos.y,
@@ -2052,11 +2052,11 @@ end
 	end
 	
 	add(ents,_ENV)
-	if (flippable or ai)
+	if flippable
 	   and rndp"0.5" then
 		xface*=-1
 	end
-	if ai and rndp"0.5" then
+	if rndp"0.5" then
 		yface*=-1
 	end
 	checkidle()
