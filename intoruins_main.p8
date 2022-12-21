@@ -1072,10 +1072,9 @@ function create(_typ,_pos,_behav,_group)
 	_behav,_typ,_group
 	
 	assigntable(entdata[_typ],_ENV)		
-	
-	animoffset,counts[countid],name,maxhp=
+	counts[countid]+=1
+	animoffset,name,maxhp=
 	vec2(0,yoffs),
-	(counts[countid]or 0)+1,
 	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n"),
 	hp
 	
@@ -2558,14 +2557,15 @@ function postproc()
 	end
 	--rubberbanding items
 	function rband(countid,options,targetcount)
-		for i=counts[countid]or 0,targetcount or depth/2.001 do
+		for i=counts[countid],targetcount or depth/2.001 do
 			local spwnid=rnd(split(options,"|"))
 			--printh(countid)
 			checkspawn(rndtl(),mapping[spwnid] or spwnid,-3)
 		end
 	end
 
-	call"rband(life,300)rband(slofall,301)rband(empower,302)rband(data,303)rband(light,304)rband(wpn,132|133|134|135|316|317|318|319,1)rband(wearable,308|309|310|312|313|314,1)calcvis()calclight(,t,t,t"
+	--printh"\n\n====rubberbanding====\n"
+	call"rband(life,300)rband(slofall,301)rband(empower,302)rband(identify,303)rband(light,304)rband(wpn,132|133|134|135|316|317|318|319,0)rband(wearable,308|309|310|312|313|314,0)calcvis()calclight(,t,t,t"
 end
 
 -->8
@@ -2631,13 +2631,13 @@ _g=assigntable(
 ,thole:32,txbridge:60,tybridge:44
 ,minroomw:3,minroomh:2,roomsizevar:8
 ,stepstaken:0,itemsfound:0,creaturesslain:0
-,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{},counts:{}]],
+,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
 entdata=assigntable(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
-adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots,updateturn=
+adj,fowpals,frozepal,ided,enchstats,tlentvars,itemslots,updateturn,counts=
 vec2list"-1,0|0,-1|1,-1|1,0|0,1|-1,1",--adj
 {split"0,0,0,0,0,0,0,0,0,0,0,0,0,0",
 split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
@@ -2648,7 +2648,8 @@ assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges,freezeturns",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet",--itemslots
-updateplayer--updateturn
+updateplayer,--updateturn
+assigntable"generic:0,wpn:0,wearable:0,life:-1,slofall:-1,empower:0,identify:0,light:0"--counts
 
 for i,s in inext,
 split([[16
@@ -2705,16 +2706,14 @@ for j,str in inext,split([[
 156,157,158,159|312,313,314,315
 129,145,161,177|316,317,318,319]]
 ,"\n") do
- local grps=split(str,"|")
-	local items=split(grps[1])
-	for k,s in inext,split(grps[2]) do
+ local itemstr,mapstr=usplit(str,"|")
+	local items=split(itemstr)
+	for k,s in inext,split(mapstr) do
 		local i=del(items,rnd(items))
 		entdata[i]..=entdata[s]
 		mapping[s]=i
-		counts[i]=-tonum(s<=301)
 	end
 end
-
 genmap(vec2s"10,12")
 
 create(130).addtoinventory().eQUIP(true)
