@@ -1226,6 +1226,9 @@ tickstatuses=function()
 		 hurt(1,nil,true)
 		end
 	end
+	if destroyp and rndp"0.25" then
+		setanim"fleshdeath"
+	end
 end
 
 animfuncs={
@@ -1665,8 +1668,8 @@ doatk=function(ntl,pat)
 		hitp=(max(diff)+1)/
 			(abs(diff)+2)
 	end
-	local hit,atkdir,atkdiri=rndp(hitp),hexdir(pos,ntl.pos)
-	if hit then
+	local atkdir,atkdiri=hexdir(pos,ntl.pos)
+	if rndp(hitp) then
 		local dmgv=min(stat"dmg",b.hp)
 		b.hurt(throwdmg or dmgv,atkdir,nil,armor and stat"knockback")
 		if b.armor then
@@ -1682,19 +1685,22 @@ doatk=function(ntl,pat)
 				b.animtext"○,wavy:1"
 			end
 		end
+		
+		if makeflesh then
+			ntl.visitadjrnd(
+				function(_ENV)
+					if navigable() and not ent then
+						create(89,pos)
+					end
+				end
+			)
+		end
 	else
 		aggro(ntl)
 	end
 	
  for p in all(split(pat,"|")) do
- 	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
-		if makeflesh then
-			if hit then
-				checkspawn(nntl,89,0)
-			end
-		else
- 		doatk(nntl)
-		end
+ 	doatk(ntl.adjtl[(atkdiri+p)%6+1])
  end
  end
 
@@ -1704,8 +1710,7 @@ end
 interact=function (b)
  setanim(atkanim)
 	sfx"33"
- _g.waitforanim,atktl=
- true,b.tl 
+ atktl=b.tl 
 end
 
 move=function(dst,playsfx)
@@ -2614,7 +2619,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:15,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
