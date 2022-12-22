@@ -1671,7 +1671,6 @@ end
 
 doatk=function(ntl,pat)
  local b=ntl.ent
- local atkdir,atkdiri=hexdir(pos,ntl.pos)
  
 	if atk and b then
  	local hitp=1
@@ -1680,7 +1679,8 @@ doatk=function(ntl,pat)
 		hitp=(max(diff)+1)/
 			(abs(diff)+2)
 	end
-	if rndp(hitp) then
+	local hit,atkdir,atkdiri=rndp(hitp),hexdir(pos,ntl.pos)
+	if hit then
 		local dmgv=min(stat"dmg",b.hp)
 		b.hurt(throwdmg or dmgv,atkdir,nil,armor and stat"knockback")
 		if b.armor then
@@ -1696,19 +1696,19 @@ doatk=function(ntl,pat)
 				b.animtext"○,wavy:1"
 			end
 		end
-		if makeflesh then
-			ntl.visitadjrnd(
-			function(nntl)
-				checkspawn(nntl,89,0)
-			end)
-		end
 	else
 		aggro(ntl)
 	end
 	
  for p in all(split(pat,"|")) do
  	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
- 	doatk(nntl)
+		if makeflesh then
+			if hit then
+				checkspawn(nntl,89,0)
+			end
+		else
+ 		doatk(nntl)
+		end
  end
  end
 
