@@ -92,11 +92,7 @@ function _draw()
 			if _ENV and t<=0.5 then
 				t+=speed
 				pos.y-=0.5-t
-				print(text,
-										mid(campos.x,4+pos.x-#text*2,campos.x+128-#text*4)-
-										wavy*cos(t*2),
-									pos.y+offset,
-								t>0.433 and 5 or col)
+				?text,mid(campos.x,4+pos.x-#text*2,campos.x+128-#text*4)-wavy*cos(t*2),pos.y+offset,t>0.433 and 5 or col
 			else
 				ent.textanim=nil
 			end
@@ -249,8 +245,7 @@ end
 
 function inv()
  frame(gettrans"126,40",6,126,111,rect)
-	?uimode and"\fc  "..uimode.." AN iTEM"or "\fd  iNVENTORY"
-	?"\f1 ……………… EQUIPPED"
+	?uimode and"\fc  "..uimode.." AN iTEM\n\f1 ……………… EQUIPPED"or"\fd  iNVENTORY\n\f1 ……………… EQUIPPED"
 	
  	invi,invindex=
 	0,getindex(#inventory,invindex)
@@ -569,11 +564,6 @@ end
 	return _ENV
 end
 
-function drawcall(dcall)
-	add(drawcalls, dcall)
-end
-
-
 function setupdrawcalls()
 	alltiles(
 	
@@ -582,7 +572,7 @@ function setupdrawcalls()
 		
 		function tdraw(tltodraw,postl,i,_bg)
 			if not palready then
-				drawcall{initpal,{true}}
+				add(drawcalls,{initpal,{true}})
 				palready=true
 			end
 			local _typ,flp=
@@ -613,13 +603,13 @@ function setupdrawcalls()
 				flp=flp and i%3==2
 			end
 			
-			drawcall{draw,
+			add(drawcalls,{draw,
 							 {_typ,postl,
 							 postl.tlscrpos+offset+baseoffset,
 							  offset,size,
 							 	flp and 
 							 		tltodraw.tileflag"6", _bg, 
-							 	not(i or _bg)}}
+							 	not(i or _bg)}})
 		end
 		
 		local infront,uprtl=fget(typ,3),adjtl[3]
@@ -676,7 +666,7 @@ function setupdrawcalls()
 		end
 		if uprtl and 
 					uprtl.tileflag"8" then
-			drawcall{uprtl.drawents,{}}
+			add(drawcalls,{uprtl.drawents,{}})
 		end
 	end)	
 end
@@ -692,10 +682,6 @@ end
 function inbounds(pos)
  local y=tileinbounds[pos.y]
 	return y and y[pos.x]
-end
-
-function passlight(_ENV)
-	return tileflag"1"
 end
 
 function rndtl()
@@ -740,7 +726,7 @@ function viscone(pos,dir1,dir2,lim1,lim2,d)
 	 local _ENV=gettile(pos+i*dir2)
 	 if _ENV then
 			local _vis,splitlim=
-			passlight(_ENV)
+			tileflag"1"
 			vis=tileflag"5" or
 											tileflag"14" and
 											 player.pos.x<
@@ -951,8 +937,8 @@ function hexdist(p1,p2)
 end
 
 function hexline(p1,p2,range,linemode,cont)
-	p2,ln=hexnearest(p2),{}
-	local dist,tl=hexdist(p1,p2)
+	p2=hexnearest(p2),{}
+	local ln,dist,tl={},hexdist(p1,p2)
 	for i=1,min(cont and 20 or dist,range) do
 	 local tl=gettile(hexnearest(
 							lerp(p1,p2,i/dist)))
@@ -2065,9 +2051,7 @@ end
 	   and rndp"0.5" then
 		xface*=-1
 	end
-	if rndp"0.5" then
-		yface*=-1
-	end
+	yface=rnd{-1,1}
 	checkidle()
 	if behavis"sleep" then
 		setanim"sleep"
@@ -2536,14 +2520,12 @@ function postproc()
 	--spawn entities										
 	wanderdsts,fadetoblack={}
 	for n=1,6 do
-		local spawntl=rndtl()
-		local spawndepth=depth
-	 while rndp"0.45" do
-		 spawndepth+=1
+		for i=depth,20 do
+			spawn=rnd(spawns[i])
+			if (rndp"0.55") break
 		end
-		local spawn,behav,spawnedany
-		={74},--rnd(spawns[min(spawndepth,20)]),
-		rnd{"sleep","wander"}
+		local spawntl,behav,spawnedany
+		=rndtl(),rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false
 			spawntl.visitadjrnd(
