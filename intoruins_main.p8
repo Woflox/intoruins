@@ -1673,12 +1673,7 @@ doatk=function(ntl,pat)
  local b=ntl.ent
  local atkdir,atkdiri=hexdir(pos,ntl.pos)
  
- for p in all(split(pat,"|")) do
- 	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
- 		doatk(nntl)
- end
- 
- if atk and b then
+	if atk and b then
  	local hitp=1
 	if b.armor then
 		local diff=(throwatk or stat"atk")-b.stat"armor"
@@ -1701,9 +1696,20 @@ doatk=function(ntl,pat)
 				b.animtext"○,wavy:1"
 			end
 		end
+		if makeflesh then
+			ntl.visitadjrnd(
+			function(nntl)
+				checkspawn(nntl,89,0)
+			end)
+		end
 	else
 		aggro(ntl)
 	end
+	
+ for p in all(split(pat,"|")) do
+ 	local nntl=ntl.adjtl[(atkdiri+p)%6+1]
+ 	doatk(nntl)
+ end
  end
 
  skipturn=stat"slow"
@@ -1741,6 +1747,9 @@ move=function(dst,playsfx)
 		end
 	 
 	 setpos(dst)
+		if makeflesh then
+			create(89,lasttl.pos)
+		end
 		if player.waited and player.stat"guard" and dst==playerdst then
 			player.interact(_ENV)
 		end
@@ -2359,6 +2368,17 @@ function postgen(tl,prevtl)
 	end)
 end
 
+function checkspawn(_ENV,_typ,mindist,allowent)
+	if navigable() and
+		pdist < mindist and
+		pdist > -1000 and
+		not item and
+		(allowent or not ent)
+	then	
+		return not _typ or create(_typ,pos)
+	end
+end
+
 function postproc()
 	function connectareas(permissive)
 		for i=1,20 do
@@ -2459,18 +2479,6 @@ function postproc()
 	connectareas(true)
 	local numholes,furthestd=0,0
 	
-		
-	function checkspawn(_ENV,_typ,mindist,allowent)
-		if navigable() and
-		 pdist < mindist and
-			pdist > -1000 and
-			not item and
-			(allowent or not ent)
-		then	
-			return not _typ or create(_typ,pos)
-		end
-	end
-	
 	alltiles(
 	function(_ENV)
 		if typ==tempty then
@@ -2534,7 +2542,7 @@ function postproc()
 		 spawndepth+=1
 		end
 		local spawn,behav,spawnedany
-		=rnd(spawns[min(spawndepth,20)]),
+		={74},--rnd(spawns[min(spawndepth,20)]),
 		rnd{"sleep","wander"}
 		for i,typ in inext,spawn do
 			local found=false
@@ -2765,27 +2773,27 @@ ffd0dfffff202fffff222fffffd0dfff10001ffff2002ffffe544ffff202fffffffffffffe2222ef
 fff67fffffffffffffffffffffffffffff11ffffff997fffffffffffffffffffff11f1ffffffffffff88d8fffffffffffff7fffffffcfcffffffffffffffffff
 fff22ffffffffffffff22ffffffffffff1001fff333993fffffffffffffffffff100101ffffffffff822828ffffcffffffc77fffffffcfcffffffffe99ffffff
 ff882ffffff3f3fffff323fffff3f3fff13031ff99333bffffffffffffffffff10500001ffffffff2f88fffeffc7cffffcc777ffffffcfcfffffff988898ffff
-ff8d9fffffb333ffff2333ffff4333ff103331ff99b33b44ffffffff4fffffff05580850fff88ffff8288228ffc7cfffffdccfffcfff6c6ffffff9828289a8ff
-ff86dfffffbbbff6ff222f4fff44299f1000181f499bbf42ffffffff24424f4f11101111ff28e8fffef28282fccdccffffdccffffccfdcfff89ff9822828e88f
-ff826fffffbbbf6fff222f4fff2445f91000141ff449942ffef4f4fff422444ffff1fffff2d888fff2f28f2ffffcfffffffcfffffddcddffff2998222822ffff
-ff2f2fffff44b3ffff22234fffdd43661000341ff2244fffff5555fff204240fffffffff2822dd2ff288822ffffffffffffdfffff20d22fffff2222252802fff
-ffd0dfffff202fffff222f4fffd0d99f100011fff2002fffff0555fffff202ffffffffffff882fff2882802ffffffffffffffffffff202ffffff2250052802ff
+ff8d9fffffb333ffff2333ffff4333ff103331ff99b33b44ffffffff4fffffff05580850fffffffff8288228ffc7cfffffdccfffcfff6c6ffffff9828289a8ff
+ff86dfffffbbbff6ff222f4fff44299f1000181f499bbf42ffffffff24424f4f11101111fff88ffffef28282fccdccffffdccffffccfdcfff89ff9822828e88f
+ff826fffffbbbf6fff222f4fff2445f91000141ff449942ffef4f4fff422444ffff1ffffff28e8fff2f28f2ffffcfffffffcfffffddcddffff2998222822ffff
+ff2f2fffff44b3ffff22234fffdd43661000341ff2244fffff5555fff204240ffffffffff2d888fff288822ffffffffffffdfffff20d22fffff2222252802fff
+ffd0dfffff202fffff222f4fffd0d99f100011fff2002fffff0555fffff202ffffffffff2822dd2f2882802ffffffffffffffffffff202ffffff2250052802ff
 ffffffffffffffffffffc4cffffffffff11fffffffffff6fffffffffff6fff6f11ffff11ffffffffffffffffffcccffffff7ffffffffffffffff8fff9a8fffff
-fff67fffffffffffff2ec4cfffffffff1041fffffffffff6fffffffffff64f460011f100fffffffff628ff28ffffccffffc77efffffffffffff888f98e0fffff
-fff88fffff7666ffff223c4cfff3f3ff100a1f8fffff9996f6ff6ffffff6444650001005ffffffffff6f8868fffffccfecc777eeff2c7c7fff855889822f88ff
-ff8886fff763f36fff22223cff4443ff10001878ff333336ff4f46fff4f4442615000051ffffffffff628286fffcfccfffdccffffff2c7c7fffff5898888858f
-ff88dffff3bbb3f6ff222ec4f4444f9f1000438ff33333b6ff6556ffff444226f100051fffffffffff688286fffcc77cffdccfffcf2cddd7ffffff8982255fff
-f8822fffffbbbfffff22efc4ff224f9f10000ffff333bb94ff5555fff4244f2fff1011ffffeeeeeff2882f86ffcd7ccffffcfffffccdd2dfff89ff89822fffff
+fff67fffffffffffff2ec4cfffffffff1041fffffffffff6fffffffffff64f460011f100fffffffff828ff28ffffccffffc77efffffffffffff888f98e0fffff
+fff88fffff7666ffff223c4cfff3f3ff100a1f8fffff9996f6ff6ffffff6444650001005ffffffffff8f8888fffffccfecc777eeff2c7c7fff855889822f88ff
+ff8886fff763f36fff22223cff4443ff10001878ff333336ff4f46fff4f4442615000051ffffffffff828288fffcfccfffdccffffff2c7c7fffff5898888858f
+ff88dffff3bbb3f6ff222ec4f4444f9f1000438ff33333b6ff6556ffff444226f100051fffffffffff888288fffcc77cffdccfffcf2cddd7ffffff8982255fff
+f8822fffffbbbfffff22efc4ff224f9f10000ffff333bb94ff5555fff4244f2fff1011ffffeeeeeff2882f88ffcd7ccffffcfffffccdd2dfff89ff89822fffff
 ff2f2fffff444fffff22effcffddd9ff10001ffff2222942ff544fffffff4ffffff1fffffe22227e28882288fffccffffffdffffd2dfdffffff8999822ffffff
 fd00dffff4004fffff222fffffd0dfff10001fff200002fffe5fffffff00ffffffffffffe222002e8288822efffcffffffffffffffffffffffff8882250fffff
 fffffffffffffffffffffcfffffffffff11fffffffffffffffffffffffffffff11ffff11ffffffffffffffffffffcffffff7ffffffffffffffffffff9a88ffff
 fff67fffffffffffff2ec4cfffffffff1041ffffffffff6fffffffffffffffff0011f100ffffffffff28ff28fffffcffffc7efffffffffffffff8ff98e0fffff
 fff22fffffffffffff3234cffff3f3ff1a0a1fffffff9996ffffffffffffff6f50001005ffffffffffff88d8fffffccfeeee7eeeff2d7c7ffff88888828f28ff
-ff822ffffff3f36fffbb3c4cff4333ff133a1f8fff333976ffffffff4f624f4615000051fff22ffff8682262ffccfccfffdcefffcff2c7c7ff8558582222858f
-ff6d9fffffb333f6ff222e3cff44499f10001878f3333336ff64f6fff4464446f158081ff2888e2ffff68226fcdccccfffdccffffccdc7c7ffffff982255ffff
-f86226ffffbbbff6ff222ec4f4425ff910004a8ff94bbb66fef6556f42462406ff1011fffd88882ff2862f26fcc7ccfffffcffffddd26c6fff89ff98222fffff
-ff6f2fffff44bf66ff22efc4ff435ff9100001fff9924446ff56556fff262f26fff1ffff282d8d2f28862226fffc7cfffffdfffffffd2cffffff998222ffffff
-fd00dffff4002377ff222fffffd0d99f10001fff29444426ff55ff5ffff4fff4ffffffffff882fff882e822effffcfffffffffffffdfdfffffff2262250fffff
+ff822ffffff3f36fffbb3c4cff4333ff133a1f8fff333976ffffffff4f624f4615000051fffffffff8882282ffccfccfffdcefffcff2c7c7ff8558582222858f
+ff6d9fffffb333f6ff222e3cff44499f10001878f3333336ff64f6fff4464446f158081ffff22ffffff88228fcdccccfffdccffffccdc7c7ffffff982255ffff
+f86226ffffbbbff6ff222ec4f4425ff910004a8ff94bbb66fef6556f42462406ff1011ffff288e2ff2882f28fcc7ccfffffcffffddd26c6fff89ff98222fffff
+ff6f2fffff44bf66ff22efc4ff435ff9100001fff9924446ff56556fff262f26fff1fffffd88882f28882228fffc7cfffffdfffffffd2cffffff998222ffffff
+fd00dffff4002377ff222fffffd0d99f10001fff29444426ff55ff5ffff4fff4ffffffff282d8d2f882e822effffcfffffffffffffdfdfffffff2262250fffff
 fff67ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 fff62fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ff888fffffffff3fffffffffffffffffffffffffffffffffffffffffffffffffff899ffffffffffffffffffffffffffffff40ffffff50ffffff94ffffff65fff
