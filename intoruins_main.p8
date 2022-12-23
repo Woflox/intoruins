@@ -2073,6 +2073,7 @@ function pickup(_ENV)
 			sfx"25"
 			add(inventory,_ENV)
 			if victory then
+				player.aimitem=--nil (fix for blinking onto wings)
 				player.setanim"victory"
 				player.yface,player.statuses,tl.fire,light=
 				-1,{},0
@@ -2711,7 +2712,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[303]))
+--add(inventory,create(mapping[319]))
 call"calclight()print(\^!5f5c\9\6"--key repeat poke
 
 __gfx__
