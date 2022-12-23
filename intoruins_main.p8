@@ -481,10 +481,10 @@ checkeffects=function()
  	if effect then
 	 	local _ENV = effect
 		 if	typ==_typ then
-		  if not dead and
+		  if alive and
 		 	not has then
 			 	setanim(deathanim)
-			 	dead,light=true
+			 	alive,light=nil
 		 	end
 		 elseif has then
 		 	destroy(_ENV)
@@ -1052,7 +1052,7 @@ end
 
 
 function create(_typ,_pos,_behav,_group)
-	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,yfacespr:0,countid:generic,statuses:{}"
+	local _ENV=	objtable"var:ent,xface:1,yface:-1,animframe:0,animt:1,animspeed:0.5,animheight:1,animflip:1,deathanim:death,atkanim:eatk,fallanim:fall,death:41,wpnfrms:0,throwflp:1,movratio:0.25,diri:2,pdist:0,lvl:0,scrxoffset:-2.5,width:1,pushanim:push,profilepic:0,idprefix:³g☉ ,yoffs:2,yfacespr:0,countid:generic,alive:true,statuses:{}"
 	
 	behav,typ,group=
 	_behav,_typ,_group
@@ -1500,7 +1500,7 @@ taketurn=function()
 				dialog(confirmjump)
 			end
 		end
-	elseif ai and canact and behav!="dead" then
+	elseif ai and canact and alive then
 		if behavis"hunt" then
 			checkseesplayer()
 			if not (ratks and rndp(rangep) and dorangedatk(usplit(rnd(split(ratks,"|")),";"))) then
@@ -1589,17 +1589,18 @@ hurt=function(dmg,atkdir,nosplit,_push)
 	hp-=dmg
 	flash,shake=true,1
 	if hp<=0 then
-		if ai and behav!="dead" then
+		if ai and alive then
 			_g.creaturesslain+=1
 		end
 	 sfx(death)
+		alive=--nil
 		setbehav"dead"
 		setanim(deathanim)
 		if isplayer then
 			call"setmode(gameover)print(\^!5f40\31)calclight("
 		elseif sporedeath then
 			tl.sporeburst(sporedeath)
-		elseif summoned and not summoned.behavis"dead"then
+		elseif summoned and summoned.alive then
 			summoned.hurt(10)
 		end
 	else 
@@ -2116,7 +2117,7 @@ function updateplayer()
 						setbehav"search"
 						setsearchtl(lastpseentl)
 					end
-					if summoned and summoned.behavis"dead" then
+					if summoned and not summoned.alive then
 						summoned=nil
 					end
 					canact,noice=true,player.statuses.FROZEN
@@ -2145,7 +2146,7 @@ function aggro(_tl)
 	calcdist("aggro",_tl,-4)
 	for i,_ENV in inext,ents do
 		if ai and
-		   behav!="dead" and
+		   alive and
 					tl.aggro>=-3
 		then
 			if seesplayer() then
@@ -2517,7 +2518,7 @@ function postproc()
 		call"calcdist(pdist)calclight("
 		
 		animoffset.y=-21
-		setanim(statuses.SLOFALL and "slofall" or "fallin")
+		setanim(statuses.SLOFALL and alive and "slofall" or "fallin")
 	end
 	--spawn entities										
 	wanderdsts,fadetoblack={}
