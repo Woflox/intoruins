@@ -1503,7 +1503,7 @@ entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim
 72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,flippable:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,yfacespr:1,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK,desc3:,actor:
 73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,flippable:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT,desc3:,actor:
 74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,moveanim:fleshmove,makeflesh:,ai:,flippable:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0,yfacespr:1,actor:
-89=n:fLESH MOUND,hp:3,nopush:,death:42,hurtfx:10,flippable:,idleanim:fleshidle,yoffs:0,deathanim:fleshsplode,destroyp:
+89=n:fLESH MOUND,hp:3,nopush:,death:42,hurtfx:10,flippable:,idleanim:fleshidle,yoffs:0,deathanim:fleshsplode,isflesh:
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,flippable:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0,yfacespr:1,actor:
 76=n:mIRRORSHARD,hp:8,ai:,flippable:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,freezeturns:8,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:
 77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,flippable:,altpdist:-2,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES,desc3:,actor:
@@ -1546,7 +1546,7 @@ brazierfall=w3v53v53v63cv73v83v83ro
 fleshidle=sv5cv62sv3sv30222l00002222
 fleshmove=c2v500v3
 fleshdeath=cv70v50v50o
-fleshsplode=v5cv6bt00o
+fleshsplode=b0v5cv6bt00o
 propdeath=w111ro
 proppush=w1kr
 propfall=w1v51v51v61cv71v81v81ro

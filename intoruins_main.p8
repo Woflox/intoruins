@@ -685,7 +685,7 @@ function inbounds(pos)
 end
 
 function rndtl()
-	return gettile(rnd(inboundposes))
+	return rnd(inboundtls)
 end
 
 function alltiles(func)
@@ -1164,7 +1164,9 @@ behavis=function(name)
 end
 
 setpos=function(npos,setrender)
-	if (tl) tl[var],tl=nil
+	if tl and tl[var]==_ENV then
+	 tl[var],tl=nil
+	end
 	if npos then
 		tl,pos=gettile(npos),npos
 		tl[var]=_ENV
@@ -1226,7 +1228,7 @@ tickstatuses=function()
 		 hurt(1,nil,true)
 		end
 	end
-	if destroyp and rndp"0.25" then
+	if isflesh and rndp"0.25" then
 		setanim"fleshdeath"
 	end
 end
@@ -1717,7 +1719,10 @@ move=function(dst,playsfx)
 	local dsttile,lasttl=
 	gettile(dst),tl
 	lookat(dst)
-	if dsttile.ent then
+	if dsttile.ent and not 
+	(makeflesh and 
+		dsttile.ent.isflesh)
+	then
 		interact(dsttile.ent)
 	else
 		if moveanim then
@@ -1789,11 +1794,7 @@ sTOW=function(staylit)
 	if equipped then
 		equipped,player[slot]=nil
 		if lit then
-		 if staylit then
-				player.statuses.TORCH=nil
-		 else
-		 	eXTINGUISH()
-			end
+		 eXTINGUISH(staylit)
 		end
 	end
 end
@@ -1872,9 +1873,11 @@ orbeffect=function(tl,used)
 	end
 end
 
-eXTINGUISH=function()
-	throwln,typ,lit,light,
-	player.statuses.TORCH=0.125,131
+eXTINGUISH=function(statusonly)
+	if not statusonly then
+		throwln,typ,lit,light=0.125,131
+	end
+	player.statuses.TORCH=nil
 end
 
 eMPOWER=function(test,nosnd)
@@ -1912,9 +1915,7 @@ iDENTIFY=function()
 	_ENV,"dISMISS"
 end
 
-dISMISS=function()
-	popdiag()
-end
+dISMISS=popdiag
 
 getname=function()
  return isid() and 
@@ -1931,10 +1932,6 @@ end
 
 isid=function()
  return ided[typ]
-end
-
-addtoinventory=function()
- return add(inventory,_ENV)
 end
 
 rangedatk=function(i,ln,atktype)
@@ -2073,7 +2070,7 @@ function pickup(_ENV)
 		end
 		if #inventory<10 or victory then
 			sfx"25"
-			addtoinventory()
+			add(inventory,_ENV)
 			if victory then
 				player.setanim"victory"
 				player.yface,player.statuses,tl.fire,light=
@@ -2182,7 +2179,7 @@ function genmap(startpos,manmade)
 	genpos,cave,ents,pseen=
 	startpos,not manmade,{unpack(inventory)}
 	
-	assigntable("world:{},validtiles:{},inboundposes:{},tileinbounds:{},drawcalls:{}",_ENV)
+	assigntable("world:{},validtiles:{},inboundtls:{},tileinbounds:{},drawcalls:{}",_ENV)
 	for y=0,20 do
 	 world[y],tileinbounds[y]=
 	 {},{}
@@ -2195,7 +2192,7 @@ function genmap(startpos,manmade)
 	  add(validtiles,tl)
 	  if y>0 and y<20 and 
 	     x>startx and x<endx then
-				add(inboundposes,pos)
+				add(inboundtls,tl)
 				tileinbounds[y][x]=tl
 			end
 	 end
@@ -2211,16 +2208,16 @@ function genmap(startpos,manmade)
 	
 	entropy,gentl=1.5,gettile(genpos)
 	if manmade then
-		genroom(startpos)
+		genroom(gentl)
 	else
 		gencave(gentl)
 	end
 	call"postproc()setupdrawcalls("
 end
 
-function genroom(pos)
-	local roomextrasize=
-		rndint(roomsizevar)
+function genroom(tl)
+	local roomextrasize,pos=
+		rndint"8",tl.pos
 	local roomextraw=
 		rndint(roomextrasize+1)
 	local w,h=minroomw
@@ -2288,7 +2285,7 @@ function genroom(pos)
 	end
 	
 	if entropy<1.5 and doroom(true) then
-		return genroom(rnd(inboundposes))
+		return genroom(rndtl())
 	end
 		
 	entropy-=0.15+rnd"0.1"
@@ -2297,7 +2294,7 @@ function genroom(pos)
 		if rndp(0.4-depth*0.025) then
 			gencave(rndtl())				 
 		end
-		genroom(rnd(inboundposes))	
+		genroom(rndtl())	
 	end
 end
 
@@ -2314,7 +2311,7 @@ function gencave(tl)
 					gentile(tl.typ,ntl)
 					if ntl.tileflag"4" then
 						if rndp(0.005+depth*0.001) then
-							genroom(rnd(inboundposes))
+							genroom(rndtl())
 						end
 					 gencave(ntl)
 					end
@@ -2526,7 +2523,7 @@ function postproc()
 	wanderdsts,fadetoblack={}
 	for n=1,6 do
 		for i=depth,20 do
-			spawn=rnd(spawns[i])
+			spawn={74}--rnd(spawns[i])
 			if (rndp"0.55") break
 		end
 		local spawntl,behav,spawnedany
@@ -2624,7 +2621,7 @@ _g=assigntable(
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
 ,thole:32,txbridge:60,tybridge:44
-,minroomw:3,minroomh:2,roomsizevar:8
+,minroomw:3,minroomh:2
 ,stepstaken:0,itemsfound:0,creaturesslain:0
 ,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
@@ -2711,7 +2708,7 @@ for j,str in inext,split([[
 end
 genmap(vec2s"10,12")
 
-create(130).addtoinventory().eQUIP(true)
+add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
 --create(mapping[317]).addtoinventory()
 call"calclight()print(\^!5f5c\9\6"--key repeat poke
