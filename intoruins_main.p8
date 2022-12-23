@@ -2523,7 +2523,7 @@ function postproc()
 	wanderdsts,fadetoblack={}
 	for n=1,6 do
 		for i=depth,20 do
-			spawn={74}--rnd(spawns[i])
+			spawn=rnd(spawns[i])
 			if (rndp"0.55") break
 		end
 		local spawntl,behav,spawnedany
@@ -2616,7 +2616,7 @@ end
 
 
 _g=assigntable(
-[[mode:play,statet:0,depth:15,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
+[[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
 ,tshortgrass1:54,tflatgrass:38,tlonggrass:58
@@ -2710,7 +2710,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---create(mapping[317]).addtoinventory()
+--add(inventory,create(mapping[303]))
 call"calclight()print(\^!5f5c\9\6"--key repeat poke
 
 __gfx__
