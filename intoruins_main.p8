@@ -761,8 +761,8 @@ function calcvis()
 	function(_ENV)
 		vis=pos==player.pos
 	end)
-	for i=1,6 do
-		viscone(player.pos,adj[i],adj[(i+1)%6+1],usplit"0,1,1")
+	for i,offs in inext,adj do
+		viscone(player.pos,offs,adj[(i+1)%6+1],usplit"0,1,1")
 	end
 end
 
@@ -801,9 +801,7 @@ function(_ENV)
 		local darks=player.stat"darksight"
 		vistoplayer=vis and (light>-darks 
 							or pdist>-2-darks)
-		if vistoplayer then
-			explored=true
-		end
+		explored=explored or vistoplayer
 	end)
 
 	if checkburn then
@@ -844,13 +842,13 @@ function updateenv()
 		if spores>0 then
 			spores=max(spores-rnd"0.25")
 			if spores>1 then
-				adjtls={}
+				local adjtls={}
 				visitadjrnd(
-				function(ntl)
-					if ntl.tileflag"8" and
-						ntl.fire==0
+				function(_ENV)
+					if tileflag"8" and
+						fire==0
 					then
-							add(adjtls,ntl)
+							add(adjtls,_ENV)
 					end
 				end)
 				local portion=spores/(#adjtls+1)
@@ -1229,6 +1227,7 @@ tickstatuses=function()
 		end
 	end
 	if isflesh and rndp"0.25" then
+		alive=--nil
 		setanim"fleshdeath"
 	end
 end
@@ -2202,8 +2201,8 @@ function genmap(startpos,manmade)
 
 	alltiles(
 	function(_ENV)
-		for i=1,6 do
-			adjtl[i]=gettile(pos+adj[i])
+		for i,offs in inext,adj do
+			adjtl[i]=gettile(pos+offs)
 		end
 		adjtl[0]=_ENV
 	end)
