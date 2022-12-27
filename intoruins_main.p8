@@ -2514,11 +2514,12 @@ function postproc()
 	
 	do
 		local _ENV=player
-		animheight,animclip=1
 		setpos(genpos)
 		call"calcdist(pdist)calclight("
+		tl.checkeffects()
 		
-		animoffset.y=-21
+		animoffset.y,animheight,animclip=
+		-21,1
 		setanim(statuses.SLOFALL and alive and "slofall" or "fallin")
 	end
 	--spawn entities										
