@@ -1129,7 +1129,8 @@ checkidle=function()
 end
 
 checkfall=function()
-	if canfall and
+	if var!="effect" and
+	not flying and
 				tl.tileflag"15"
 	then
 		sfx"24"
@@ -1218,7 +1219,7 @@ tickstatuses=function()
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
 			elseif k=="LIGHT" then
-				light,lcool=nil
+				light=nil
 			end
 		end
 		if k=="BURN" then
@@ -1282,7 +1283,7 @@ animfuncs={
 	end,
 	function()--[l]oop
 		animloop=animindex+1
-		animt+=rnd(#anim-animloop)
+		animt+=rnd(#anim-animindex-1)
 	end,
 	function()--[m] land
 		if stat"fallheal" then
@@ -1312,7 +1313,7 @@ animfuncs={
 		destroy(_ENV)
 	end,
 	function()--[p]ut on wings
-		deli(inventory).eQUIP()
+		inventory[#inventory].eQUIP()
 		sfx"25"
 	end,
 	function()--[q] blast off
@@ -1391,17 +1392,17 @@ end
 
 canmove=function(npos,special)
 	local ntl=gettile(npos)
-	if ntl.ent then
-		return
-	 	atk and
+	return
+	 ntl.ent and atk and
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
 	  (ntl.ent.armor or
 	   behavis"hunt" or
 	   isplayer)
-	end
-
-	return special != "atkonly" and ntl.navigable(flying)
+	 or
+	 not ntl.ent and
+	  special != "atkonly" and
+	  ntl.navigable(flying)
 end
 
 seesplayer=function()
@@ -1685,11 +1686,6 @@ doatk=function(ntl,pat)
 				b.setstatus(ai and "STUN,2,2,11,3" or "STUN,3")
 				b.animtext"○,wavy:1"
 			end
-		end
-		if b.hitfire and stat"torch" then
-			--relight torch
-			assigntable("thrwln:0,typ:130,lit:,light:4",wpn)
-			setstatus"TORCH,160,160,2,9"
 		end
 		
 		if makeflesh then
