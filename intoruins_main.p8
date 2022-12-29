@@ -795,14 +795,6 @@ function(_ENV)
 		end
 	end)
 	dijkstra("light",tovisit,1)
-	
-	alltiles(
-	function(_ENV)
-		local darks=player.stat"darksight"
-		vistoplayer=vis and (light>-darks 
-							or pdist>-2-darks)
-		explored=explored or vistoplayer
-	end)
 
 	if checkburn then
 		repeat
@@ -826,6 +818,14 @@ function(_ENV)
 			end
 		until noburn
 	end
+	
+	alltiles(
+	function(_ENV)
+		local darks=player.stat"darksight"
+		vistoplayer=vis and (light>-darks 
+							or pdist>-2-darks)
+		explored=explored or vistoplayer
+	end)
 end
 
 function trysetfire(_ENV,always)
