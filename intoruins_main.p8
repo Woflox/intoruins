@@ -1278,8 +1278,6 @@ animfuncs={
 		end
 		if statuses.BURN then
 			pushtl.entfire()
-		elseif pushtl.ent and pushtl.ent.statuses.BURN then
-			tl.entfire()
 		end
 	end,
 	function()--[l]oop
