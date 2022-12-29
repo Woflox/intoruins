@@ -798,7 +798,7 @@ function(_ENV)
 
 	if checkburn then
 		repeat
-			noburn=true
+			local noburn=true
 			for _ENV in all(ents) do
 				if hp and 
 							stat"burnlight" and 
