@@ -1129,8 +1129,7 @@ checkidle=function()
 end
 
 checkfall=function()
-	if var!="effect" and
-	not flying and
+	if canfall and
 				tl.tileflag"15"
 	then
 		sfx"24"
@@ -1219,7 +1218,7 @@ tickstatuses=function()
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
 			elseif k=="LIGHT" then
-				light=nil
+				light,lcool=nil
 			end
 		end
 		if k=="BURN" then
@@ -1283,7 +1282,7 @@ animfuncs={
 	end,
 	function()--[l]oop
 		animloop=animindex+1
-		animt+=rnd(#anim-animindex-1)
+		animt+=rnd(#anim-animloop)
 	end,
 	function()--[m] land
 		if stat"fallheal" then
@@ -1313,7 +1312,7 @@ animfuncs={
 		destroy(_ENV)
 	end,
 	function()--[p]ut on wings
-		inventory[#inventory].eQUIP()
+		deli(inventory).eQUIP()
 		sfx"25"
 	end,
 	function()--[q] blast off
@@ -1392,17 +1391,17 @@ end
 
 canmove=function(npos,special)
 	local ntl=gettile(npos)
-	return
-	 ntl.ent and atk and
+	if ntl.ent then
+		return
+	 	atk and
 	  special != "noatk" and not
 	  (ai and ntl.ent.ai) and
 	  (ntl.ent.armor or
 	   behavis"hunt" or
 	   isplayer)
-	 or
-	 not ntl.ent and
-	  special != "atkonly" and
-	  ntl.navigable(flying)
+	end
+
+	return special != "atkonly" and ntl.navigable(flying)
 end
 
 seesplayer=function()
