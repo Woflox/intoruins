@@ -805,21 +805,26 @@ function(_ENV)
 	end)
 
 	if checkburn then
-		for _ENV in all(ents) do
-			if hp and 
-			   stat"burnlight" and 
-			   tl.light>=2 and
-			   not statuses.BURN
-			then
-				if despawn and nolightspawn then
-					destroy(_ENV)
-				else
-					burn()
-					trysetfire(tl,true)
-					sfx"36"
+		repeat
+			noburn=true
+			for _ENV in all(ents) do
+				if hp and 
+							stat"burnlight" and 
+							tl.light>=2 and
+							not statuses.BURN
+				then
+					if despawn and nolightspawn then
+						destroy(_ENV)
+					else
+						burn()
+						trysetfire(tl,true)
+						tl.light,noburn=4
+						dijkstra("light",{tl},1)
+						sfx"36"
+					end
 				end
 			end
-		end
+		until noburn
 	end
 end
 
@@ -935,7 +940,6 @@ function hexdist(p1,p2)
 end
 
 function hexline(p1,p2,range,linemode,cont)
-	p2=hexnearest(p2),{}
 	local ln,dist,tl={},hexdist(p1,p2)
 	for i=1,min(cont and 20 or dist,range) do
 	 local tl=gettile(hexnearest(
@@ -2583,7 +2587,7 @@ function updateaim(_ENV,lineparams,atktype)
 	_g.aimpos=vec2(aimscrposx/12,
 	            aimscrposy/8-aimscrposx/24)
  
- local aimline=hexline(player.pos,aimpos,unpack(lineparams))
+ local aimline=hexline(player.pos,hexnearest(aimpos),unpack(lineparams))
 	for i,tl in inext,aimline do
 	 if (tl==player.tl) return
 	 tl.hilight=2
