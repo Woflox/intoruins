@@ -1,12 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
 version 38
 __lua__
---keep:iNTO rUINS
---keep:BY ERIC BILLINGSLEY
+--keep:iNTO rUINS cART 2
 --keep:
---keep:unminified source available at
---keep:https://github.com/woflox/intoruins
---keep:
+--keep:unminned:github.com/woflox/intoruins
 
 function modeis(m)
 	return mode==m
@@ -365,7 +362,7 @@ function dialog(func,nosnd)
 end
 
 function setmode(m)
-	assigntable("statet:0,btns:0,mode:"..m,_ENV)
+	at("statet:0,btns:0,mode:"..m,_ENV)
 end
 -->8
 --[[tiles, rendering
@@ -979,7 +976,7 @@ function vec2list(str)
 	return ret
 end
 
-function assigntable(str,table,delim1,delim2)
+function at(str,table,delim1,delim2)--assign table
  table = table or {}
  for i,var in 
 		inext,split(str,delim1)
@@ -991,7 +988,7 @@ function assigntable(str,table,delim1,delim2)
 end
 
 function objtable(str)
-	return setmetatable(assigntable(str),{__index=_ENV})
+	return setmetatable(at(str),{__index=_ENV})
 end
 
 function call(str)
@@ -1052,7 +1049,7 @@ function create(_typ,_pos,_behav,_group)
 	behav,typ,group=
 	_behav,_typ,_group
 	
-	assigntable(entdata[_typ],_ENV)		
+	at(entdata[_typ],_ENV)		
 	counts[countid]+=1
 	animoffset,name,maxhp=
 	vec2(0,yoffs),
@@ -1813,7 +1810,7 @@ orbeffect=function(tl,used)
  if used then
 	 if orbis"light" then
 			player.setstatus"LIGHT,160,160,2,13"
-			assigntable("light:4,lcool:",player)
+			at("light:4,lcool:",player)
 			calclight()
 		elseif orbis"slofall" then
 			player.setstatus"SLOFALL,160,160,2,3"
@@ -2180,7 +2177,7 @@ function genmap(startpos,manmade)
 	genpos,cave,ents,pseen=
 	startpos,not manmade,{unpack(inventory)}
 	
-	assigntable("world:{},validtiles:{},inboundtls:{},tileinbounds:{},drawcalls:{}",_ENV)
+	at("world:{},validtiles:{},inboundtls:{},tileinbounds:{},drawcalls:{}",_ENV)
 	for y=0,20 do
 	 world[y],tileinbounds[y]=
 	 {},{}
@@ -2363,7 +2360,7 @@ function checkspawn(_ENV,_typ,mindist,allowent)
 end
 
 function postproc()
-	function connectareas(permissive)
+	function ca(permissive)--connect areas
 		for i=1,20 do
 			--what a mess
 		 calcdist("pdist",gentl)
@@ -2432,7 +2429,7 @@ function postproc()
 		end
 	end
 
- connectareas()
+ ca()
 	
 	--delete bridges lol
 	alltiles(
@@ -2445,7 +2442,7 @@ function postproc()
 	--fill out manmade area tiles
 	postgen(gentl,gentl)
 	
-	connectareas()
+	ca()
 	
 	--replace single cavewalls
 	alltiles(
@@ -2459,7 +2456,7 @@ function postproc()
 		end
 	end)
 	
-	connectareas(true)
+	ca(true)
 	local numholes,furthestd=0,0
 	
 	alltiles(
@@ -2612,7 +2609,7 @@ end
 --game data / init
 
 
-_g=assigntable(
+_g=at(
 [[mode:play,statet:0,depth:1,btnheld:0,shake:0,invindex:1,btns:0,shakedamp:0.66
 ,tempty:0,tcavefloor:50,tcavefloorvar:52
 ,tcavewall:16,tdunjfloor:48,tywall:18,txwall:20
@@ -2622,7 +2619,7 @@ _g=assigntable(
 ,stepstaken:0,itemsfound:0,creaturesslain:0
 ,specialtiles:{},spawns:{},diags:{},inventory:{},rangedatks:{},mapping:{}]],
 _ENV)
-entdata=assigntable(
+entdata=at(
 	chr(peek(0x8002,%0x8000)),
 	nil,"\n","=")
 
@@ -2633,12 +2630,12 @@ split"15,255,255,255,255,255,255,255,255,255,255,255,255,255",
 split"241,18,179,36,21,214,103,72,73,154,27,220,93,46"
 },
 split"1,13,6,6,13,7,7,6,6,7,13,7,6,7",--frozepal
-assigntable"130:,131:,132:,133:,134:,135:,201:",--ided
+at"130:,131:,132:,133:,134:,135:,201:",--ided
 split"lvl,hp,maxhp,atk,throwatk,dmg,throwdmg,armor,darksight,recharge,range,charges,maxcharges,freezeturns",--enchstats
 split"item,ent,effect",--tlentvars
 split"wpn,cloak,amulet",--itemslots
 updateplayer,--updateturn
-assigntable"generic:0,wpn:0,wearable:0,life:-1,slofall:-1,empower:0,identify:0,light:0"--counts
+at"generic:0,wpn:0,wearable:0,life:-1,slofall:-1,empower:0,identify:0,light:0"--counts
 
 for i,s in inext,
 split([[16
