@@ -875,12 +875,8 @@ function updateenv()
 				fire=0
 				if tileflag"10" then
 					typ=thole
-					if ent then 
-						ent.checkfall()
-					end
-					if item then
-					 item.checkfall()
-					end
+					checkfall(ent)
+					checkfall(item)
 				end
 			end
 		end
@@ -1129,16 +1125,6 @@ checkidle=function()
 	end
 end
 
-checkfall=function()
-	if canfall and
-				tl.tileflag"15"
-	then
-		sfx"24"
-		setanim(fallanim)
-		if (isplayer) calclight()
-	end
-end
-
 setbehav=function(name)
 	if behav!=name then
 		if behavis"sleep" then
@@ -1171,7 +1157,7 @@ setpos=function(npos,setrender)
 		if setrender then
 			renderpos=entscreenpos()+animoffset
 		end
-		checkfall()
+		checkfall(_ENV)
 		if not flying then
 			tl.flatten()
 		end
@@ -1365,7 +1351,7 @@ update=function()
 			
 			if flr(animt)>#anim then
 				if animloop then
-					animt=animloop
+					animt=statuses.FROZEN and animindex or animloop --stop loop at the end if frozen
 				else
 					checkidle()
 					animoffset=vec2s"0,0"
@@ -2164,6 +2150,16 @@ function aggro(_tl)
 	end
 end
 
+function checkfall(_ENV)
+	if _ENV and canfall and
+				tl.tileflag"15"
+	then
+		sfx"24"
+		setanim(fallanim)
+		if (isplayer) calclight()
+	end
+end
+
 function destroy(_ENV)
  if _ENV then
 		del(ents,_ENV)
@@ -2711,7 +2707,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[315]))
+--add(inventory,create(mapping[318]))
 call"calclight()print(\^!5f5c\9\6"--key repeat poke
 
 __gfx__
