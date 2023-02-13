@@ -2538,7 +2538,7 @@ function postproc()
 	end
 	
 	--spawn items
-	for n=1,7-depth\5.99 do
+	for n=1,7-depth\4.99 do
 		checkspawn(rndtl(),mget(64+rndint"56",24),-3)
 	end
 	--rubberbanding items
