@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 38
+version 41
 __lua__
 --keep:iNTO rUINS cART 2
 --keep:
@@ -247,7 +247,7 @@ function inv()
  	invi,invindex=
 	0,getindex(#inventory,invindex)
 	
-	call"listitems(t,t)print(\n\f1 ………………… STOWED)listitems("
+	call"listitems(t,t)print(\n ………………… STOWED,1)listitems("
 end
 
 function info()
