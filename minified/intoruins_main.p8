@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 38
+version 41
 __lua__
 --iNTO rUINS cART 2
 --
@@ -22,7 +22,7 @@ return sel and focus and getbtn"32"and not dis end function getindex(maxind,cur)
 if listitem(item.getname(),
 invi==invindex,uimode=="iDENTIFY"and item.isid()or uimode=="eMPOWER"and item.orb)then dialog(info)selitem=item end end end end function inv()frame(gettrans"126,40",6,126,111,rect)
 ?uimode and"ᶜc  "..uimode.." AN iTEM\nᶜ1 ……………… EQUIPPED"or"ᶜd  iNVENTORY\nᶜ1 ……………… EQUIPPED"
-invi,invindex=0,getindex(#inventory,invindex)call"listitems(t,t)print(\nᶜ1 ………………… STOWED)listitems("end function info()menuindex=getindex(uimode and 1or 2,menuindex)local _ENV,x=selitem,gettrans"42,4"frame(x,6,gettrans"42,93.5",111,rectfill)spr(typ+profilepic,x+3,8)
+invi,invindex=0,getindex(#inventory,invindex)call"listitems(t,t)print(\n ………………… STOWED,1)listitems("end function info()menuindex=getindex(uimode and 1or 2,menuindex)local _ENV,x=selitem,gettrans"42,4"frame(x,6,gettrans"42,93.5",111,rectfill)spr(typ+profilepic,x+3,8)
 ?"ᶜd    "..getname()
 local statstr="ᶜ1 ……………………………ᶜd⁴j"if isid()then for i,str in inext,split("\n  nAME: ,name|\n  wHEN DESCENDING\n  STAFFS CHARGE +,recharge|\n  cASTS LIGHT\n  tHROW TO START FIRE\n		\n  sTOWING DOUSES FLAME,lit|\n  ,desc1|\n  ,desc2|\n  ,desc3|\n  ,desc4|\n  ,desc5|\n		,desc6|\n  aTTACK SHAPE:   ⁴f⁶:3e7f3e0000000000³2⁶:00003e7f3e000000³k⁶:00003e7f3e000000⁵2h⁶:000000081c3e0808\n,arc|\n  dARKSIGHT:  +,darksight|\n  hEALTH:    ,hp|/,maxhp|\n  fREEZE TURNS:,freezeturns|\n  kNOCKBACK:   1,knockback|\n  sTUN:        ,stun|\n  aCCURACY:   +,atk|\n  dAMAGE:      ,dmg|\n  rANGE:       ,range|\n  aRMOR:      +,armor|\n  tHROW RANGE: ,throw|\n  tHROW ACC:  +,throwatk|\n  tHROW DAMAGE:,throwdmg|\n\n  cHARGES: ,charges|/,maxcharges|\n  \n  ᶜecURSED: cANNOT BE\n  REMOVED; dESTROYED\n  BY EMPOWERMENT,cursed","|")do k,v=usplit(str)local val,enchval=selitem[v],eMPOWER(v,true)if val then statstr..=k..val
 if uimode=="eMPOWER"and
@@ -147,7 +147,7 @@ then set(thole)destroy(ent)end end)end if not player then player=create(64,genpo
 if(rndp"0.55")break
 end local spawntl,behav,spawnedany=rndtl(),rnd{"sleep","wander"}for i,typ in inext,spawn do local found=false spawntl.visitadjrnd(function(_ENV)
 if not found and
-checkspawn(_ENV,nil,-4)then create(typ,pos,behav,n)found,spawntl=true,_ENV end end)end end for n=1,7-depth\5.99do checkspawn(rndtl(),mget(64+rndint"56",24),-3)end function rband(countid,options,targetcount)for i=counts[countid],targetcount or depth/2.001do local spwnid=rnd(split(options,"|"))checkspawn(rndtl(),mapping[spwnid]or spwnid,-3)end end call"rband(life,300)rband(slofall,301)rband(empower,302)rband(identify,303)rband(light,304)rband(wpn,132|133|134|135|316|317|318|319,0)rband(wearable,308|309|310|312|313|314,0)calcvis()calclight(,t,t,t"end function aim(params)aimparams,aimpos=params,playerdst setmode"aim"end function updateaim(_ENV,lineparams,atktype)player.aimitem,aimscrpos,_g.aimscrposy=_ENV,screenpos(aimpos)+1.5*vec2(1.5*(tonum(btn"1")-tonum(btn"0")),tonum(btn"3")-tonum(btn"2"))_g.aimscrposx,_g.aimscrposy=mid(campos.x,aimscrpos.x,campos.x+127),mid(campos.y,aimscrpos.y,campos.y+127)_g.aimpos=vec2(aimscrposx/12,aimscrposy/8-aimscrposx/24)local aimline=hexline(player.pos,hexnearest(aimpos),unpack(lineparams))for i,tl in inext,aimline do
+checkspawn(_ENV,nil,-4)then create(typ,pos,behav,n)found,spawntl=true,_ENV end end)end end for n=1,7-depth\4.99do checkspawn(rndtl(),mget(64+rndint"56",24),-3)end function rband(countid,options,targetcount)for i=counts[countid],targetcount or depth/2.001do local spwnid=rnd(split(options,"|"))checkspawn(rndtl(),mapping[spwnid]or spwnid,-3)end end call"rband(life,300)rband(slofall,301)rband(empower,302)rband(identify,303)rband(light,304)rband(wpn,132|133|134|135|316|317|318|319,0)rband(wearable,308|309|310|312|313|314,0)calcvis()calclight(,t,t,t"end function aim(params)aimparams,aimpos=params,playerdst setmode"aim"end function updateaim(_ENV,lineparams,atktype)player.aimitem,aimscrpos,_g.aimscrposy=_ENV,screenpos(aimpos)+1.5*vec2(1.5*(tonum(btn"1")-tonum(btn"0")),tonum(btn"3")-tonum(btn"2"))_g.aimscrposx,_g.aimscrposy=mid(campos.x,aimscrpos.x,campos.x+127),mid(campos.y,aimscrpos.y,campos.y+127)_g.aimpos=vec2(aimscrposx/12,aimscrposy/8-aimscrposx/24)local aimline=hexline(player.pos,hexnearest(aimpos),unpack(lineparams))for i,tl in inext,aimline do
 if(tl==player.tl)return
 tl.hilight=2end player.lookat(aimpos)xface=player.xface
 if getbtn"32"and#aimline>0and
