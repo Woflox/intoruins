@@ -1582,14 +1582,14 @@ victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v
 190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash,canfall:
 191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash,canfall:
 201=n:wINGS OF yENDOR,var:item,light:2,slot:wpn,wpnfrms:8,idleanim:flash,victory:,desc1:aRTIFACT OF LEGEND
-300=,nid:oRB OF lIFE,countid:life,orb:life,orbfx:17,desc1:hEALS YOU FULLY,desc2:,desc3:+3 TO MAX HP,desc4:
-301=,nid:oRB OF gRAVITY,countid:slofall,orb:slofall,orbfx:54,desc1:sLOWS YOUR DESCENT,desc2:,desc3:tHROW TO PUSH,desc4:NEARBY CREATURES,desc5:
-302=,nid:oRB OF pOWER,countid:empower,orb:eMPOWER,orbfx:55,desc1:pERMANENTLY EMPOWERS,desc2:AN ITEM,desc3:
-303=,nid:oRB OF dATA,countid:identify,303,orb:iDENTIFY,orbfx:18,desc1:iDENTIFY AN ITEM,desc2:,desc3:tHROW TO IDENTIFY,desc4:A CREATURE,desc5:
-304=,nid:oRB OF lIGHT,countid:light,orb:light,orbfx:53,desc1:pROVIDES LIGHT FOR,desc2:A WHILE,desc3:,desc4:tHROW FOR A BRIGHT,desc5:FLASH,desc6:
-305=,nid:oRB OF fIRE,orb:fire,orbfx:36,desc1:cREATES A BURST,desc2:OF FIRE,desc3:
-306=,nid:oRB OF iCE,orb:ice,orbfx:28,desc1:fREEZES NEARBY,desc2:CREATURES,desc3:,desc4:(dAMAGE REDUCES,desc5: FREEZE DURATION),desc6:,freezeturns:8
-307=,nid:oRB OF tELEPORT,orb:tele,orbfx:29,desc1:tELEPORTS TARGET TO,desc2:A RANDOM LOCATION,desc3:
+248=,nid:oRB OF lIFE,countid:life,orb:life,orbfx:17,desc1:hEALS YOU FULLY,desc2:,desc3:+3 TO MAX HP,desc4:
+249=,nid:oRB OF gRAVITY,countid:slofall,orb:slofall,orbfx:54,desc1:sLOWS YOUR DESCENT,desc2:,desc3:tHROW TO PUSH,desc4:NEARBY CREATURES,desc5:
+250=,nid:oRB OF pOWER,countid:empower,orb:eMPOWER,orbfx:55,desc1:pERMANENTLY EMPOWERS,desc2:AN ITEM,desc3:
+251=,nid:oRB OF dATA,countid:identify,303,orb:iDENTIFY,orbfx:18,desc1:iDENTIFY AN ITEM,desc2:,desc3:tHROW TO IDENTIFY,desc4:A CREATURE,desc5:
+252=,nid:oRB OF lIGHT,countid:light,orb:light,orbfx:53,desc1:pROVIDES LIGHT FOR,desc2:A WHILE,desc3:,desc4:tHROW FOR A BRIGHT,desc5:FLASH,desc6:
+253=,nid:oRB OF fIRE,orb:fire,orbfx:36,desc1:cREATES A BURST,desc2:OF FIRE,desc3:
+254=,nid:oRB OF iCE,orb:ice,orbfx:28,desc1:fREEZES NEARBY,desc2:CREATURES,desc3:,desc4:(dAMAGE REDUCES,desc5: FREEZE DURATION),desc6:,freezeturns:8
+255=,nid:oRB OF tELEPORT,orb:tele,orbfx:29,desc1:tELEPORTS TARGET TO,desc2:A RANDOM LOCATION,desc3:
 308=,nid:aMULET OF dEFNSE,countid:wearable,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,countid:wearable,darksight:1,rndlvl:
 310=,nid:aMULET OF wISDOM,countid:wearable,recharge:1,rndlvl:,desc1:
@@ -1680,7 +1680,7 @@ for i=0,19 do
 end
 
 for str in all(split([[
-172,173,174,175,188,189,190,191|300,301,302,303,304,305,306,307
+172,173,174,175,188,189,190,191|248,249,250,251,252,253,254,255
 140,141,142,143|308,309,310,311
 156,157,158,159|312,313,314,315
 129,145,161,177|316,317,318,319]]
