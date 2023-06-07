@@ -1216,7 +1216,7 @@ animfuncs={
 	end,
 	function()--[b]lood
 		animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-		animtext".,col:8,speed:0.1,offset:-1"
+		animtext"•,col:8,speed:0.1,offset:-1"
 	end,
 	function()--[c]lip
 		animclip=animoffset.y
@@ -2009,7 +2009,7 @@ end
 end
 
 animtext=function(str)
- textanim=objtable("t:0,speed:0.03333,col:7,offset:-5,wavy:0,text:"..str)
+ textanim=objtable("t:0,speed:0.03333,col:7,offset:-7,wavy:0,text:"..str)
  textanim.pos=entscreenpos()
 end
 
@@ -2694,7 +2694,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(172)).id()--mapping[251]))
+--add(inventory,create(mapping[254]))
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
