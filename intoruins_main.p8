@@ -141,7 +141,7 @@ yOU ESCAPED WITH THE\
 \
 \
 \
-      ❎:cONTINUE,24,21,6,7,victory,8")
+     \-i❎:cONTINUE,24,21,6,7,victory,8")
 end
 
 function popdiag()
