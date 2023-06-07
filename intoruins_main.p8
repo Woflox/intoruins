@@ -137,7 +137,7 @@ yOU ESCAPED WITH THE\
 \-owINGS OF yENDOR!                                        \
 \
 \-h\|isTEPS TAKEN:\-x"..stepstaken.."               \
-\-hiTEMS FOUND:\-x"..itemsfound.."             \
+\-hiTEMS F\-fOUND:\-y"..itemsfound.."             \
 \-hcREATURES SLAIN: "..creaturesslain.."                \
 \
 \
@@ -261,7 +261,7 @@ function info()
 nAME: ,name|\
 wHEN DESCENDING\
 STAFFS CHARGE +,recharge|\
-cASTS LIGHT\
+cASTS 」GHT\
 tHROW TO START FIRE⁵gk\
 sTOWING DOUSES FLAME,lit|\
 ,desc1|\
@@ -270,7 +270,7 @@ sTOWING DOUSES FLAME,lit|\
 ,desc4|\
 aTTACK SHAPE:   \|h●\+2i●\-k●\+2h♥⁵0k,arc|\
 dARKSIGHT:\-s+,darksight|\
-hEALTH:   \-y,hp|/,maxhp|\
+hEAL⁵fgTH:   \-z,hp|/,maxhp|\
 fREEZE TURNS:\-l,freezeturns|\
 kNOCKBACK:\-v1,knockback|\
 sTUN:      \-x,stun|\
@@ -1043,7 +1043,7 @@ function create(_typ,_pos,_behav,_group)
 	counts[countid]+=1
 	animoffset,name,maxhp=
 	vec2(0,yoffs),
-	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y⁵gk,O⁵gk,US⁵gk,OX⁵gk,ERBEE⁵gk,ELIA⁵gk"),
+	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y⁵gk,O⁵gk,US⁵gk,OX⁵gk,ERBEE⁵gk,E」A⁵gk"),
 	hp
 	
 --member functions
@@ -1194,7 +1194,7 @@ tickstatuses=function()
 			statuses[k]=nil
 			if k=="TORCH" then
 				wpn.eXTINGUISH()
-			elseif k=="LIGHT" then
+			elseif k=="」GHT" then
 				light,lcool=nil
 			end
 		end
@@ -1799,7 +1799,7 @@ orbeffect=function(tl,used)
 	local entoritem=tl.ent or tl.item
  if used then
 	 if orbis"light" then
-			player.setstatus"LIGHT,160,160,2,13"
+			player.setstatus"」GHT,160,160,2,13"
 			at("light:4,lcool:",player)
 			calclight()
 		elseif orbis"slofall" then
@@ -2694,7 +2694,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[310]))
+--add(inventory,create(172)).id()
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
