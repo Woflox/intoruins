@@ -252,7 +252,7 @@ function info()
  frame(x,6,gettrans"42,93.5",111,rectfill)
 
  spr(typ+profilepic,x+3,8)
- ?"\fd  \-i"..getname()
+ ?"\fd  \-h"..getname()
  local statstr="\f1\-c……………………………\fd"
  if isid() then
  	for i,str in inext,split(
@@ -267,7 +267,7 @@ sTOWING DOUSES FLAME,lit|\
 ,desc2|\
 ,desc3|\
 ,desc4|\
-aTTACK SHAPE:   \|f●\+2i●\-k●\+2h♥⁵0k,arc|\
+aTTACK SHAPE:   \|h●\+2i●\-k●\+2h♥⁵0k,arc|\
 dARKSIGHT:\-s+,darksight|\
 hEALTH:   \-y,hp|/,maxhp|\
 fREEZE TURNS:\-l,freezeturns|\
@@ -329,9 +329,9 @@ BY EMPOWERMENT,cursed",
 end
 
 function confirmjump()
-	frame(32,gettrans"33,38.5",96,gettrans"33,82.5",rect)
+	frame(33,gettrans"32,37.5",95,gettrans"33,82.5",rect)
 	menuindex=getindex(2,menuindex)
-	?"\fd\|itHE HOLE OPENS\nUP BELOW YOU\-f.\-e.\-e.\n"
+	?"\fd\|itHE HOLE OPENS\nUP BELOW YOU\-f.\-e.\-e.\n\-d\|h\f1……………………"
 	
 	if listitem" jUMP DOWN" then
 	 popdiag()
@@ -2693,7 +2693,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[318]))
+--add(inventory,create(172)).id()--mapping[251]))
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
