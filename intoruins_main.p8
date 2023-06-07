@@ -120,7 +120,7 @@ function _draw()
 		 d()
 	 end
 	end
-	call("textcrawl(\-egAME oVER                                        \
+	call("textcrawl(\-fgAME oVER                                        \
 \
 \
 \
@@ -128,8 +128,9 @@ function _draw()
 \
 \
 \
-\-kdEPTH:"..depth.. 
-"            \n\n\-a❎:tRY AGAIN,47,28,1.3,13,gameover,16)textcrawl(  \^x5◆ victory ◆\^x4                                                                                                                                                                                                \
+\
+\+jcdEPTH:"..depth.. 
+"            \n\n\-b❎:tRY AGAIN,47,28,1.3,13,gameover,16)textcrawl(  \^x5◆ victory ◆\^x4                                                                                                                                                                                                \
 \
 \
 yOU ESCAPED WITH THE\

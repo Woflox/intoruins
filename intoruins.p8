@@ -97,8 +97,7 @@ function _draw()
 \
 \
 \
-\
-  pRESS ❎",
+ \-ipRESS ❎",
   usplit"44,23,0.1,6,title,0,9")
 	then
 	 setmode"intro"
@@ -114,12 +113,10 @@ OF THE FABLED wINGS OF yENDOR?    \
 \
 \
 \
-\
-\
-    tHERE'S NO TURNING BACK...    \
+\|j    tHERE'S NO TURNING BACK...    \
 \
           ❎:jUMP dOWN",
-  usplit"6,7,0,6,intro")
+  usplit"6,15,0,6,intro")
  then
   if statet > 5.75 then
 	  setmode"play"
