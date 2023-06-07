@@ -120,9 +120,7 @@ function _draw()
 		 d()
 	 end
 	end
-	call("textcrawl(\^x5\-dgAME oVER\^x4                                        \
-\
-\
+	call("textcrawl(\-egAME oVER                                        \
 \
 \
 \
@@ -131,21 +129,19 @@ function _draw()
 \
 \
 \-kdEPTH:"..depth.. 
-"            \n\n\-a❎:tRY AGAIN,47,29,1.3,13,gameover,16)textcrawl(  \^x5◆ victory ◆\^x4                                                                                                                                                                                                \
-\
+"            \n\n\-a❎:tRY AGAIN,47,28,1.3,13,gameover,16)textcrawl(  \^x5◆ victory ◆\^x4                                                                                                                                                                                                \
 \
 \
 yOU ESCAPED WITH THE\
 \-owINGS OF yENDOR!                                        \
 \
-\-h\|isTEPS TAKEN:    "..stepstaken.."               \
-\-hiTEMS FOUND:     "..itemsfound.."             \
+\-h\|isTEPS TAKEN:\-x"..stepstaken.."               \
+\-hiTEMS FOUND:\-x"..itemsfound.."             \
 \-hcREATURES SLAIN: "..creaturesslain.."                \
 \
 \
 \
-\
-    ❎:cONTINUE,24,21,6,7,victory,8")
+      ❎:cONTINUE,24,21,6,7,victory,8")
 end
 
 function popdiag()
@@ -158,10 +154,8 @@ function popdiag()
 end
 
 function drawbar(label,val,maxval,col1,col2)
- call"clip(0,117,127,127"
- ?"\#0"..label,barx,117,col1
+ local w=max(print("\#0"..label,barx,117,0)-barx,20)
  
- local w=max(#label*4-1,20)
  local barw=ceil(val*w/maxval)-1
  rect(barx-1,122,barx+w,126,15)
  rect(barx,123,barx+barw,125,col2)
@@ -169,6 +163,7 @@ function drawbar(label,val,maxval,col1,col2)
 	 rectfill(barx,124,barx+barw-1,
 	 									125,col1)
 	end
+ ?label,barx,116,col1
  barx+=w+4
 end
 
@@ -194,7 +189,7 @@ function frame(x,y,x2,y2,func)
  clip()
  func(x-1,y-1,x2+1,y2+1,0)
 	rect(x,y,x2,y2,1)
-	cursor(x-3,y+4)
+	cursor(x+5,y+3)
 	clip(0,0,x2-1,y2)
 end
 
@@ -203,7 +198,7 @@ function listitem(str,sel,dis)
   curindex+=1
   sel=curindex==menuindex
  end
- ?(sel and "\#0\|h❎ "or"\|h  ")..str, dis and 5 or sel and 7 or 13
+ ?(sel and "\#0\-8❎ \-g"or"")..str, dis and 5 or sel and 7 or 13
 	return sel and focus and 
 	 getbtn"32" and not dis
 end
@@ -242,12 +237,12 @@ end
 
 function inv()
  frame(gettrans"126,40",6,126,111,rect)
-	?uimode and"\fc  "..uimode.." AN iTEM\n\f1 ……………… EQUIPPED"or"\fd  iNVENTORY\n\f1 ……………… EQUIPPED"
+	?uimode and"\fc"..uimode.." AN iTEM\n\f1\-c……………… EQUIPPED"or"\fdiNVENTORY\n\f1\-c……………… EQUIPPED"
 	
  	invi,invindex=
 	0,getindex(#inventory,invindex)
 	
-	call"listitems(t,t)print(\n ………………… STOWED,1)listitems("
+	call"listitems(t,t)print(\n\-c………………★ \-dSTOWED,1)listitems("
 end
 
 function info()
@@ -257,45 +252,39 @@ function info()
  frame(x,6,gettrans"42,93.5",111,rectfill)
 
  spr(typ+profilepic,x+3,8)
- ?"\fd    "..getname()
- local statstr="\f1 ……………………………\fd\|j"
+ ?"\fd  \-i"..getname()
+ local statstr="\f1\-c……………………………\fd"
  if isid() then
  	for i,str in inext,split(
 "\
-  nAME: ,name|\
-  wHEN DESCENDING\
-  STAFFS CHARGE +,recharge|\
-  cASTS LIGHT\
-  tHROW TO START FIRE\
-		\
-  sTOWING DOUSES FLAME,lit|\
-  ,desc1|\
-  ,desc2|\
-  ,desc3|\
-  ,desc4|\
-  ,desc5|\
-		,desc6|\
-  aTTACK SHAPE:   \|f\^:3e7f3e0000000000\-2\^:00003e7f3e000000\-k\^:00003e7f3e000000\+2h\^:000000081c3e0808\
-,arc|\
-  dARKSIGHT:  +,darksight|\
-  hEALTH:    ,hp|/,maxhp|\
-  fREEZE TURNS:,freezeturns|\
-  kNOCKBACK:   1,knockback|\
-  sTUN:        ,stun|\
-  aCCURACY:   +,atk|\
-  dAMAGE:      ,dmg|\
-  rANGE:       ,range|\
-  aRMOR:      +,armor|\
-  tHROW RANGE: ,throw|\
-  tHROW ACC:  +,throwatk|\
-  tHROW DAMAGE:,throwdmg|\
-\
-  cHARGES: ,charges|/,maxcharges|\
-  \
-  \fecURSED: cANNOT BE\
-  REMOVED; dESTROYED\
-  BY EMPOWERMENT,cursed",
-  "|")
+nAME: ,name|\
+wHEN DESCENDING\
+STAFFS CHARGE +,recharge|\
+cASTS LIGHT\
+tHROW TO START FIRE⁵gk\
+sTOWING DOUSES FLAME,lit|\
+,desc1|\
+,desc2|\
+,desc3|\
+,desc4|\
+aTTACK SHAPE:   \|f●\+2i●\-k●\+2h♥⁵0k,arc|\
+dARKSIGHT:\-s+,darksight|\
+hEALTH:   \-y,hp|/,maxhp|\
+fREEZE TURNS:\-l,freezeturns|\
+kNOCKBACK:\-v1,knockback|\
+sTUN:      \-x,stun|\
+aCCURACY:\-v+,atk|\
+dAMAGE:  \-z,dmg|\
+rANGE:    \-z,range|\
+aRMOR:  \-z+,armor|\
+tHROW RANGE:  ,throw|\
+tHROW ACC:\-q+,throwatk|\
+tHROW DAMAGE:,throwdmg|\
+⁵gkcHARGES: ,charges|/,maxcharges|\
+⁵gk\fecURSED: cANNOT BE\
+REMOVED; dESTROYED\
+BY EMPOWERMENT,cursed",
+"|")
   do
   	k,v=usplit(str)
 	  local val,enchval=
@@ -316,7 +305,7 @@ function info()
  ?statstr
  
  --menu
- ?"\f1 ……………………………",x-3,86
+ ?"\f1\-c……………………………",x+5,86
                              
  for i,action in inext,
  uimode and{uimode}or
@@ -342,12 +331,12 @@ end
 function confirmjump()
 	frame(32,gettrans"33,38.5",96,gettrans"33,82.5",rect)
 	menuindex=getindex(2,menuindex)
-	?"\fd\|i  tHE HOLE OPENS\n  UP BELOW YOU\-f.\-e.\-e.\n"
+	?"\fd\|itHE HOLE OPENS\nUP BELOW YOU\-f.\-e.\-e.\n"
 	
 	if listitem" jUMP DOWN" then
 	 popdiag()
 	 player.move(playerdst)
-	elseif listitem" dON'\-fT JUMP" then
+	elseif listitem" dON'T JUMP" then
 	 popdiag()
 	end
 end
@@ -1053,7 +1042,7 @@ function create(_typ,_pos,_behav,_group)
 	counts[countid]+=1
 	animoffset,name,maxhp=
 	vec2(0,yoffs),
-	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y\n,O\n,US\n,OX\n,ERBEE\n,ELIA\n"),
+	ai and rnd(split"jEFFR,jENN,fLUFF,gLARB,gREEB,pLORT,rUST,mELL,gRIMB")..rnd(split"Y⁵gk,O⁵gk,US⁵gk,OX⁵gk,ERBEE⁵gk,ELIA⁵gk"),
 	hp
 	
 --member functions
@@ -1226,7 +1215,7 @@ animfuncs={
 	end,
 	function()--[b]lood
 		animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-		animtext".,col:8,speed:0.1,offset:0"
+		animtext".,col:8,speed:0.1,offset:-1"
 	end,
 	function()--[c]lip
 		animclip=animoffset.y
@@ -1242,7 +1231,7 @@ animfuncs={
 	end,
 	function()--[g] sleep Z
 		if tl.vistoplayer then
-			animtext"z,wavy:1"
+			animtext"Z,wavy:1"
 		end
 	end,
 	function()--[h]urt
@@ -1287,7 +1276,7 @@ animfuncs={
 		end
 		if depth==16 then
 			call"sfx(61,-1,1,3"
-			animtext"\-i◜ dEPTH 16 ◝,speed:0.014,col:14"
+			animtext"\-i웃 dEPTH 16 ⌂,speed:0.014,col:14"
 		else
 			log("\-i◆ dEPTH "..depth.." ◆")
 		end
@@ -2019,7 +2008,7 @@ end
 end
 
 animtext=function(str)
- textanim=objtable("t:0,speed:0.03333,col:7,offset:-6,wavy:0,text:"..str)
+ textanim=objtable("t:0,speed:0.03333,col:7,offset:-5,wavy:0,text:"..str)
  textanim.pos=entscreenpos()
 end
 
@@ -2705,7 +2694,7 @@ genmap(vec2s"10,12")
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
 --add(inventory,create(mapping[318]))
-call"calclight()print(\^!5f5c\9\6"--key repeat poke
+call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
 fffffffffffffffffffffff000ffffffffff000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 38
+version 41
 __lua__
 --iNTO rUINS
 --BY ERIC BILLINGSLEY
@@ -86,7 +86,7 @@ function _draw()
 			x=drawbar(v[1]/v[2],k,x,v[3],v[4])	
 		end
 	elseif textcrawl(
-"                  \
+"\14                  \
 			                \
 \
 \
@@ -98,13 +98,12 @@ function _draw()
 \
 \
 \
-\
-  press ❎",
-  usplit"41,24,0.1,6,title,0,9")
+  pRESS ❎",
+  usplit"44,23,0.1,6,title,0,9")
 	then
 	 setmode"intro"
 	elseif	textcrawl(
-" tHE CAVE OPENING CALLS TO YOU.      \
+"\14 tHE CAVE OPENING CALLS TO YOU.\
 cOULD THIS BE THE RESTING PLACE\
 OF THE FABLED wINGS OF yENDOR?    \
 \
@@ -117,10 +116,10 @@ OF THE FABLED wINGS OF yENDOR?    \
 \
 \
 \
-   \-jtHERE'\-eS NO TURNING BACK\-f.\-e.\-e.    \
+    tHERE'S NO TURNING BACK...    \
 \
-         ❎:jump down",
-  usplit"3,18,0,6,intro")
+          ❎:jUMP dOWN",
+  usplit"6,7,0,6,intro")
  then
   if statet > 5.75 then
 	  setmode"play"
@@ -136,8 +135,6 @@ OF THE FABLED wINGS OF yENDOR?    \
 end
 
 function drawbar(ratio,label,x,col1,col2)
- clip(usplit"0,117,127,127")
- ?"\#0"..label,x,117,col1
  
  local w=max(#label*4-1,20)
  local barw=ceil(ratio*w)-1
@@ -147,6 +144,8 @@ function drawbar(ratio,label,x,col1,col2)
 	 rectfill(x,124,x+barw-1,
 	 									125,col1)
 	end
+	?label,x,116,col1
+ 
  return x+w+4
 end
 
@@ -1483,6 +1482,11 @@ end
 -->8
 --game data / init
 
+--custom font
+?"⁶!5600⁴⁸⁷\0\0¹\0\0\0\0\0\0\0\0\0\0w\0\0p\0\0\0⁶q▮¹\0\0\0\0▮\0\0\0\0p⁷'\0\0\0\0 \0\0\0\0▮■■▮r▶!■■■■!■²\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0⁷⁷⁷⁷⁷\0\0\0\0⁷⁷⁷\0\0\0\0\0⁷⁵⁷\0\0\0\0\0⁵²⁵\0\0\0\0\0⁵\0⁵\0\0\0\0\0⁵⁵⁵\0\0\0\0⁴⁶⁷⁶⁴\0\0\0¹²⁶²¹\0\0\0⁷¹¹¹\0\0\0\0\0⁴⁴⁴⁷\0\0\0⁵⁷²⁷²\0\0\0\0\0²\0\0\0\0\0\0\0\0¹²\0\0\0\0\0\0³³\0\0\0⁵⁵\0\0\0\0\0\0²⁵²\0\0\0\0\0\0\0\0\0\0\0\0\0²²²\0²\0\0\0⁵⁵\0\0\0\0\0\0⁵⁷⁵⁷⁵\0\0\0⁷³⁶⁷²\0\0\0⁵⁴²¹⁵\0\0\0³³⁶⁵⁷\0\0\0²¹\0\0\0\0\0\0²¹¹¹²\0\0\0²⁴⁴⁴²\0\0\0⁵²⁷²⁵\0\0\0\0²⁷²\0\0\0\0\0\0\0\0²¹\0\0\0\0⁷\0\0\0\0\0\0\0\0\0¹\0\0\0⁴²²²¹\0\0\0⁶			⁶\0\0\0²³²²²\0\0\0²⁵⁴²⁷\0\0\0⁶	⁴⁸⁷\0\0\0\n\n	ᶠ⁸\0\0\0⁷¹³⁴³\0\0\0⁶¹³⁵⁷\0\0\0⁷⁴²²²\0\0\0⁶⁵⁷⁵⁷\0\0\0²⁵⁷⁴²\0\0\0\0²\0²\0\0\0\0\0²\0²¹\0\0\0⁴²¹²⁴\0\0\0\0⁷\0⁷\0\0\0\0¹²⁴²¹\0\0\0⁷ᶜ⁶\0²\0\0\0²⁵⁵¹⁶\0\0\0\0³⁶⁵⁶\0\0\0¹⁷⁵⁵³\0\0\0\0⁶¹¹⁶\0\0\0¹²⁵⁵⁶\0\0\0\0²⁷¹⁶\0\0\0⁶¹¹³¹\0\0\0\0⁶¹⁵⁷⁴\0\0¹³⁵⁵⁵\0\0\0\0³²²²\0\0\0\0³²²²¹\0\0¹⁵³⁵⁵\0\0\0¹¹¹¹²\0\0\0\0ᵇ‖‖‖\0\0\0\0³⁵⁵⁵\0\0\0\0²⁵⁵²\0\0\0\0³⁵⁵⁷¹\0\0\0⁶⁵⁵⁷⁴\0\0\0³⁵³⁵\0\0\0\0⁶³⁴³\0\0\0\0⁷²²⁴\0\0\0\0⁵⁵⁵⁶\0\0\0\0⁵⁵⁷²\0\0\0\0‖‖‖¥\0\0\0\0⁵³²⁵¹\0\0\0⁵⁵⁶⁴³\0\0\0⁷⁴²⁷\0\0\0³¹¹¹³\0\0\0¹²²²⁴\0\0\0⁶⁴⁴⁴⁶\0\0\0²⁵\0\0\0\0\0\0\0\0\0\0⁷\0\0\0²⁴\0\0\0\0\0\0³⁶\rᵇ	\0\0\0³⁵³\r⁷\0\0\0⁶	¹¹ᵉ\0\0¹⁶			⁶\0\0\0ᵉ¹ᶠ¹ᵉ\0\0\0⁶¹¹⁷¹¹\0\0ᵉ¹¹	ᶠ⁸\0¹\r⁙■■	\0\0\0³²²²²\0\0\0³²²²²¹\0¹	⁷⁵		\0\0\0³²¹¹ᵉ\0\0\0\n‖‖‖‖\0\0\0	ᵇ\r		\0\0\0⁶			⁶\0\0\0⁵ᵇ	\r⁷¹\0\0⁶		\r⁶⁸\0\0⁵ᵇ	⁵	\0\0\0ᵉ³⁶⁸⁷\0\0\0ᶠ²²²ᶜ\0\0\0			\r\n\0\0\0		⁵⁶²\0\0\0‖‖‖‖¥\0\0\0ᵇ⁶⁴\n	\0\0\0		\r\n⁸⁷\0\0ᶠ⁴²⁷」\0\0\0⁶²³²⁶\0\0\0²²²²²\0\0\0³²⁶²³\0\0\0\0⁴⁷¹\0\0\0\0\0²⁵²\0\0\0\0○○○○○\0\0\0U*U*U\0\0\0A○]]>\0\0\0>ccw>\0\0\0■D■D■\0\0\0⁴<、゛▮\0\0>○>\0\0\0\0\0\0⁸、>⁸⁸\0\0\0、6w6、\0\0\0p⁸'\0p\0\0\0⁷\0r⁸⁷\0\0\0>gcg>\0\0\0○]○A○\0\0\0、⁴⁴⁷⁷\0\0\0>ckc>\0\0\0⁸、>、⁸\0\0\0\0\0]\0\0\0\0\0>scs>\0\0\0\0\0\r\0\0\0\0\0>、⁸、>\0\0\0>wcc>\0\0\0\0⁵R \0\0\0\0\0■*D\0\0\0\0>kwk>\0\0\0○\0○\0○\0\0\0UUUUU\0\0"
+poke(0x5f58,0x81)
+memcpy(0xf000,0x5600,0xdff)
+
 _g=assigntable(
 [[mode:title,statet:0,depth:0,turnorder:0,btnheld:0,shake:0,invindex:1,btns:0
 ,tempty:0,tcavefloor:50,tcavefloorvar:521
@@ -1494,22 +1498,22 @@ _g=assigntable(
 _ENV)
 entstr=[[64=n:yOU,hp:20,atk:0,dmg:2,armor:0,atkanim:patk,moveanim:move,deathanim:pdeath,fallanim:pfall,acol:13,ccol:8,darksight:0,shake:0,isplayer:,yoffs:0,yfacespr:1,canfall:,actor:
 70=n:rAT,hp:3,atk:0,dmg:1,armor:0,ai:,flippable:,pdist:-15,alert:14,hurtfx:15,fallanim:fall,profilepic:16,yoffs:0,yfacespr:1,canfall:,actor:
-71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,flippable:,altpdist:-2,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:,canfall:,actor:
+71=n:jACKAL,hp:4,atk:0,dmg:2,armor:0,ai:,flippable:,altpdist:-2,movandatk:,alert:20,hurtfx:21,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING⁵gk,canfall:,actor:
 65=n:gOBLIN,hp:7,atk:1,dmg:3,armor:0,ai:,flippable:,alert:30,hurtfx:11,profilepic:16,yoffs:0,yfacespr:1,canfall:,actor:
-66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,flippable:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;0;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,yfacespr:1,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES,desc3:,canfall:,actor:,healer:
+66=n:gOBLIN MYSTIC,hp:6,armor:0,ai:,flippable:,pdist:-2,alert:30,hurtfx:11,ratks:summon;1_block;0;0;0;22;|heal;1;0;1;0;17,rangep:1,profilepic:16,yoffs:0,yfacespr:1,desc1:sUMMONS SPIRITS,desc2:hEALS ALLIES⁵gk,canfall:,actor:,healer:
 67=n:gOBLIN ARCHER,hp:6,atk:1,dmg:3,armor:0,ai:,flippable:,pdist:-3,alert:30,hurtfx:11,rangep:0.5,throw:6,throwln:1.125,ratks:throw;4;1;0;0;26,profilepic:16,yoffs:0,yfacespr:1,canfall:,actor:
-68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,flippable:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS FIRE,desc2:,canfall:,actor:
-69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,flippable:,alert:31,hurtfx:16,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACK TAKES 2 TURNS,desc2:,canfall:,actor:
-72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,flippable:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,yfacespr:1,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK,desc3:,actor:
-73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,flippable:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT,desc3:,canfall:,actor:
-74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,moveanim:fleshmove,makeflesh:,ai:,flippable:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0,yfacespr:1,desc1:lEAVES FLESH TRAIL.,desc2:sURROUNDS YOU WITH,desc3:FLESH WHEN ATTACKING,desc4:,canfall:,actor:
+68=n:gOBLIN WARLOCK,hp:6,dmg:4,armor:0,ai:,flippable:,pdist:-3,movratio:-0.25,alert:30,hurtfx:11,ratks:fire;4__;1;0;0;36,rangep:0.25,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS FIRE⁵gk,canfall:,actor:
+69=n:oGRE,hp:15,atk:3,dmg:8,armor:1,slow:,knockback:,stun:2,ai:,flippable:,alert:31,hurtfx:16,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACK TAKES 2 TURNS⁵gk,canfall:,actor:
+72=n:bAT,hp:5,atk:3,dmg:8,armor:0,movratio:0.33,ai:,flippable:,behav:wander,nightvision:,burnlight:,flying:,darkspawn:,idleanim:batidle,alert:32,hurtfx:13,profilepic:16,yoffs:0,yfacespr:1,nolightspawn:,desc1:bURNS IN LIGHT,desc2:sEES IN THE DARK⁵gk,actor:
+73=n:pINK JELLY,hp:10,atk:1,dmg:2,armor:0,ai:,flippable:,hurtsplit:,deathanim:jellydeath,moveanim:emove,movratio:0.33,alert:19,hurtfx:19,profilepic:16,yoffs:0,desc1:hALVES HP AND SPLITS,desc2:IN TWO WHEN HIT⁵gk,canfall:,actor:
+74=n:fLESH HORROR,hp:30,atk:5,dmg:8,armor:0,moveanim:fleshmove,makeflesh:,ai:,flippable:,alert:45,hurtfx:46,movratio:0.33,profilepic:16,yoffs:0,yfacespr:1,desc1:lEAVES FLESH TRAIL.,desc2:sURROUNDS YOU WITH,desc3:FLESH WHEN ATTACKING⁵gk,canfall:,actor:
 89=n:pILE OF FLESH,hp:3,nopush:,death:42,hurtfx:10,flippable:,idleanim:fleshidle,yoffs:0,deathanim:fleshsplode,canfall:,isflesh:
 75=n:sPECTRAL BLADE,hp:3,atk:2,dmg:2,armor:0,alwayshunt:,movratio:0.6,death:44,idleanim:hover,deathanim:bladedeath,flying:,ai:,flippable:,behav:hunt,light:3,lcool:,profilepic:16,yoffs:0,yfacespr:1,actor:
-76=n:mIRRORSHARD,hp:8,ai:,flippable:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,freezeturns:8,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:
-77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,flippable:,altpdist:-2,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES,desc3:,canfall:,actor:
-78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,flippable:,moveanim:emove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0,yfacespr:1,desc1:bREATHES FIRE,desc2:dOESN'T BURN,desc3:,canfall:,actor:
-137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:,yoffs:1,desc1:bURSTS INTO HEALING,desc2:SPORES,desc3:,canfall:
-136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23,yoffs:0,desc1:eASILY KNOCKED OVER,desc2:,canfall:
+76=n:mIRRORSHARD,hp:8,ai:,flippable:,pdist:-2,altpdist:-4,dmg:6,armor:1,behav:wander,deathanim:sharddeath,rangep:0.3333,freezeturns:8,flying:,hurtfx:48,alert:47,idleanim:hover,ratks:blink;3_block_;-1;0;1;29|ice;6_pass_;1;0;0;28|lightning;6_pass_;1;0;0;9,profilepic:16,yoffs:0,yfacespr:1,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS,desc4:,actor:,profilepic:16,yoffs:0,desc1:sHOOTS LIGHTNING,desc2:sHOOTS ICE,desc3:tELEPORTS⁵gk,actor:
+77=n:gLOWHORN,hp:6,atk:3,dmg:4,knockback:,movandatk:,sporedeath:5,armor:0,ai:,flippable:,altpdist:-2,light:3,lcool:,alert:49,hurtfx:50,deathanim:horndeath,profilepic:16,yoffs:0,yfacespr:1,desc1:aTTACKS WHILE MOVING,desc2:bURSTS INTO SPORES⁵gk:,canfall:,actor:
+78=n:dRAGON,hp:20,atk:5,dmg:8,armor:5,nofire:,ai:,flippable:,moveanim:emove,rangep:0.33,alert:51,hurtfx:52,scrxoffset:-6.5,width:2,movratio:0.33,ratks:fire;4_pass_;1;0;0;51,profilepic:17,yoffs:0,yfacespr:1,desc1:bREATHES FIRE,desc2:dOESN'T BURN⁵gk,canfall:,actor:
+137=n:mUSHROOM,hp:1,sporedeath:12,light:4,lcool:,deathanim:mushdeath,flippable:,flammable:,death:42,nopush:,yoffs:1,desc1:bURSTS INTO HEALING,desc2:SPORES⁵gk,canfall:
+136=n:bRAZIER,hp:1,nofire:,hitpush:,pushanim:brazierpush,fallanim:brazierfall,hitfire:,light:4,idleanim:brazieridle,deathanim:brazierdeath,death:23,yoffs:0,desc1:eASILY KNOCKED OVER⁵gk,canfall:
 169=n:cHAIR,hp:3,nofire:,hitpush:,pushanim:proppush,fallanim:propfall,flippable:,deathanim:propdeath,death:23,yoffs:0,canfall:
 200=n:bARREL,hp:3,hitpush:,pushanim:proppush,fallanim:propfall,flammable:,deathanim:propdeath,death:23,yoffs:0,canfall:
 138=n:fIRE,var:effect,light:4,idleanim:fireidle,deathanim:firedeath,animspeed:0.33,flippable:
@@ -1556,11 +1560,11 @@ pfall=w0v54v54v64cv74v84v84e444rx
 fallin=wwsv90v90v94v94sv5mh46666666sv54v3440r
 slofall=wwsv94v84v74v64v54v54v54v54v544v5444v54m00r
 victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v52v32v52v32v52v32v52v32v52v32v52qu9v12v02v4v02v3v02u8v2v02v1v02v0v02u7v0v02v02v0v02u6v0v02v0v02v0v02u5v0v02v0v02u4v0v02v0v02u3v0v0u02l0
-130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash,desc1:cAN'T BE RELIT,desc2:,canfall:
-132=n:sPEAR,var:item,countid:wpn,slot:wpn,dmg:3,atk:1,guard:,throwatk:3,throwdmg:5,throw:6,throwln:0.25,wpnfrms:16,idleanim:flash,rndlvl:,desc1:wHILE WAITING ATTACK,desc2:CREATURES WHO MOVE,desc3:IN FRONT OF YOU,desc4:,canfall:
-133=n:rAPIER,var:item,countid:wpn,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACK WHEN STEPPING,desc2:TOWARDS A CREATURE,desc3:,canfall:
+130=n:tORCH,var:item,slot:wpn,dmg:3,atk:1,lit:,throw:4,light:4,throwln:0,wpnfrms:16,idleanim:flash,desc1:cAN'T BE RELIT⁵gk,canfall:
+132=n:sPEAR,var:item,countid:wpn,slot:wpn,dmg:3,atk:1,guard:,throwatk:3,throwdmg:5,throw:6,throwln:0.25,wpnfrms:16,idleanim:flash,rndlvl:,desc1:wHILE WAITING ATTACK,desc2:CREATURES WHO MOVE,desc3:IN FRONT OF YOU⁵gk,canfall:
+133=n:rAPIER,var:item,countid:wpn,slot:wpn,dmg:2,atk:3,lunge:,throw:4,throwln:1,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACK WHEN STEPPING,desc2:TOWARDS A CREATURE⁵gk,canfall:
 134=n:aXE,var:item,countid:wpn,slot:wpn,dmg:3,atk:1,arc:,throw:5,throwdmg:5,wpnfrms:16,throwflp:-1,atkpat:1|3,idleanim:flash,rndlvl:,canfall:
-135=n:hAMMER,var:item,countid:wpn,slot:wpn,dmg:6,atk:1,stun:3,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACK TAKES 2 TURNS,desc2:,canfall:
+135=n:hAMMER,var:item,countid:wpn,slot:wpn,dmg:6,atk:1,stun:3,knockback:,slow:,throw:2,throwdmg:3,wpnfrms:16,idleanim:flash,rndlvl:,desc1:aTTACK TAKES 2 TURNS⁵gk,canfall:
 129=n:oAKEN STAFF,var:item,throw:4,idleanim:flash,rndlvl:,canfall:
 145=n:dRIFTWOOD STAFF,var:item,throw:4,idleanim:flash,rndlvl:,canfall:
 161=n:eBONY STAFF,var:item,throw:4,idleanim:flash,rndlvl:,canfall:
@@ -1582,26 +1586,26 @@ victory=w00000000000000000000000p440000000000000000000000u8j2222v32v52v32v52v32v
 190=n:pURPLE ORB,var:item,light:2,throw:6,idleanim:flash,canfall:
 191=n:pINK ORB,var:item,light:2,throw:6,idleanim:flash,canfall:
 201=n:wINGS OF yENDOR,var:item,light:2,slot:wpn,wpnfrms:8,idleanim:flash,victory:,desc1:aRTIFACT OF LEGEND
-248=,nid:oRB OF lIFE,countid:life,orb:life,orbfx:17,desc1:hEALS YOU FULLY,desc2:,desc3:+3 TO MAX HP,desc4:
-249=,nid:oRB OF gRAVITY,countid:slofall,orb:slofall,orbfx:54,desc1:sLOWS YOUR DESCENT,desc2:,desc3:tHROW TO PUSH,desc4:NEARBY CREATURES,desc5:
-250=,nid:oRB OF pOWER,countid:empower,orb:eMPOWER,orbfx:55,desc1:pERMANENTLY EMPOWERS,desc2:AN ITEM,desc3:
-251=,nid:oRB OF dATA,countid:identify,303,orb:iDENTIFY,orbfx:18,desc1:iDENTIFY AN ITEM,desc2:,desc3:tHROW TO IDENTIFY,desc4:A CREATURE,desc5:
-252=,nid:oRB OF lIGHT,countid:light,orb:light,orbfx:53,desc1:pROVIDES LIGHT FOR,desc2:A WHILE,desc3:,desc4:tHROW FOR A BRIGHT,desc5:FLASH,desc6:
+248=,nid:oRB OF lIFE,countid:life,orb:life,orbfx:17,desc1:hEALS YOU FULLY⁵gk,desc2:+3 TO MAX HP⁵gk
+249=,nid:oRB OF gRAVITY,countid:slofall,orb:slofall,orbfx:54,desc1:sLOWS YOUR DESCENT⁵gk,desc2:tHROW TO PUSH,desc3:NEARBY CREATURES⁵gk
+250=,nid:oRB OF pOWER,countid:empower,orb:eMPOWER,orbfx:55,desc1:pERMANENTLY EMPOWERS,desc2:AN ITEM⁵gk
+251=,nid:oRB OF dATA,countid:identify,303,orb:iDENTIFY,orbfx:18,desc1:iDENTIFY AN ITEM⁵gk,desc2:tHROW TO IDENTIFY,desc3:A CREATURE⁵gk
+252=,nid:oRB OF lIGHT,countid:light,orb:light,orbfx:53,desc1:pROVIDES LIGHT FOR,desc2:A WHILE⁵gk,desc3:tHROW FOR A BRIGHT,desc4:FLASH⁵gk
 253=,nid:oRB OF fIRE,orb:fire,orbfx:36,desc1:cREATES A BURST,desc2:OF FIRE,desc3:
-254=,nid:oRB OF iCE,orb:ice,orbfx:28,desc1:fREEZES NEARBY,desc2:CREATURES,desc3:,desc4:(dAMAGE REDUCES,desc5: FREEZE DURATION),desc6:,freezeturns:8
-255=,nid:oRB OF tELEPORT,orb:tele,orbfx:29,desc1:tELEPORTS TARGET TO,desc2:A RANDOM LOCATION,desc3:
+254=,nid:oRB OF iCE,orb:ice,orbfx:28,desc1:fREEZES NEARBY,desc2:CREATURES⁵gk,desc3:(dAMAGE REDUCES,desc4: FREEZE DURATION)⁵gk,freezeturns:8
+255=,nid:oRB OF tELEPORT,orb:tele,orbfx:29,desc1:tELEPORTS TARGET TO,desc2:A RANDOM LOCATION⁵gk
 308=,nid:aMULET OF dEFNSE,countid:wearable,armor:1,rndlvl:
 309=,nid:dARKSIGHT aMULET,countid:wearable,darksight:1,rndlvl:
 310=,nid:aMULET OF wISDOM,countid:wearable,recharge:1,rndlvl:,desc1:
-311=,nid:aMULET OF rECKONING,dmghurt:,fallheal:,cursed:,idprefix:ᶜe³i✽,desc1:dEALING MELEE DAMAGE,desc2:HURTS YOU,desc3:,desc4:dESCENDING HEALS +3,desc5:
+311=,nid:aMULET OF rECKONING,dmghurt:,fallheal:,cursed:,idprefix:ᶜe³i✽,desc1:dEALING MELEE DAMAGE,desc2:HURTS YOU⁵gk,desc3:dESCENDING HEALS +3⁵gk
 312=,nid:cLOAK OF dEFENSE,countid:wearable,armor:1,rndlvl:
 313=,nid:dARKSIGHT cLOAK,countid:wearable,darksight:1,rndlvl:
 314=,nid:cLOAK OF wISDOM,countid:wearable,recharge:1,falleffect:,rndlvl:,desc1:
-315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:,idprefix:ᶜe³i✽,desc1:cATCH FIRE IN LIGHT,desc2:,desc3:dEALING MELEE DAMAGE,desc4:HEALS YOU,desc5:
-316=,nid:sTAFF OF fIRE,countid:wpn,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36,desc1:cREATES A LINE OF,desc2:FIRE AND DAMAGES,desc3:TARGET,desc4:
-317=,nid:sTAFF OF lYTNING,countid:wpn,dmg:4,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9,desc1:zAPS MULTIPLE,desc2:TARGETS IN A LINE,desc3:
-318=,nid:sTAFF OF iCE,countid:wpn,charges:3,maxcharges:3,range:3,linemode:pass,freezeturns:7,rangetyp:ice,usefx:28,desc1:fREEZES MULTIPLE,desc2:TARGETS IN A LINE,desc3:,desc4:(dAMAGE REDUCES,desc5: FREEZE DURATION)
-319=,nid:sTAFF OF bLINK,countid:wpn,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29,desc1:tELEPORT TO TARGET,desc2:SPACE,desc3:
+315=,nid:vAMPIRE cLOAK,burnlight:,dmgheal:,cursed:,idprefix:ᶜe³i✽,desc1:cATCH FIRE IN LIGHT⁵gk,desc2:dEALING MELEE DAMAGE,desc3:HEALS YOU⁵gk
+316=,nid:sTAFF OF fIRE,countid:wpn,dmg:4,charges:3,maxcharges:3,range:3,rangetyp:fire,usefx:36,desc1:cREATES A LINE OF,desc2:FIRE AND DAMAGES,desc3:TARGET⁵gk
+317=,nid:sTAFF OF lYTNING,countid:wpn,dmg:4,charges:3,maxcharges:3,range:3,linemode:pass,rangetyp:lightning,usefx:9,desc1:zAPS MULTIPLE,desc2:TARGETS IN A LINE⁵gk
+318=,nid:sTAFF OF iCE,countid:wpn,charges:3,maxcharges:3,range:3,linemode:pass,freezeturns:7,rangetyp:ice,usefx:28,desc1:fREEZES MULTIPLE,desc2:TARGETS IN A LINE⁵gk,desc3:(dAMAGE REDUCES,desc4: FREEZE DURATION)
+319=,nid:sTAFF OF bLINK,countid:wpn,charges:3,maxcharges:3,range:3,linemode:block,rangetyp:blink,usefx:29,desc1:tELEPORT TO TARGET,desc2:SPACE⁵gk
 58=37
 38=10
 54=10
