@@ -102,7 +102,7 @@ function _draw()
 	then
 	 setmode"intro"
 	elseif	textcrawl(
-"\14 tHE CAVE OPENING CALLS TO YOU.\
+"\14 tHE CAVE OPENING CALLS TO YOU.         \
 cOULD THIS BE THE RESTING PLACE\
 OF THE FABLED wINGS OF yENDOR?    \
 \
@@ -113,18 +113,18 @@ OF THE FABLED wINGS OF yENDOR?    \
 \
 \
 \
-\|j    tHERE'S NO TURNING BACK...    \
+    \|jtHERE'S NO TURNING BACK...    \
 \
           ❎:jUMP dOWN",
   usplit"6,15,0,6,intro")
  then
-  if statet > 5.75 then
+  if statet > 5.675 then
 	  setmode"play"
 	  music(-1,300)
 	  musicplayed=false
 	  player.move(vec2s"10,12")
 	 else
-	 	statet=5.75
+	 	statet=5.675
 	 end
 	end
 	inputblocked=false
