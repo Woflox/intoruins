@@ -191,7 +191,7 @@ function frame(x,y,x2,y2,func)
  func(x-1,y-1,x2+1,y2+1,0)
 	rect(x,y,x2,y2,1)
 	cursor(x+5,y+3)
-	clip(0,0,x2-1,y2)
+	clip(0,0,x2-0.4,y2)
 end
 
 function listitem(str,sel,dis)
@@ -1216,7 +1216,7 @@ animfuncs={
 	end,
 	function()--[b]lood
 		animpal=split"8,8,8,8,8,8,8,8,8,8,8,8,8,8"
-		animtext"•,col:8,speed:0.1,offset:-1"
+		animtext"•,col:8,speed:0.1,offset:0"
 	end,
 	function()--[c]lip
 		animclip=animoffset.y
@@ -2694,7 +2694,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[254]))
+--add(inventory,create(mapping[310]))
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
