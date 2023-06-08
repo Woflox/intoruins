@@ -679,9 +679,7 @@ function rndtl()
 end
 
 function alltiles(func)
-	for i,tl in ipairs(validtiles) do
-		func(tl)
-	end
+	foreach(validtiles,func)
 end
 
 function dijkstra(var,tovisit,flag)
@@ -1942,7 +1940,7 @@ end
  if i*spd>=lngth then
   if atkis"throw" then
 			doatk(tl)
-		 if tl.tileflag"15" then
+		 if tl.tileflag"15" and not (tl.ent and orb) then
 		 	setpos(tl.pos,true)
 		 elseif lit then
 		 	tl.setfire()
@@ -2695,6 +2693,7 @@ genmap(vec2s"10,12")
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
 --add(inventory,create(172)).id()
+--player.light,player.hp=4,1000
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
 __gfx__
