@@ -276,7 +276,7 @@ kNOCKBACK:\-v1,knockback|\
 sTUN:      \-x,stun|\
 aCCURACY:\-v+,atk|\
 dAMAGE:  \-z,dmg|\
-rANGE:    \-z,range|\
+rANGE:    \-y,range|\
 aRMOR:  \-z+,armor|\
 tHROW RANGE:  ,throw|\
 tHROW ACC:\-q+,throwatk|\
@@ -1494,13 +1494,13 @@ taketurn=function()
 				end
 			end
 			if behavis"search" then
-				checkaggro"1.0"
-				local goal=pdist
-				findmove("search",goal,"aggro")
-				if not checkaggro"1.0" and
-					tl.search == goal
-				then
-					setbehav"wander"
+				if not checkaggro"1.0" then
+					findmove("search",pdist,"aggro")
+					if not checkaggro"1.0" and
+						tl.search == pdist
+					then
+						setbehav"wander"
+					end
 				end
 			else
 				checkaggro"0.29"
@@ -2692,7 +2692,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(172)).id()
+--add(inventory,create(mapping[309])).eQUIP(true)--id()
 --player.light,player.hp=4,1000
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
