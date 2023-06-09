@@ -2533,7 +2533,7 @@ function postproc()
 	function rband(countid,options,targetcount)
 		for i=counts[countid],targetcount or depth/2.001 do
 			local spwnid=rnd(split(options,"|"))
-			printh(countid)
+			--printh(countid)
 			checkspawn(rndtl(),spwnid,-3)
 		end
 	end
@@ -2691,7 +2691,7 @@ end
 genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP(true)
---player.setstatus"TORCH,160,160,2,9"
+player.setstatus"TORCH,160,160,2,9"
 --add(inventory,create(mapping[309])).eQUIP(true)--id()
 --player.light,player.hp=4,1000
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
