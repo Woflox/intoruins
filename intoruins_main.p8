@@ -110,7 +110,7 @@ function _draw()
 			drawbar(unpack(v))	
 		end
 	elseif modeis"aim" then
-		call"print(\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM     ❎:fIRE,18,118"
+		call"print(\f6⬅️\+fd⬆️\+8m⬇️\+fd➡️:aIM      ❎:fIRE,18,117"
 	end
 	if modeis"ui" then
 		if (getbtn"16") popdiag()
