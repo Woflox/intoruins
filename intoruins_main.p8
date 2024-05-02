@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 42
 __lua__
 --keep:iNTO rUINS cART 2
 --keep:
@@ -74,16 +74,17 @@ function _draw()
 		call(anyfire and "music(32,500,3" or "music(-1,500")
 	end
 	
-	for i,atk in inext,rangedatks do
+	foreach(rangedatks, function(atk)
 	 atk[2][1]+=1 --counter
 		if atk[1](unpack(atk[2])) then
 		 del(rangedatks,atk)
 		end
-	end
+	end)
 	
 	call"pal()palt(1)pal(15,129,1)pal(11,131,1)fillp("
 	
 	if modeis"play" or modeis"victory"then
+		
 		for i,ent in inext,ents do
 			local _ENV=ent.textanim
 			if _ENV and t<=0.5 then
@@ -219,7 +220,7 @@ end
 
 
 function listitems(nop,eqpd)
-	for j,item in inext,inventory do
+	foreach(inventory,function(item)
 		if item.equipped==eqpd then
 			invi+=1
 			if listitem(item.getname(),
@@ -233,7 +234,7 @@ function listitems(nop,eqpd)
 				selitem=item
 			end
 		end
-	end
+	end)
 end
 
 function inv()
@@ -256,7 +257,7 @@ function info()
  ?"\fd  \-h"..getname()
  local statstr="\f1\-c……………………………\fd"
  if isid() then
- 	for i,str in inext,split(
+ 	foreach(split(
 "\
 nAME: ,name|\
 wHEN DESCENDING\
@@ -285,8 +286,7 @@ tHROW DAMAGE:,throwdmg|\
 ⁵gk\fecURSED: cANNOT BE\
 REMOVED; dESTROYED\
 BY EMPOWERMENT,cursed",
-"|")
-  do
+"|"),function(str)
   	k,v=usplit(str)
 	  local val,enchval=
 	  selitem[v],
@@ -299,7 +299,7 @@ BY EMPOWERMENT,cursed",
 	   	statstr..="\fc▶"..enchval.."\fd"
 	   end
 	  end
-	 end
+	 end)
 	else
 		statstr..="\n  ????"
 	end
@@ -308,14 +308,12 @@ BY EMPOWERMENT,cursed",
  --menu
  ?"\f1\-c……………………………",x+5,86
                              
- for i,action in inext,
- uimode and{uimode}or
+ foreach (uimode and{uimode}or
  {slot and
   (equipped and 
    (lit and"eXTINGUISH" or "sTOW") 
    or"eQUIP")or "uSE",
-  "tHROW"}
- do
+  "tHROW"}, function(action)
  	if listitem(action,nil,
 				 	cursed and equipped and not _g.uimode or 
 					 action=="uSE" and charges==0 or
@@ -326,7 +324,7 @@ BY EMPOWERMENT,cursed",
  	 player.skipturn=true
  		selitem[action]()
  	end
- end
+ end)
 end
 
 function confirmjump()
@@ -1149,6 +1147,10 @@ setpos=function(npos,setrender)
 		if statuses.BURN then
 		 trysetfire(tl,true)
 		end
+		
+		if npos==playerdst and player.waited and player.stat"guard" and hp then
+			player.interact(_ENV)
+		end
 	end
 end
 
@@ -1431,7 +1433,6 @@ taketurn=function()
   return true
  end
 	if isplayer then
-		
 		call"turn(1,4)turn(2,6)turn(8,8"
 		
 		function updst()
@@ -1459,16 +1460,16 @@ taketurn=function()
 			if canmove(playerdst) then
 				if move(playerdst,true) then
 					pickup(dsttile.item)
-				updst()
-				if stat"lunge" and
-					dsttile.vistoplayer and
-					dsttile.ent
-				then
-					interact(dsttile.ent)
+					updst()
+					if stat"lunge" and
+						dsttile.vistoplayer and
+						dsttile.ent and
+						mode!="victory"
+					then
+						interact(dsttile.ent)
+					end
 				end
-			end
-					
-			return true
+				return true
 			elseif dsttile.tileflag"15" then
 				dialog(confirmjump)
 			end
@@ -1721,9 +1722,6 @@ move=function(dst,playsfx)
 		if makeflesh then
 			create(89,lasttl.pos)
 		end
-		if player.waited and player.stat"guard" and dst==playerdst then
-			player.interact(_ENV)
-		end
 	 return true
 	end
 end
@@ -1828,7 +1826,8 @@ orbeffect=function(tl,used)
 		if orbis"slofall" and 
 		   ntl.ent and not used
 		then
-		   ntl.ent.push(i>0 and adj[i] or player.dir)
+		   ntl.ent.canact=--nil
+					ntl.ent.push(i>0 and adj[i] or player.dir)
 		elseif ntl.tileflag"8" and
 		  ntl.typ!=thole
 		then
@@ -2266,7 +2265,7 @@ function genroom(tl)
 	 end
 	end
 	
-	if entropy<1.5 and doroom(true) then
+	if entropy<1.5 and doroom"true" then
 		return genroom(rndtl())
 	end
 		
@@ -2444,7 +2443,7 @@ function postproc()
 		end
 	end)
 	
-	ca(true)
+	ca"true"
 	local numholes,furthestd=0,0
 	
 	alltiles(
@@ -2578,7 +2577,7 @@ function updateaim(_ENV,lineparams,atktype)
 		if atktype=="throw" then
 			sfx"12"
 			player.aimitem=--nil
-			sTOW(true)
+			sTOW"true"
 			del(inventory,_ENV)
 		else
 			id()
@@ -2625,8 +2624,7 @@ split"wpn,cloak,amulet",--itemslots
 updateplayer,--updateturn
 at"generic:0,wpn:0,wearable:0,life:-1,slofall:-1,empower:0,identify:0,light:0"--counts
 
-for i,s in inext,
-split([[16
+foreach(split([[16
 -9,-4
 0,-8|5,-8|13,-8|13,4|4,4|2,4
 5,13|8,13|5,13|5,4|11,4|3,4
@@ -2649,13 +2647,13 @@ split([[16
 ◆default
 -8,-4
 1,0
-15,8]],"◆") do
+15,8]],"◆"),function(s)
 	local typ,baseoffset,offset,size=usplit(s,"\n")
 	specialtiles[typ]=
 	{vec2s(baseoffset),
 	 vec2list(offset),
 	 vec2list(size)}
-end
+end)
 
 for i=0,19 do
 	local curspawns,group=
@@ -2674,25 +2672,25 @@ for i=0,19 do
 end
 
 --shuffle item colors
-for j,str in inext,split([[
+foreach(split([[
 172,173,174,175,188,189,190,191|248,249,250,251,252,253,254,255
 140,141,142,143|308,309,310,311
 156,157,158,159|312,313,314,315
 129,145,161,177|316,317,318,319]]
-,"\n") do
+,"\n"),function(str)
  local itemstr,mapstr=usplit(str,"|")
 	local items=split(itemstr)
-	for k,s in inext,split(mapstr) do
+	foreach(split(mapstr),function(s)
 		local i=del(items,rnd(items))
 		entdata[i]..=entdata[s]
 		mapping[s]=i
-	end
-end
+	end)
+end)
 genmap(vec2s"10,12")
 
-add(inventory,create(130)).eQUIP(true)
+add(inventory,create(130)).eQUIP"true"
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[309])).eQUIP(true)--id()
+--add(inventory,create(mapping[249]))--id()
 --player.light,player.hp=4,1000
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
