@@ -37,15 +37,14 @@ function _update()
 		end
  end
 	
-	local camtarget= 
- 	screenpos(
- 		lerp(player.pos,
+	smoothb=lerp(smoothb,screenpos(
+						  lerp(player.pos,
  							vec2s"10,9.5",
  							(modeis"gameover" or
 							modeis"victory") and
  							max(0.36-statet*2) or
- 							0.36))
-	smoothb=lerp(smoothb,camtarget,0.5)
+ 							0.36)),
+						0.5)
 	smooth=lerp(smooth,smoothb,0.25)
 	
 	function getcampos(val)
@@ -58,7 +57,7 @@ function _update()
 	player.shake*=shakedamp
 end
 
-function _draw()
+	function _draw()
 	cls()
 	camera(campos.x,campos.y)
 	lfillp,anyfire=localfillp(0xbfd6.4,
@@ -483,14 +482,11 @@ checkeffects=function()
 	local hasfire=fire>0 or
  						ent and 
  						ent.statuses.BURN
-	if hasfire and spores>0 then
-		setfire()
-	end
 
 	_g.anyfire=_g.anyfire or hasfire and mode!="ui" and mode!="victory"
 
  checkeffect(138,hasfire)
- checkeffect(139,spores>0)
+ checkeffect(139,spores>0 and not hasfire)
 end
 
 
@@ -509,9 +505,12 @@ flatten=function()
  end
 end
 
-setfire=function()
- fire,spores,newspores,frozen=
- max(fire,1),0,0
+setfire=function(clearspores)
+ fire,frozen=
+ max(fire,1)
+ if clearspores then
+	spores,newspores=0,0
+ end
  entfire()
 end
 
@@ -544,7 +543,7 @@ end
 
 visitadjrnd=function(func)
 	local neighbors={unpack(adjtl)}
-	for i=1,6 do
+	while #neighbors>0 do
 		func(del(neighbors,rnd(neighbors)))
 	end
 end
@@ -572,10 +571,9 @@ function setupdrawcalls()
 			end
 
 		 local baseoffset,offsets,sizes=unpack(specialtiles[i and _typ or "default"])
-		 local offset,size=
-		 offsets[i or 1],
-		 sizes[i or 1]
-		 --special tiles
+		 local offset=
+		 offsets[i or 1]
+				 --special tiles
 			if i then
 			 if _typ==tywall and
 							not postl.altwall then
@@ -594,7 +592,7 @@ function setupdrawcalls()
 			add(drawcalls,{draw,
 							 {_typ,postl,
 							 postl.tlscrpos+offset+baseoffset,
-							  offset,size,
+							  offset,sizes[i or 1],
 							 	flp and 
 							 		tltodraw.tileflag"6", _bg, 
 							 	not(i or _bg)}})
@@ -823,7 +821,7 @@ function trysetfire(_ENV,always)
     	ent and
 					ent.flammable)
 	then
- 	setfire()
+ 	setfire"true"
  end
 end
 
@@ -836,17 +834,20 @@ function updateenv()
 				local adjtls={}
 				visitadjrnd(
 				function(_ENV)
-					if tileflag"8"	then
+					if tileflag"8" and fire==0 then
 							add(adjtls,_ENV)
 					end
 				end)
 				local portion=spores/(#adjtls+1)
 				newspores-=spores-portion
-				for i,ntl in inext,adjtls do
-					ntl.newspores+=portion
+				for i,_ENV in inext,adjtls do
+					newspores+=portion
 				end
 			end
-		end
+		end	
+	end)
+	alltiles(
+	 function(_ENV)
 		if fire>=2 then
 			entfire()
 			visitadjrnd(trysetfire)
@@ -854,7 +855,7 @@ function updateenv()
 				if rndp"0.2" then
 					fire,typ=0,34
 				end
-			else
+			elseif spores==0 then
 				fire=0
 				if tileflag"10" then
 					typ=thole
@@ -870,7 +871,7 @@ function updateenv()
 		newspores=0
 		if fire>=1 then
 			fire+=1
-		 setfire()
+		 setfire"true"
 		end
 		checkeffects()
 	end)
@@ -911,12 +912,12 @@ end
 
 --adapted from redblobgames.com/grids/hexagons
 function hexdist(p1,p2)
-	delta=p1-p2
+	local delta=p1-p2
 	return (abs(delta.x)+abs(delta.y)+abs(p1.x+p1.y-p2.x-p2.y))/2
 end
 
 function hexline(p1,p2,range,linemode,cont)
-	local ln,dist,tl={},hexdist(p1,p2)
+	local ln,dist={},hexdist(p1,p2)
 	for i=1,min(cont and 20 or dist,range) do
 	 local tl=gettile(hexnearest(
 							lerp(p1,p2,i/dist)))
@@ -1606,7 +1607,7 @@ hurt=function(dmg,atkdir,nosplit,_push)
 		push(atkdir)
 	elseif hitfire then
 		sfx"36"
-		tl.setfire()
+		tl.setfire"true"
 	end
 end
 
@@ -1617,7 +1618,7 @@ push=function(dir)
 	if hitfire then
 		sfx"36"
 		light=--nil
-		(pushtl.navigable() and pushtl or tl).setfire()
+		(pushtl.navigable() and pushtl or tl).setfire"true"
 	end
 	if (pushtl.navigable(flying) or pushtl.tileflag"15") and not pushtl.ent then
 		setpos(pushpos)
@@ -1694,12 +1695,13 @@ move=function(dst,playsfx)
 	local dsttile,lasttl=
 	gettile(dst),tl
 	lookat(dst)
-	if dsttile.ent and not 
+	local dstent=dsttile.ent
+	if dstent and not 
 	(makeflesh and 
-		dsttile.ent.isflesh) and
-		dsttile.ent.alive
+		dstent.isflesh) and
+		dstent.alive
 	then
-		interact(dsttile.ent)
+		interact(dstent)
 	else
 		if moveanim then
 			setanim(moveanim)
@@ -1832,7 +1834,7 @@ orbeffect=function(tl,used)
 		  ntl.typ!=thole
 		then
 		 if orbis"fire" then
-				ntl.setfire()
+				ntl.setfire"true"
 			elseif orbis"ice" then
 			 ntl.freeze(freezeturns)
 		 end
@@ -2240,9 +2242,8 @@ function genroom(tl)
 				 end
 				elseif tl then
 					local _ENV=tl
-					altwall=alt!=0
+					altwall,manmade=alt!=0,true
 					destroy(ent)
-					manmade=true
 					
 					if (xwall or ywall) and
 							 not (typ==tdunjfloor 
@@ -2531,9 +2532,8 @@ function postproc()
 	--rubberbanding items
 	function rband(countid,options,targetcount)
 		for i=counts[countid],targetcount or depth/2.001 do
-			local spwnid=rnd(split(options,"|"))
 			--printh(countid)
-			checkspawn(rndtl(),spwnid,-3)
+			checkspawn(rndtl(),rnd(split(options,"|")),-3)
 		end
 	end
 
@@ -2690,7 +2690,7 @@ genmap(vec2s"10,12")
 
 add(inventory,create(130)).eQUIP"true"
 player.setstatus"TORCH,160,160,2,9"
---add(inventory,create(mapping[249]))--id()
+--add(inventory,create(mapping[316]))--id()
 --player.light,player.hp=4,1000
 call"calclight()print(\^!5f5c\9\6)memcpy(0X5600,0xf000,0xdff"
 
