@@ -57,7 +57,7 @@ function _update()
 	player.shake*=shakedamp
 end
 
-	function _draw()
+function _draw()
 	cls()
 	camera(campos.x,campos.y)
 	lfillp,anyfire=localfillp(0xbfd6.4,
@@ -101,7 +101,7 @@ end
  
 	if modeis"play" or
 	   modeis"ui" then
-		barx=2
+		barx=-2
 		drawbar("HP",
 			player.hp,player.maxhp,2,8)
 		for k,v in 
@@ -155,17 +155,19 @@ function popdiag()
 end
 
 function drawbar(label,val,maxval,col1,col2)
- local w=max(print("\#0"..label,barx,117,0)-barx,20)
+ camera(barx,0)
+ local w=max(print("\#0"..label,0,117,0)+barx,20)
  
  local barw=ceil(val*w/maxval)-1
- rect(barx-1,122,barx+w,126,15)
- rect(barx,123,barx+barw,125,col2)
+ rect(-1,122,w,126,15)
+ rect(0,123,barw,125,col2)
  if barw>0 then
-	 rectfill(barx,124,barx+barw-1,
+	 rectfill(0,124,barw-1,
 	 									125,col1)
 	end
- ?label,barx,116,col1
- barx+=w+4
+ ?label,0,116,col1
+ barx-=w+4
+ camera()
 end
 
 function textcrawl(str,x,y,fadet,col,m,mus)
@@ -544,7 +546,7 @@ end
 visitadjrnd=function(func)
 	local neighbors={unpack(adjtl)}
 	while #neighbors>0 do
-		func(del(neighbors,rnd(neighbors)))
+		func(del(neighbors,rnd(neighbors)),0.5)--token saving hack for trysetfire
 	end
 end
 --end tile member functions
@@ -743,7 +745,7 @@ end
 function calcvis()
 	alltiles(
 	function(_ENV)
-		vis=pos==player.pos
+		vis=ent==player
 	end)
 	for i,offs in inext,adj do
 		viscone(player.pos,offs,adj[(i+1)%6+1],usplit"0,1,1")
@@ -793,7 +795,7 @@ function(_ENV)
 						destroy(_ENV)
 					else
 						burn()
-						trysetfire(tl,true)
+						trysetfire(tl)
 						tl.light,noburn=4
 						dijkstra("light",{tl},1)
 						sfx"36"
@@ -812,11 +814,11 @@ function(_ENV)
 	end)
 end
 
-function trysetfire(_ENV,always)
+function trysetfire(_ENV,p)
 	frozen=nil
 	if tileflag"10" or
     spores>0 or
-    (rndp"0.5" or always) and
+    rndp(p or 1) and
    	(tileflag"9" or
     	ent and
 					ent.flammable)
@@ -901,8 +903,8 @@ function screenpos(pos)
 							 				 pos.y*8+pos.x*4) 
 end
 
-function usplit(str,delim)
-	return unpack(split(str,delim))
+function usplit(...)
+	return unpack(split(...))
 end
 
 function round(x)
@@ -1062,11 +1064,9 @@ draw=function()
 			pal(frozepal)
 		end
 		local flp=xface*animflip<0
-		local scrpos=renderpos+
-					vec2(flp and -1 or 0,0)
-		local frame=
-						animframe
-						+max(yface*yfacespr)
+		local scrpos,frame=
+		renderpos+vec2(flp and -1 or 0,0),
+		animframe+max(yface*yfacespr)
 		spr(animtele and 153 or
 		    typ+frame*16,
 						scrpos.x,scrpos.y,
@@ -1146,7 +1146,7 @@ setpos=function(npos,setrender)
 			tl.flatten()
 		end
 		if statuses.BURN then
-		 trysetfire(tl,true)
+		 trysetfire(tl)
 		end
 		
 		if npos==playerdst and player.waited and player.stat"guard" and hp then
@@ -1190,6 +1190,9 @@ tickstatuses=function()
  	end
  end
 	for k,v in next,statuses do
+		if k=="BURN" then
+			hurt(1,nil,true)
+		end
 		v[2]-=1
 		if v[2]<=0 then
 			statuses[k]=nil
@@ -1198,9 +1201,6 @@ tickstatuses=function()
 			elseif k=="」GHT" then
 				light,lcool=nil
 			end
-		end
-		if k=="BURN" then
-		 hurt(1,nil,true)
 		end
 	end
 	if isflesh and rndp"0.25" then
@@ -1575,6 +1575,9 @@ hurt=function(dmg,atkdir,nosplit,_push)
 			call"setmode(gameover)print(\^!5f40\31)calclight("
 		elseif sporedeath then
 			tl.sporeburst(sporedeath)
+			if statuses.BURN then
+				tl.setfire()
+			end
 		elseif summoned and summoned.alive then
 			summoned.hurt(10)
 		end
@@ -1938,8 +1941,8 @@ end
 	end
  
 	tl.initpal()
- if i*spd>=lngth then
-  if atkis"throw" then
+	if i*spd>=lngth then
+		if atkis"throw" then
 			doatk(tl)
 		 if tl.tileflag"15" and not (tl.ent and orb) then
 		 	setpos(tl.pos,true)
@@ -1990,7 +1993,7 @@ end
 			gettile(pos).lflash=2
 		end
 		if atkis"fire" then
-			trysetfire(tl,true)
+			trysetfire(tl)
 			if tl.fire==0 then
 				create(138,tl.pos)
 			end
