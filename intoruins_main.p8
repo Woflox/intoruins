@@ -156,7 +156,7 @@ end
 
 function drawbar(label,val,maxval,col1,col2)
  camera(barx,0)
- local w=max(print("\#0"..label,0,117,0)+barx,20)
+ local w=max(print("\#0"..label,0,117,0),20)
  
  local barw=ceil(val*w/maxval)-1
  rect(-1,122,w,126,15)
