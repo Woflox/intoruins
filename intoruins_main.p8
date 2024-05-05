@@ -1111,7 +1111,7 @@ end
 
 setbehav=function(name)
 	if behav!=name then
-		if behavis"sleep" then
+		if behavis"sleep" and animloop then --checking animloop so we don't interrupt important animations
 			checkidle()
 		end
 		
