@@ -914,7 +914,7 @@ end
 
 --adapted from redblobgames.com/grids/hexagons
 function hexdist(p1,p2)
-	local delta=p1-p2
+	local delta=p1+-p2
 	return (abs(delta.x)+abs(delta.y)+abs(p1.x+p1.y-p2.x-p2.y))/2
 end
 
@@ -947,7 +947,7 @@ end
 
 function hexdir(p1,p2)
 	local dir=hexnearest(
-	        lerp(p1,p2,1/hexdist(p1,p2)))-p1
+	        lerp(p1,p2,1/hexdist(p1,p2)))+-p1
 	for i,d in inext,adj do
 		if (d==dir) return dir,i
 	end
@@ -1003,9 +1003,6 @@ end
 vec2mt={
  __add=function(v1,v2)
   return vec2(v1.x+v2.x,v1.y+v2.y)
- end,
- __sub=function(v1,v2)
-  return -v2+v1
  end,
  __unm=function(self)
   return vec2(-self.x,-self.y)
@@ -1267,13 +1264,14 @@ animfuncs={
 			heal(3)
 			call"sfx(17,-1,6"
 		end
-		if stat"recharge" then
-			for i,item in inext,inventory do
-				if item.charges then
-					item.charges=min(
-						item.maxcharges,item.charges+stat"recharge")
+		local rch=stat"recharge"
+		if rch then
+			foreach(inventory,function(_ENV)
+				if charges then
+					charges=min(
+						maxcharges,charges+rch)
 				end
-			end
+			end)
 			call"sfx(55,-1,6,10"
 		end
 		if depth==16 then
@@ -1943,19 +1941,23 @@ end
 	tl.initpal()
 	if i*spd>=lngth then
 		if atkis"throw" then
-			doatk(tl)
-		 if tl.tileflag"15" and not (tl.ent and orb) then
-		 	setpos(tl.pos,true)
-		 elseif lit then
+			local doeffect=tl.ent or not tl.tileflag"15"
+			if lit and doeffect then
 		 	tl.setfire()
 		 	sfx"36"
-		 elseif orb then
+				doatk(tl)
+			elseif orb and doeffect then
 		  orbeffect(tl)
 				id()
 		  drawburst()
-		 elseif throw and not ai then
+			else
+				doatk(tl)
+				if tl.tileflag"15" then
+		 		setpos(tl.pos,true)
+		 	elseif throw and not ai then
 			 	setpos(findfree(tl,"item"),true)
-		 end
+		 	end
+			end
 			aggro(tl)
 		end
 		return true
@@ -2228,7 +2230,7 @@ function genroom(tl)
 	
 	function doroom(test)
 		local offset,openplan,crumble=
-		minpos-pos,rndp"0.5",rndp"0.25"
+		minpos+-pos,rndp"0.5",rndp"0.25"
 		for y=0,h do
 		 local alt=(pos.y+offset.y+genpos.y+y)%2
 			offset.x-=alt
