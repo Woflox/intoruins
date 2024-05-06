@@ -2,17 +2,19 @@
 py /e/Programs/shrinko8/shrinko8.py intoruins_main.p8 minified/intoruins_main.p8 --minify-safe-only
 
 --bin export
+load intoruins
 export -i 81 -c 15 intoruins.bin minified/intoruins_main.p8
 
 --html export
 export -f intoruins.html -p nodiagonals minified/intoruins_main.p8
 --(replace files in zip with the new ones)
 
---BBS cart export
---(capture label image with f7)
-save carts/intoruins.png
+--cart export
+save carts/offline/intoruins.png
+save carts/bbs/intoruins.png
 --(add "#" and version number to load call for BBS support)
 load minified/intoruins_main
---(capture label image with f7)
-save carts/intoruins_main.png
+save carts/offline/intoruins_main.png
+save carts/bbs/intoruins_main.png
 --(add "#" to load call for BBS support)
+--(replace files in offline zip with the new ones)
